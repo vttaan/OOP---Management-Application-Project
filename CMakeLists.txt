@@ -10,10 +10,52 @@ set(CMAKE_AUTOUIC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets Sql)
 
-# Danh sách các file code
+# LIST OF FILE CODE
 set(PROJECT_SOURCES
     src/main.cpp
     resources/res.qrc
+
+    # file in Core
+        # HEADER
+        src/core/User.h
+        src/core/Staff.h
+        src/core/Manager.h
+        src/core/UserFactory.h
+        # CPP
+        src/core/User.cpp
+        src/core/Staff.cpp
+        src/core/Manager.cpp
+        src/core/UserFactory.cpp
+
+    # file in Utils
+        # HEADER
+        src/utils/Database.h
+        src/utils/SessionManage.h
+        src/utils/Security.h
+        # CPP
+        src/utils/Database.cpp
+        src/utils/SessionManage.cpp
+        src/utils/Security.cpp
+
+    # file in Model
+        # HEADER
+        src/model/Login_Model.h
+        # CPP
+        src/model/Login_Model.cpp
+
+    # file in Control
+        # HEADER
+        src/control/Login_Control.h
+        # CPP
+        src/control/Login_Control.cpp
+
+    # file in View
+        # HEADER
+        src/view/Login_View.h
+        # CPP
+        src/view/Login_View.cpp
+        # UI
+        src/view/Login_View.ui
 )
 
 qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES})
