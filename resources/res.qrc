@@ -1,0 +1,9 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="/">
+	 <!-- Ví dụ thêm file ảnh: <file>login/bg_login.png</file> -->
+	  <!-- Ví dụ:
+             <file>login/bg_login.png</file>
+             <file>sound/click.wav</file>
+        -->
+</qresource>
+</RCC>

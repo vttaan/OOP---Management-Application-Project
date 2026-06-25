@@ -1,0 +1,10 @@
+# Bỏ qua thư mục build
+out/
+build/
+
+# Bỏ qua cấu hình cá nhân của Visual Studio
+.vs/
+*.user
+
+# Bỏ qua file đường dẫn riêng của từng máy
+CMakeUserPresets.json
