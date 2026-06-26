@@ -8,12 +8,12 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON) 
 set(CMAKE_AUTOUIC ON) 
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets Sql)
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Sql)
 
 # LIST OF FILE CODE
 set(PROJECT_SOURCES
     src/main.cpp
-    resources/res.qrc
+    resources/resources.qrc
 
     # file in Core
         # HEADER
@@ -56,10 +56,11 @@ set(PROJECT_SOURCES
         src/view/Login_View.cpp
         # UI
         src/view/Login_View.ui
+
 )
 
 qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES})
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets Qt6::Sql)
+target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core Qt6::Widgets Qt6::Sql)
 target_include_directories(${PROJECT_NAME} PRIVATE src)
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/database 
