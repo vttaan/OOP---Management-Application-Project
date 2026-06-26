@@ -1,8 +1,9 @@
 #include "Login_View.h"
+#include "ui_Login_View.h"
 
 Login_View::Login_View(QWidget *parent)
 	: QWidget(parent)
-    , ui(new Ui::Login_ViewClass())
+    , ui(new Ui::Login_View())
 {
 	ui->setupUi(this);
     ui->btnLogin->setCheckable(true);

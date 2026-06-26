@@ -2,7 +2,7 @@
 #define LOGINVIEW_H
 
 
-#include "ui_Login_View.h"
+//#include "ui_Login_View.h"
 
 #include <QWidget>
 #include <QMessageBox>
@@ -18,7 +18,7 @@ class Login_View : public QWidget
 {
 	Q_OBJECT
 private:
-    Ui::Login_ViewClass *ui;
+    Ui::Login_View *ui;
     QAction *hidePassword;
     QPixmap bgPixmap;
     void setupUI(); // setup icon/button/textbox/title
