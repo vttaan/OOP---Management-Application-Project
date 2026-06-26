@@ -1,0 +1,14 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="/">
+	 <!-- Ví dụ thêm file ảnh: <file>login/bg_login.png</file> -->
+	  <!-- Ví dụ:
+             <file>images/login/bg_login.png</file>
+             <file>sound/click.wav</file>
+        -->
+	<file>styles/styles.qss</file>
+	<file>images/login_bg.jpg</file>
+        <file>images/eyeClosed.svg</file>
+        <file>images/eyeOpen.svg</file>
+	<file>fonts/inter.ttf</file>
+</qresource>
+</RCC>

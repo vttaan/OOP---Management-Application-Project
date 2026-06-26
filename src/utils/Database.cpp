@@ -4,15 +4,18 @@
 Database* Database::instance = nullptr;
 
 Database::Database() {
-	this->dbConnect = QSqlDatabase::addDatabase("QSQLite");
+    this->dbConnect = QSqlDatabase::addDatabase("QSQLITE");
 	dbConnect.setDatabaseName("database/Systems.db");
-	
-	if (!dbConnect.isOpen()) qDebug() << "ERROR CAN NOT OPEN DATABASE\n";
+
+    // isOpen -> open
+    if (!dbConnect.open()) qDebug() << "ERROR CAN NOT OPEN DATABASE\n";
+
 	else qDebug() << "OPEN DATABASE SUCCESS\n";
 }
 
 Database* Database::getInstance() {
-	return Database::instance != nullptr ? Database::instance : new Database();
+    return Database::instance != nullptr ? Database::instance : Database::instance = new Database();
+    //return Database::instance != nullptr ? Database::instance : new Database();
 }
 
 QSqlDatabase Database::getDbConnect() {
@@ -28,7 +31,8 @@ void Database::closeConnect() {
 
 QSqlQuery Database::execQuery(const QString& query) {
 	QSqlQuery ansForQuery(this->dbConnect);
-	if (ansForQuery.exec(query)) {
+    //if (ansForQuery.exec(query))
+    if (!ansForQuery.exec(query)) {
 		ansForQuery.exec(query);
 		qDebug() << "ERROR EXEC QUERY " << ansForQuery.lastError().text() << '\n';
 	}

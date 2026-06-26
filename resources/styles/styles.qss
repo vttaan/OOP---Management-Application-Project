@@ -1,0 +1,145 @@
+
+Login_View {
+    background-color: white;
+}
+
+
+QFrame#frmLoginLeft {
+    background-color: rgba(235, 245, 255, 95%);
+
+    border-top: 1px solid rgba(180, 210, 255, 30%);
+    border-left: 1px solid rgba(180, 210, 255, 30%);
+    border-bottom: 1px solid rgba(100, 160, 255, 15%);
+    border-right: none;
+}
+
+
+QFrame#frmLoginRight {
+    background-color: transparent;
+    background-origin: content;
+    background-repeat: no-repeat;
+    background-position: center;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+    border: none;
+}
+
+QLabel#lblTitle {
+    color: #1a6ad4;
+    font-family: "inter";
+    font-size: 70px;
+    font-weight: 700;
+    letter-spacing: 6px;
+    padding-bottom: 8px;
+}
+
+QLabel#lblUsername,
+QLabel#lblPassword {
+    color: #254b6e;
+     font-family: "inter";
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    padding-left: 4px;
+
+}
+
+QLineEdit#txtLoginUsername,
+QLineEdit#txtLoginPassword {
+    background-color: rgba(140, 190, 255, 10%);
+
+    min-height: 40px;
+    font-size: 20px;
+
+    padding: 0px 40px 0px 15px;
+    color: #2c3e50;
+
+    font-family: "Segoe UI", "Arial", sans-serif;
+
+
+    border: 1px solid rgba(140, 200, 255, 28%);
+    border-radius: 8px;
+
+    padding: 9px 40px 9px 14px;
+    selection-background-color: #1a6ad4;
+    selection-color: #ffffff;
+}
+
+QLineEdit#txtLoginUsername::placeholder,
+QLineEdit#txtLoginPassword::placeholder {
+    color: rgba(44, 62, 80, 45%);
+}
+
+
+QLineEdit#txtLoginUsername:hover,
+QLineEdit#txtLoginPassword:hover {
+    background-color: rgba(140, 200, 255, 16%);
+    border: 1px solid rgba(160, 220, 255, 50%);
+}
+
+
+QLineEdit#txtLoginUsername:focus,
+QLineEdit#txtLoginPassword:focus {
+    background-color: rgba(160, 210, 255, 18%);
+    border: 1px solid rgba(180, 230, 255, 80%);
+    outline: none;
+}
+
+/* Eye-icon button bên trong QLineEdit */
+QLineEdit QToolButton {
+    background: transparent;
+    border: none;
+    padding: 2px;
+}
+
+
+QPushButton#btnLogin {
+    background: qlineargradient(
+        x1:0, y1:0, x2:1, y2:0,
+        stop:0   rgba(60, 130, 230, 75%),
+        stop:0.5 rgba(90, 170, 255, 80%),
+        stop:1   rgba(120, 210, 255, 75%)
+    );
+    color: #ffffff;
+    font-family: "Segoe UI", "Arial", sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 3px;
+
+    border: 1px solid rgba(160, 220, 255, 35%);
+    border-radius: 8px;
+    padding: 11px 0px;
+    min-width: 160px;
+    min-height: 60px;
+        font-size: 25px;
+        padding: 10px 0px;
+        border-radius: 10px;
+
+        color: #ffffff;
+        font-weight: 700;
+        letter-spacing: 4px;
+}
+
+
+QPushButton#btnLogin:hover {
+    background: qlineargradient(
+        x1:0, y1:0, x2:1, y2:0,
+        stop:0   rgba(80, 150, 255, 90%),
+        stop:0.5 rgba(110, 190, 255, 90%),
+        stop:1   rgba(150, 230, 255, 90%)
+    );
+    border: 1px solid rgba(180, 235, 255, 60%);
+}
+
+
+QPushButton#btnLogin:pressed {
+    background: qlineargradient(
+        x1:0, y1:0, x2:1, y2:0,
+        stop:0 rgba(40, 100, 200, 80%),
+        stop:1 rgba(70, 150, 230, 80%)
+    );
+    padding-top: 13px;
+    border: 1px solid rgba(120, 190, 255, 60%);
+}
+
+
