@@ -30,12 +30,14 @@ public:
 	Login_View(QWidget *parent = nullptr);
 	~Login_View();
     void clearInputs();
+    void clearPassword();
 
 signals:
     void loginSubmitted(const QString& username, const QString& password);
 private slots:
     void on_btnLogin_clicked();
 
+    void on_txtLoginPassword_returnPressed();
 };
 
 #endif // LOGINVIEW_H
