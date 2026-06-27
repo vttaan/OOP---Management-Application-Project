@@ -31,7 +31,7 @@ User* Login_Model::verifyLogin(const QString& userName, const QString& password)
 	QString curAddress = queryProfile.value("address").toString();
 	QString curAvatarPath = queryProfile.value("avatarPath").toString();
 
-	User* curUser = UserFactory::createNewUser(curRole, idEmployee, curAvatarPath, curIdIndentity, curName, curDob, curAddress, 
+    User* curUser = UserFactory::createContainsUser(curRole, idEmployee, curAvatarPath, curIdIndentity, curName, curDob, curAddress,
 		curPhone);
 
 	return curUser;

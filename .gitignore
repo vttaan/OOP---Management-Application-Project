@@ -8,3 +8,21 @@ build/
 
 # Bỏ qua file đường dẫn riêng của từng máy
 CMakeUserPresets.json
+
+# Bỏ qua thư mục build của Qt Creator
+build-*/
+build_*/
+*.user.*
+
+# Bỏ qua rác của CMake (Rất dễ dính nếu lỡ cấu hình sai thư mục)
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+!.gitignore
+
+# Bỏ qua file thực thi (để không đẩy file .exe lên mạng)
+*.exe
+*.dll
+*.pdb
