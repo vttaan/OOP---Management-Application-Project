@@ -13,17 +13,20 @@ User *Login_Model::verifyLogin(const QString &userName, const QString &password)
 
     queryAccount.prepare("SELECT * FROM ACCOUNTS WHERE userName = :u AND passWord = :v");
     queryAccount.bindValue(":u", userName);
-    queryAccount.bindValue(":v", hashedPassWord.trimmed());
+    queryAccount.bindValue(":v", hashedPassWord);
 
-    if (!queryAccount.exec() || !queryAccount.next())
-        return nullptr;
+    if (!queryAccount.exec() || !queryAccount.next()) return nullptr;
 
     short int idEmployee = queryAccount.value("idEmployee").toInt();
 
     QSqlQuery queryProfile(openData);
     queryProfile.prepare("SELECT * FROM PROFILES WHERE idEmployee = :u");
     queryProfile.bindValue(":u", idEmployee);
-
+    if(!queryProfile.exec() || !queryProfile.next()) {
+        qDebug() << "ERROR NOT EXEC QUERY IN VERIFY LOGIN\n";
+        return nullptr;
+    }
+    else qDebug() << "EXEC QUERY VERIFY LOGIN SUCCESS\n";
     QString curRole = queryProfile.value("role").toString();
     QString curIdIndentity = queryProfile.value("IdCitizenIndentity").toString();
     QString curName = queryProfile.value("name").toString();
