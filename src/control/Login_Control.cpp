@@ -37,6 +37,6 @@ void Login_Control::handleLoginSubmission(const QString& username,const QString&
 
     } else {
         QMessageBox::critical(view, "Login Failed", "Wrong username or Password!");
-        view->clearInputs();
+        view->clearPassword();
     }
 }

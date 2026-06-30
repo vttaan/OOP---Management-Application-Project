@@ -1,10 +1,13 @@
 #include "Login_View.h"
+#include "ui_Login_View.h"
 
 Login_View::Login_View(QWidget *parent)
 	: QWidget(parent)
-	, ui(new Ui::Login_ViewClass())
+    , ui(new Ui::Login_View())
 {
 	ui->setupUi(this);
+    ui->btnLogin->setCheckable(true);
+    ui->txtLoginUsername->setFocus();
     setupUI();
     initSignals();
 }
@@ -18,6 +21,11 @@ void Login_View::clearInputs() {
     ui->txtLoginUsername->clear();
     ui->txtLoginPassword->clear();
     ui->txtLoginUsername->setFocus();
+}
+
+void Login_View::clearPassword() {
+    ui->txtLoginPassword->clear();
+    ui->txtLoginPassword->setFocus();
 }
 
 void Login_View::setupUI(){
@@ -53,7 +61,7 @@ void Login_View::on_btnLogin_clicked() {
     QString pass = ui->txtLoginPassword->text().trimmed();
 
     if (user.isEmpty() || pass.isEmpty()) {
-        QMessageBox::warning(this, "waring", "Enter fully our password and username");
+        QMessageBox::warning(this, "Warning - Invalid information", "Enter fully your password and username");
         return;
     }
 
@@ -85,6 +93,19 @@ void Login_View::paintEvent(QPaintEvent *event)
     painter.setClipRect(rightRect);
     painter.drawPixmap(x, y, scaled);
 
-
     //painter.fillRect(rightRect, QColor(0, 20, 60, 80));
 }
+
+void Login_View::on_txtLoginPassword_returnPressed()
+{
+    QString user = ui->txtLoginUsername->text().trimmed();
+    QString pass = ui->txtLoginPassword->text().trimmed();
+
+    if (user.isEmpty() || pass.isEmpty()) {
+        QMessageBox::warning(this, "Warning - Invalid information", "Enter fully your password and username");
+        return;
+    }
+
+    emit loginSubmitted(user, pass);
+}
+

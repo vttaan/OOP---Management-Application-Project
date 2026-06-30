@@ -2,7 +2,7 @@
 #define LOGINVIEW_H
 
 
-#include "ui_Login_View.h"
+//#include "ui_Login_View.h"
 
 #include <QWidget>
 #include <QMessageBox>
@@ -18,7 +18,7 @@ class Login_View : public QWidget
 {
 	Q_OBJECT
 private:
-    Ui::Login_ViewClass *ui;
+    Ui::Login_View *ui;
     QAction *hidePassword;
     QPixmap bgPixmap;
     void setupUI(); // setup icon/button/textbox/title
@@ -30,12 +30,14 @@ public:
 	Login_View(QWidget *parent = nullptr);
 	~Login_View();
     void clearInputs();
+    void clearPassword();
 
 signals:
     void loginSubmitted(const QString& username, const QString& password);
 private slots:
     void on_btnLogin_clicked();
 
+    void on_txtLoginPassword_returnPressed();
 };
 
 #endif // LOGINVIEW_H
