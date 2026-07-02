@@ -53,15 +53,18 @@ set(PROJECT_SOURCES
     # file in View
         # HEADER
         src/view/Login_View.h
+        src/view/main_view.h
         # CPP
         src/view/Login_View.cpp
+        src/view/main_view.cpp
         # UI
         src/view/Login_View.ui
-
+        src/view/main_view.ui
 )
 
-qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES})
 qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
+    src/view/main_view.h src/view/main_view.cpp src/view/main_view.ui
+    src/view/employeecard.h src/view/employeecard.cpp src/view/employeecard.ui)
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core Qt6::Widgets Qt6::Sql)
 target_include_directories(${PROJECT_NAME} PRIVATE src)
 
