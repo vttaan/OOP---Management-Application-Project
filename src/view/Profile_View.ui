@@ -35,14 +35,6 @@
       <bool>true</bool>
      </property>
      <widget class="QWidget" name="profileContentWidget">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>1098</width>
-        <height>748</height>
-       </rect>
-      </property>
       <layout class="QVBoxLayout" name="scrollContentLayout">
        <property name="spacing">
         <number>20</number>
@@ -59,6 +51,8 @@
        <property name="bottomMargin">
         <number>20</number>
        </property>
+
+       <!-- CARD 1: GENERAL INFO -->
        <item>
         <widget class="QFrame" name="cardGeneral">
          <property name="frameShape">
@@ -80,6 +74,7 @@
           <property name="bottomMargin">
            <number>20</number>
           </property>
+
           <item>
            <widget class="QFrame" name="bannerGeneral">
             <layout class="QHBoxLayout" name="bannerGeneralLayout">
@@ -96,6 +91,7 @@
             </layout>
            </widget>
           </item>
+
           <item>
            <layout class="QHBoxLayout" name="bodyGeneralLayout" stretch="1,3">
             <property name="spacing">
@@ -107,12 +103,14 @@
             <property name="rightMargin">
              <number>25</number>
             </property>
+
+            <!-- Left Side: Avatar -->
             <item>
              <layout class="QVBoxLayout" name="avatarColLayout">
               <property name="spacing">
                <number>10</number>
               </property>
-              <item>
+              <item alignment="Qt::AlignmentFlag::AlignCenter">
                <widget class="QLabel" name="lblAvatar">
                 <property name="minimumSize">
                  <size>
@@ -134,22 +132,24 @@
                 </property>
                </widget>
               </item>
-              <item>
+              <item alignment="Qt::AlignmentFlag::AlignCenter">
                <widget class="QLabel" name="lblProfileName">
                 <property name="text">
-                 <string>name placeholder</string>
+                 <string>name</string>
                 </property>
                </widget>
               </item>
-              <item>
+              <item alignment="Qt::AlignmentFlag::AlignCenter">
                <widget class="QLabel" name="lblProfileRole">
                 <property name="text">
-                 <string>role placeholder</string>
+                 <string>role</string>
                 </property>
                </widget>
               </item>
              </layout>
             </item>
+
+            <!-- Right Side: Details Grid -->
             <item>
              <layout class="QGridLayout" name="gridGeneralDetails">
               <property name="horizontalSpacing">
@@ -158,109 +158,102 @@
               <property name="verticalSpacing">
                <number>15</number>
               </property>
-              <item row="3" column="0">
-               <widget class="QLabel" name="lblVal_Dob">
-                <property name="text">
-                 <string>dob</string>
-                </property>
-                <property name="class" stdset="0">
-                 <string>lblFieldValue</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1">
-               <widget class="QLabel" name="lblTitle_Phone">
-                <property name="text">
-                 <string>Số điện thoại</string>
-                </property>
-                <property name="class" stdset="0">
-                 <string>lblFieldTitle</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="lblTitle_Dob">
-                <property name="text">
-                 <string>Ngày sinh</string>
-                </property>
-                <property name="class" stdset="0">
-                 <string>lblFieldTitle</string>
-                </property>
-               </widget>
-              </item>
+
+              <!-- ID -->
               <item row="0" column="0">
                <widget class="QLabel" name="lblTitle_Id">
-                <property name="text">
-                 <string>Mã số</string>
-                </property>
-                <property name="class" stdset="0">
-                 <string>lblFieldTitle</string>
-                </property>
+                <property name="text"><string>Mã số</string></property>
+                <property name="class" stdset="0"><string>lblFieldTitle</string></property>
                </widget>
               </item>
               <item row="1" column="0">
                <widget class="QLabel" name="lblVal_Id">
-                <property name="text">
-                 <string>ID</string>
-                </property>
-                <property name="class" stdset="0">
-                 <string>lblFieldValue</string>
-                </property>
+                <property name="text"><string>id</string></property>
+                <property name="class" stdset="0"><string>lblFieldValue</string></property>
+               </widget>
+              </item>
+
+              <!-- DoB -->
+              <item row="2" column="0">
+               <widget class="QLabel" name="lblTitle_DoB">
+                <property name="text"><string>Ngày sinh</string></property>
+                <property name="class" stdset="0"><string>lblFieldTitle</string></property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="lblVal_DoB">
+                <property name="text"><string>dob</string></property>
+                <property name="class" stdset="0"><string>lblFieldValue</string></property>
+               </widget>
+              </item>
+
+              <!-- Gender -->
+              <item row="4" column="0">
+               <widget class="QLabel" name="lblTitle_Gender">
+                <property name="text"><string>Giới tính</string></property>
+                <property name="class" stdset="0"><string>lblFieldTitle</string></property>
                </widget>
               </item>
               <item row="5" column="0">
                <widget class="QLabel" name="lblVal_Gender">
-                <property name="text">
-                 <string>gender</string>
-                </property>
-                <property name="class" stdset="0">
-                 <string>lblFieldValue</string>
-                </property>
+                <property name="text"><string>Nam</string></property>
+                <property name="class" stdset="0"><string>lblFieldValue</string></property>
                </widget>
               </item>
-              <item row="4" column="0">
-               <widget class="QLabel" name="lblTitle_Gender">
-                <property name="text">
-                 <string>Giới tính</string>
-                </property>
-                <property name="class" stdset="0">
-                 <string>lblFieldTitle</string>
-                </property>
+
+              <!-- Địa chỉ -->
+              <item row="6" column="0">
+               <widget class="QLabel" name="lblTitle_Address">
+                <property name="text"><string>Địa chỉ thường trú</string></property>
+                <property name="class" stdset="0"><string>lblFieldTitle</string></property>
+               </widget>
+              </item>
+              <item row="7" column="0">
+               <widget class="QLabel" name="lblVal_Address">
+                <property name="text"><string>address</string></property>
+                <property name="wordWrap"><bool>true</bool></property>
+                <property name="class" stdset="0"><string>lblFieldValue</string></property>
+               </widget>
+              </item>
+
+              <!-- Column 1, CCCD -->
+              <item row="0" column="1">
+               <widget class="QLabel" name="lblTitle_CitizenID">
+                <property name="text"><string>CMND/CCCD</string></property>
+                <property name="class" stdset="0"><string>lblFieldTitle</string></property>
                </widget>
               </item>
               <item row="1" column="1">
-               <widget class="QLabel" name="lblVal_Phone">
-                <property name="text">
-                 <string>TextLabel</string>
-                </property>
+               <widget class="QLabel" name="lblVal_CitizenID">
+                <property name="text"><string>cccd</string></property>
+                <property name="class" stdset="0"><string>lblFieldValue</string></property>
                </widget>
               </item>
+
               <item row="2" column="1">
-               <widget class="QLabel" name="lbl_Title_Email">
-                <property name="text">
-                 <string>TextLabel</string>
-                </property>
+               <widget class="QLabel" name="lblTitle_Phone">
+                <property name="text"><string>Điện thoại nhà</string></property>
+                <property name="class" stdset="0"><string>lblFieldTitle</string></property>
                </widget>
               </item>
               <item row="3" column="1">
-               <widget class="QLabel" name="lbl_Val_Email">
-                <property name="text">
-                 <string>TextLabel</string>
-                </property>
+               <widget class="QLabel" name="lblVal_Phone">
+                <property name="text"><string>-</string></property>
+                <property name="class" stdset="0"><string>lblFieldValue</string></property>
                </widget>
               </item>
+
               <item row="4" column="1">
-               <widget class="QLabel" name="lbl_Tile_Address">
-                <property name="text">
-                 <string>TextLabel</string>
-                </property>
+               <widget class="QLabel" name="lblTitle_Email">
+                <property name="text"><string>Email cá nhân</string></property>
+                <property name="class" stdset="0"><string>lblFieldTitle</string></property>
                </widget>
               </item>
               <item row="5" column="1">
-               <widget class="QLabel" name="lbl_Val_Address">
-                <property name="text">
-                 <string>TextLabel</string>
-                </property>
+               <widget class="QLabel" name="lblVal_Email">
+                <property name="text"><string>placeholder@gmail.com</string></property>
+                <property name="wordWrap"><bool>true</bool></property>
+                <property name="class" stdset="0"><string>lblFieldValue</string></property>
                </widget>
               </item>
              </layout>
@@ -270,6 +263,8 @@
          </layout>
         </widget>
        </item>
+
+       <!-- CARD 2: DETAILED INFO -->
        <item>
         <widget class="QFrame" name="cardDetailed">
          <property name="frameShape">
@@ -291,6 +286,7 @@
           <property name="bottomMargin">
            <number>25</number>
           </property>
+
           <item>
            <widget class="QFrame" name="bannerDetailed">
             <layout class="QHBoxLayout" name="bannerDetailedLayout">
@@ -307,6 +303,7 @@
             </layout>
            </widget>
           </item>
+
           <item>
            <layout class="QGridLayout" name="gridDetailedDetails">
             <property name="leftMargin">
@@ -321,57 +318,17 @@
             <property name="verticalSpacing">
              <number>18</number>
             </property>
-            <item row="1" column="2">
-             <widget class="QLabel" name="lblVal_Email2">
-              <property name="text">
-               <string>placeholder</string>
-              </property>
-              <property name="wordWrap">
-               <bool>true</bool>
-              </property>
-              <property name="class" stdset="0">
-               <string>lblFieldValue</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QLabel" name="lblTitle_IDDate">
-              <property name="text">
-               <string>placeholder</string>
-              </property>
-              <property name="class" stdset="0">
-               <string>lblFieldTitle</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QLabel" name="lblVal_Phone2">
-              <property name="text">
-               <string>-</string>
-              </property>
-              <property name="class" stdset="0">
-               <string>lblFieldValue</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="lblVal_Address2">
-              <property name="text">
-               <string>address</string>
-              </property>
-              <property name="wordWrap">
-               <bool>true</bool>
-              </property>
-              <property name="class" stdset="0">
-               <string>lblFieldValue</string>
-              </property>
-             </widget>
-            </item>
+
+
+
+
+
            </layout>
           </item>
          </layout>
         </widget>
        </item>
+
        <item>
         <spacer name="verticalSpacer">
          <property name="orientation">

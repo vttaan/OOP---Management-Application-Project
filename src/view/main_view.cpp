@@ -75,6 +75,11 @@ Main_View::Main_View(QWidget *parent) :
     ui->lblUserRole->installEventFilter(this);
     ui->lblDropdown->installEventFilter(this);
 
+
+    // profile avatar dropbox
+    QWidget* avatarBox = new QWidget(this);
+    avatarBox->setLayout(ui->horizontalLayout_UserInfo);
+
 }
 
 
@@ -96,3 +101,9 @@ bool Main_View::eventFilter(QObject *watched, QEvent *event)
 
     return QWidget::eventFilter(watched, event);
 }
+void Main_View::on_btnLogout_clicked()
+{
+    emit logoutSubmitted();
+}
+
+
