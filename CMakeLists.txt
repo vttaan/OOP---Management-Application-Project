@@ -61,6 +61,7 @@ set(PROJECT_SOURCES
 )
 
 qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES})
+qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core Qt6::Widgets Qt6::Sql)
 target_include_directories(${PROJECT_NAME} PRIVATE src)
 

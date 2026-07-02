@@ -98,8 +98,8 @@ void Login_View::paintEvent(QPaintEvent *event)
 
 void Login_View::on_txtLoginPassword_returnPressed()
 {
-    QString user = ui->txtLoginUsername->text().trimmed();
-    QString pass = ui->txtLoginPassword->text().trimmed();
+    QString user = ui->txtLoginUsername->text();
+    QString pass = ui->txtLoginPassword->text();
 
     if (user.isEmpty() || pass.isEmpty()) {
         QMessageBox::warning(this, "Warning - Invalid information", "Enter fully your password and username");
