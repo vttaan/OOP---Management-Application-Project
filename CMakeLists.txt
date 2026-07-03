@@ -8,6 +8,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON) 
 set(CMAKE_AUTOUIC ON)
 
+# set(CMAKE_PREFIX_PATH "C:/Qt/6.11.1/mingw_64")
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Sql)
 
 
@@ -56,16 +57,19 @@ set(PROJECT_SOURCES
         src/view/main_view.h
         src/view/View_Navigator.h
         src/view/Profile_View.h
+        src/view/employeeswidget.h
         # CPP
         src/view/Login_View.cpp
         src/view/main_view.cpp
         src/view/View_Navigator.cpp
         src/view/Profile_View.cpp
+        src/view/employeeswidget.cpp
         # UI
         src/view/Login_View.ui
         src/view/main_view.ui
         src/view/View_Navigator.ui
         src/view/Profile_View.ui
+        src/view/employeeswidget.ui
 )
 
 qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
@@ -73,7 +77,8 @@ qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
     src/view/employeecard.h src/view/employeecard.cpp src/view/employeecard.ui
 
     src/view/Profile_View.h src/view/Profile_View.cpp src/view/Profile_View.ui
-    src/view/View_Navigator.h src/view/View_Navigator.cpp src/view/View_Navigator.ui)
+    src/view/View_Navigator.h src/view/View_Navigator.cpp src/view/View_Navigator.ui
+    src/view/employeeswidget.h)
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core Qt6::Widgets Qt6::Sql)
 target_include_directories(${PROJECT_NAME} PRIVATE src)
 
