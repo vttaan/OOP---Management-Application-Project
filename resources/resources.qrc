@@ -13,5 +13,6 @@
         <file>images/image7.jpg</file>
         <file>images/image1.jpg</file>
         <file>images/homeIcon.png</file>
+        <file>images/avatarSample.png</file>
     </qresource>
 </RCC>

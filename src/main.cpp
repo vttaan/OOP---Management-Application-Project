@@ -2,8 +2,7 @@
 #include <QFile>
 #include <QTextStream>
 #include <QDebug>
-
-#include "control/Login_Control.h"
+#include "control/Control_Navigator.h"
 
 int main(int argc, char *argv[])
 {
@@ -22,8 +21,9 @@ int main(int argc, char *argv[])
     qDebug() << "Can not load QSS File!";
   }
 
-  Login_Control loginController;
-  loginController.init(); // Lệnh này sẽ hiển thị màn hình Login_View
+  Control_Navigator *appWindow = new Control_Navigator;
+  if (appWindow && appWindow->viewWindow)
+    appWindow->viewWindow->show();
 
   return app.exec();
 }

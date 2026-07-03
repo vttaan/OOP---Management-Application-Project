@@ -1,12 +1,12 @@
 #include "Login_Control.h"
-#include "main_control.h"
 #include "view/Login_View.h"
+#include "main_control.h"
 
 Login_Control::Login_Control(QObject *parent)
-    : QObject(parent), view(new Login_View()), currentUser(nullptr)
+    : QObject(parent), view(new Login_View(this)), currentUser(nullptr)
 {
-
-    connect(view, &Login_View::loginSubmitted, this, &Login_Control::handleLoginSubmission);
+    bool ok = connect(view, &Login_View::loginSubmitted, this, &Login_Control::handleLoginSubmission);
+    Q_ASSERT(ok);
 }
 
 Login_Control::~Login_Control()
@@ -19,12 +19,22 @@ Login_Control::~Login_Control()
 
 void Login_Control::init()
 {
-    view->show();
+    if (view)
+        view->show();
 }
 
 Login_View *Login_Control::getView()
 {
     return this->view;
+}
+
+void Login_Control::setView(Login_View *view)
+{
+    this->view = view;
+    if (this->view)
+    {
+        QObject::connect(this->view, &Login_View::loginSubmitted, this, &Login_Control::handleLoginSubmission);
+    }
 }
 
 void Login_Control::handleLoginSubmission(const QString &username, const QString &password)
@@ -35,8 +45,10 @@ void Login_Control::handleLoginSubmission(const QString &username, const QString
     if (user != nullptr)
     {
         currentUser = user;
+        emit loginSuccessful(this->currentUser);
 
-        view->hide();
+        if (view)
+            view->hide();
 
         if (currentUser->getRole() == "Manager")
         {
@@ -56,6 +68,9 @@ void Login_Control::handleLoginSubmission(const QString &username, const QString
     else
     {
         QMessageBox::critical(view, "Login Failed", "Wrong username or Password!");
-        view->clearPassword();
+        if (view)
+            view->clearPassword();
     }
 }
+
+User *Login_Control::getUser() { return currentUser; }

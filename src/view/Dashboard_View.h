@@ -1,32 +1,34 @@
-#ifndef MAIN_VIEW_H
-#define MAIN_VIEW_H
+#ifndef DASHBOARD_VIEW_H
+#define DASHBOARD_VIEW_H
+
 #include <QEvent>
 #include <QWidget>
 #include <QHBoxLayout>
 
+class Dashboard_Control;
+
 namespace Ui
 {
-    class Main_View;
+    class Dashboard_View;
 }
 
-class Main_View : public QWidget
+class Dashboard_View : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit Main_View(QWidget *parent = nullptr);
-    ~Main_View();
-
-    void switchPage(int pageIndex);
+    explicit Dashboard_View(Dashboard_Control *controller = nullptr, QWidget *parent = nullptr);
+    ~Dashboard_View();
+    Dashboard_Control *getController() const;
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
 
 private:
-    Ui::Main_View *ui;
+    Ui::Dashboard_View *ui;
+    Dashboard_Control *controller;
 signals:
-    void logoutSubmitted();
-    void profilePageClicked();
+    // View forwards user actions to its controller by calling controller signals directly
 };
 
 class clickableBox : public QWidget

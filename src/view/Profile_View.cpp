@@ -2,15 +2,18 @@
 #include "ui_Profile_View.h"
 #include <QPainter>
 #include <QPainterPath>
+#include <QFileInfo>
+#include <QDir>
 
-Profile_View::Profile_View(QWidget *parent)
+Profile_View::Profile_View(Profile_Control* controller, QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::Profile_View)
+    , controller(controller)
 {
     ui->setupUi(this);
     ui->backButton->setIcon(QIcon(":/images/homeIcon.png"));
     // Provide a default placeholder avatar if none is set yet
-    setupAvatar(":/images/default_avatar.png");
+    setupAvatar(""); // default avt
 }
 
 Profile_View::~Profile_View()
@@ -20,14 +23,26 @@ Profile_View::~Profile_View()
 
 void Profile_View::setupAvatar(const QString& imagePath)
 {
-    QPixmap original(imagePath);
-    if (original.isNull()) {
-        return;
+    QDir appDir(QCoreApplication::applicationDirPath()); // ......./Debug
+    appDir.cdUp(); // ..../MAP/build
+    appDir.cdUp(); // ..../MAP
+    QString folderPath = appDir.filePath("resources"); // .../MAP/resources
+    qDebug() << folderPath;
+
+    QPixmap avatarPixmap(folderPath + "/" + imagePath);
+    if(!imagePath.isEmpty() && QFileInfo::exists(imagePath)) { // image exists
+        qDebug() << "found";
+        avatarPixmap.load(imagePath);
+    }
+
+    if(avatarPixmap.isNull()) {
+        qDebug() << "notfound";
+        avatarPixmap.load(":/images/avatarSample.png");
     }
 
     // Target avatar dimensions (180x180 px matching UI file limits)
     int size = 180;
-    QPixmap scaled = original.scaled(size, size, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+    QPixmap scaled = avatarPixmap.scaled(size, size, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
 
     // Apply soft rounded corners (12px border radius like the image)
     QPixmap rounded(size, size);
@@ -65,8 +80,13 @@ void Profile_View::loadUserData(const QString& name, const QString& studentId, c
     ui->lblVal_Phone->setText(phone);
     ui->lblVal_Email->setText(email);
 }
+
+Profile_Control* Profile_View::getController() {
+    return controller;
+}
+
 void Profile_View::on_backButton_clicked()
 {
-    emit backToPrevious();
+    emit this->getController()->backToPrevious();
 }
 

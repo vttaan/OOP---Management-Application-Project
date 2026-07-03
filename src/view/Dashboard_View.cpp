@@ -1,18 +1,20 @@
-#include "main_view.h"
-#include "ui_main_view.h"
+#include "Dashboard_View.h"
+#include "ui_Dashboard_View.h"
+#include "control/Dashboard_Control.h"
 #include "employeecard.h"
 #include "employeeswidget.h"
 #include <QGridLayout>
 #include <QMouseEvent>
 
-Main_View::Main_View(QWidget *parent) : QWidget(parent),
-                                        ui(new Ui::Main_View)
+Dashboard_View::Dashboard_View(Dashboard_Control *controller, QWidget *parent) : QWidget(parent),
+                                                                                 ui(new Ui::Dashboard_View()),
+                                                                                 controller(controller)
 {
     ui->setupUi(this);
 
-    // 1. Tạo một Layout dạng Lưới (Grid) và gắn nó vào khu vực thanh cuộn
+    // Create a grid of employee cards inside the scroll area
     QGridLayout *gridLayout = new QGridLayout(ui->scrollAreaWidgetContents);
-    gridLayout->setSpacing(20); // Khoảng cách giữa các thẻ
+    gridLayout->setSpacing(20);
 
     QStringList avatars = {":/images/image1.jpg", ":/images/image2.jpg", ":/images/image3.jpg",
                            ":/images/image4.jpg", ":/images/image5.jpg", ":/images/image6.jpg", ":/images/image7.jpg"};
@@ -24,29 +26,20 @@ Main_View::Main_View(QWidget *parent) : QWidget(parent),
 
     int row = 0;
     int col = 0;
-    int maxColumns = 4;
+    const int maxColumns = 4;
 
-    for (int i = 0; i < 7; i++)
+    for (int i = 0; i < avatars.size(); ++i)
     {
         EmployeeCard *card = new EmployeeCard(this);
-
-        card->setData(avatars[i], names[i], roles[i], "✉️ " + emails[i], "📞 " + phones[i]);
-
+        card->setData(avatars.at(i), names.at(i), roles.at(i), "✉️ " + emails.at(i), "📞 " + phones.at(i));
         gridLayout->addWidget(card, row, col);
-
-        col++;
+        ++col;
         if (col >= maxColumns)
         {
             col = 0;
-            row++;
+            ++row;
         }
     }
-    connect(ui->btnMenu_Overview, &QPushButton::clicked, this, &Main_View::menuOverviewClicked);
-    connect(ui->btnMenu_HR, &QPushButton::clicked, this, &Main_View::menuHRClicked);
-    connect(ui->btnMenu_Timekeep, &QPushButton::clicked, this, &Main_View::menuTimekeepClicked);
-    connect(ui->btnMenu_Salary, &QPushButton::clicked, this, &Main_View::menuSalaryClicked);
-    connect(ui->btnMenu_Report, &QPushButton::clicked, this, &Main_View::menuReportClicked);
-    connect(ui->btnMenu_Settings, &QPushButton::clicked, this, &Main_View::menuSettingsClicked);
 
     ui->lblAvatar->setCursor(Qt::PointingHandCursor);
     ui->lblUserName->setCursor(Qt::PointingHandCursor);
@@ -70,9 +63,7 @@ Main_View::Main_View(QWidget *parent) : QWidget(parent),
         while ((item = hrLayout->takeAt(0)) != nullptr)
         {
             if (item->widget())
-            {
                 delete item->widget();
-            }
             delete item;
         }
     }
@@ -84,31 +75,35 @@ Main_View::Main_View(QWidget *parent) : QWidget(parent),
     hrLayout->addWidget(employeesWidget);
 }
 
-Main_View::~Main_View()
+Dashboard_View::~Dashboard_View()
 {
     delete ui;
 }
 
-void Main_View::switchPage(int pageIndex)
+Dashboard_Control *Dashboard_View::getController() const
 {
-    ui->stackedWidget->setCurrentIndex(pageIndex);
+    return controller;
 }
 
-bool Main_View::eventFilter(QObject *watched, QEvent *event)
+bool Dashboard_View::eventFilter(QObject *watched, QEvent *event)
 {
     if (event->type() == QEvent::MouseButtonPress)
     {
         if (watched == ui->lblAvatar || watched == ui->lblUserName ||
             watched == ui->lblUserRole || watched == ui->lblDropdown)
         {
-            ui->stackedWidget->setCurrentIndex(0);
-            emit profilePageClicked(); // switch to profile_view
+            if (ui && ui->stackedWidget)
+                ui->stackedWidget->setCurrentIndex(0);
+            if (controller)
+                emit controller->profilePageClicked();
             return true;
         }
     }
     return QWidget::eventFilter(watched, event);
 }
-void Main_View::on_btnLogout_clicked()
+
+void Dashboard_View::on_btnLogout_clicked()
 {
-    emit logoutSubmitted();
+    if (controller)
+        emit controller->logoutSubmitted();
 }

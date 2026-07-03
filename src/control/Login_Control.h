@@ -17,9 +17,11 @@ public:
     Login_Control(QObject *parent = nullptr);
     ~Login_Control();
     Login_View* getView();
+    void setView(Login_View* view);
+    User* getUser();
     void init();
 signals:
-    void loginSuccessful();
+    void loginSuccessful(User* currentUser);
 private slots:
     void handleLoginSubmission(const QString& username, const QString& password);
 };
