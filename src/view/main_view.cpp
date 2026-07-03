@@ -93,8 +93,8 @@ bool Main_View::eventFilter(QObject *watched, QEvent *event)
     if (event->type() == QEvent::MouseButtonPress) {
         if (watched == ui->lblAvatar || watched == ui->lblUserName ||
             watched == ui->lblUserRole || watched == ui->lblDropdown) {
-
-            ui->stackedWidget->setCurrentIndex(6);
+            ui->stackedWidget->setCurrentIndex(0);
+            emit  profilePageClicked(); // switch to profile_view
             return true;
         }
     }

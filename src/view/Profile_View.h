@@ -26,7 +26,10 @@ public:
     void loadUserData(const QString& name, const QString& studentId, const QString& dob,
                       const QString& phone, const QString& email, const QString& avatarPath);
 
-
+signals:
+    void backToPrevious();
+private slots:
+    void on_backButton_clicked();
 };
 
 #endif // PROFILE_VIEW_H

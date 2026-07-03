@@ -24,6 +24,7 @@ private:
     Ui::Main_View *ui;
 signals:
     void logoutSubmitted();
+    void profilePageClicked();
 };
 
 class clickableBox : public QWidget {

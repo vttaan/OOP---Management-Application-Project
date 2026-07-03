@@ -8,7 +8,7 @@ Profile_View::Profile_View(QWidget *parent)
     , ui(new Ui::Profile_View)
 {
     ui->setupUi(this);
-
+    ui->backButton->setIcon(QIcon(":/images/homeIcon.png"));
     // Provide a default placeholder avatar if none is set yet
     setupAvatar(":/images/default_avatar.png");
 }
@@ -65,3 +65,8 @@ void Profile_View::loadUserData(const QString& name, const QString& studentId, c
     ui->lblVal_Phone->setText(phone);
     ui->lblVal_Email->setText(email);
 }
+void Profile_View::on_backButton_clicked()
+{
+    emit backToPrevious();
+}
+

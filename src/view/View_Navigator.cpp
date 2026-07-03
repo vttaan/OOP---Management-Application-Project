@@ -27,16 +27,15 @@ View_Navigator::View_Navigator(QWidget *parent)
 
     // add pages
     // index note for each page
-    ui->stackedWidget->addWidget(login_page); // Now index 0
-    ui->stackedWidget->addWidget(dashboard_page); // Now index 1
-    ui->stackedWidget->addWidget(profile_page); // Now index 2
-
+    ui->stackedWidget->addWidget(login_page); // index 0
+    ui->stackedWidget->addWidget(dashboard_page); // index 1
+    ui->stackedWidget->addWidget(profile_page); // index 2
     // default : login page
     ui->stackedWidget->setCurrentIndex(0);
 
     // connect signals
     connect(login_control, &Login_Control::loginSuccessful, this, [this]() {
-        qDebug() << "switch page\n";
+        qDebug() << "Dashboard\n";
         ui->stackedWidget->setCurrentIndex(1);
     });
 
@@ -46,6 +45,17 @@ View_Navigator::View_Navigator(QWidget *parent)
         login_page->clearInputs();
         emit logoutSubmitted();
     });
+
+    connect(dashboard_page, &Main_View::profilePageClicked, this, [this]() {
+        qDebug() << "Profile page\n";
+        ui->stackedWidget->setCurrentIndex(2);
+    } );
+
+    connect(profile_page, &Profile_View::backToPrevious, this, [this]() {
+        qDebug() << "Dashboard\n";
+        ui->stackedWidget->setCurrentIndex(1);
+    });
+
 
 
 }
