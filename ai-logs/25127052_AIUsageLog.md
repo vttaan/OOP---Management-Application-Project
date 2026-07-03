@@ -3,136 +3,106 @@
 ## Session Overview
 
 **Date:** 2026-07-03  
-**Task:** Redesign the `EmployeesWidget` UI in a Qt C++ project to match a modern Employee Management System Dashboard specification.
+**Task:** Iterative improvements to the `EmployeesWidget` Qt C++ dashboard UI + merge bug fix.
 
 ---
 
-## Session 1 — Initial Build (2026-07-03 ~20:00)
+## Session 1 — Initial Build (~20:00)
 
-### What Was Done
-
-#### Project Exploration & Analysis
-- Read and analyzed the full project structure: `src/view/`, `resources/styles/styles.qss`, `src/view/main_view.ui`, `src/view/main_view.cpp`, `src/view/employeeswidget.h/.cpp/.ui`.
-- Identified that the project uses **Qt Widgets (C++)**, not React/Tailwind as the prompt mentioned — adapted the implementation to Qt accordingly.
-- Studied the existing `styles.qss` to understand color palette, font conventions, and styling patterns already used in the project.
-- Confirmed the `EmployeesWidget` is injected into `main_view.cpp`'s `pageHR` panel.
-
-#### `employeeswidget.h` — Full Rewrite
-- Replaced old flat `QSqlTableModel`/`QTableView` approach.
-- Added rich new members: `QTableWidget`, `QTimer` (for real-time clock), top bar frame, metric card frames, roster card, search bars, footer label.
-- Declared helper methods: `createAvatar()`, `createMetricCard()`, `createStatusBadge()`, `createRoleBadge()`, `createActionButton()`.
-
-#### `employeeswidget.cpp` — Full Rewrite
-- **Top Bar:** Breadcrumb (`CorpHQ › Employees`), pill search bar, real-time clock, bell icon with "2" badge.
-- **Metric Cards (3):** Total Expected Payroll ($466K), Active Staff Clocked In (5/7), Pending Absences (2).
-- **Team Roster Table (QTableWidget, 8 cols):** ID, Name+Avatar, Department, Role badge, Pay Type, Base Rate, Status badge, Edit/Delete actions.
-- **Mock Data:** 7 employees across Operations, Engineering, Support, Design, HR.
-
-#### `resources/styles/styles.qss` — EmployeesWidget section overhauled
-- Replaced dark VS Code theme with light slate dashboard palette.
-- New styles for topBarFrame, metricCard, rosterCard, employeesTable, badges, scrollbars.
-
-#### Files Modified
-| File | Action |
-|---|---|
-| `src/view/employeeswidget.h` | Full rewrite |
-| `src/view/employeeswidget.cpp` | Full rewrite |
-| `src/view/employeeswidget.ui` | Replaced with minimal shell |
-| `resources/styles/styles.qss` | EmployeesWidget section replaced |
-| `ai-logs/25127052_AIUsageLog.md` | Created this log |
+Built the full EmployeesWidget dashboard from scratch with: top bar (breadcrumb, clock, bell), 3 metric cards, team roster table with avatar, role/status badges, and action buttons. QSS styled in `styles.qss`. Mock data for 7 employees.
 
 ---
 
-## Session 2 — F&B Refinements (2026-07-03 ~20:22)
+## Session 2 — F&B Refinements (~20:22)
 
-### Changes Requested
-1. Move all inline QSS from `.cpp` into `styles.qss`, organized by function/section.
-2. Remove the Department column (F&B context has no need for it).
-3. Change Base Rate to Monthly Rate (monthly billing model).
-4. Simplify staff names (Staff A–D, Manager A–B, Admin).
-5. Add right-side info panels: **Next Shift** and **Absent Today** (placeholder layout, no data yet).
+1. **QSS reorganized** into 8 named sections in `styles.qss`.
+2. **Department column removed** (F&B context).
+3. **Base Rate → Monthly Rate** (monthly billing model).
+4. **Simplified staff names** (Staff A–D, Manager A–B, Admin).
+5. **Right-side info panels** added (Next Shift, Absent Today).
 
-### What Was Done
+---
 
-#### `employeeswidget.h` — Updated
-- Added new members: `contentRowLayout` (main content row), `nextShiftPanel`, `absentTodayPanel` (right-side panels).
-- Added `createInfoPanel()` factory method declaration.
-- Removed no-longer-needed `setupMetricCards()` declaration.
-- Cleaned up redundant includes (`QPixmap`, `QPainter`, `QStandardItemModel`, `QSortFilterProxyModel`).
+## Session 3 — UI Cleanup & Bug Fix (~21:36)
 
-#### `employeeswidget.cpp` — Updated
+### Changes Made
 
-**###1 QSS Organization:**  
-Moved all `setStyleSheet()` calls that could go to named-object QSS into `styles.qss`. Only **per-instance colour overrides** remain inline in C++ (avatar background, metric icon background, role/status badge colours) — these cannot be expressed in static QSS because each instance requires a unique colour token.
+#### ###1 — Removed Next Shift & Absent Today panels
+- `employeeswidget.h`: Removed `nextShiftPanel`, `absentTodayPanel` members and `createInfoPanel()` factory.
+- `employeeswidget.cpp`: Removed `createInfoPanel()` function body, removed `contentRowLayout` / right column construction. `rosterCard` now fills the full width directly added to `mainLayout`.
+- `styles.qss`: Removed `#nextShiftPanel`, `#absentTodayPanel`, `#nextShiftPanelHeader`, `#absentTodayPanelHeader`, `#infoPanelTitle`, `#infoPanelIcon`, `#infoPanelDivider`, `#infoPanelBody`, `#infoPanelHint` selector blocks.
 
-**###2 Department column removed:**  
-- `setColumnCount()` changed from 8 → 7.
-- `setupTableHeader()` updated: headers now `{ID, NAME, ROLE, PAY TYPE, MONTHLY RATE, STATUS, ACTIONS}`.
-- `populateTable()` struct removed `department` field; column index mapping adjusted accordingly.
+#### ###2 — Sort/Filter combo next to search bar
+- `employeeswidget.h`: Added `QComboBox *filterCombo` member; added `#include <QComboBox>`.
+- `employeeswidget.cpp`:
+  - Added `filterCombo` construction in `setupUi()`, placed between `searchRoster` and `addEmployeeBtn` in the roster header layout.
+  - Options: `All Roles | Staff | Manager | Admin`.
+  - Added `applyRoleFilter(int)` slot connected to `filterCombo::currentIndexChanged`.
+  - `filterEmployees()` now combines text search AND role filter: each row is hidden unless both match.
+  - Row data: role stored in `Qt::UserRole` on the ID column item for fast lookup.
+- `styles.qss`: Added `#filterCombo` block (border, radius, hover) + `#filterCombo::drop-down` + `#filterCombo QAbstractItemView`.
 
-**###3 Monthly Rate:**  
-- `EmployeeRecord` struct: `baseRate` field renamed to `monthlyRate`.
-- Data values changed from hourly/annual to monthly amounts (e.g., `$28.50/hr` → `$2,280/mo`, `$87K/yr` → `$4,200/mo`).
-- Column header: `"BASE RATE"` → `"MONTHLY RATE"`.
-- Metric card: `"Total Expected Payroll"` / `"$466K"` → `"Total Monthly Payroll"` / `"$46.6K"`.
-- Breadcrumb changed: `CorpHQ › Employees` → `CorpHQ › Staff`.
+#### ###3 — Replaced top bar with Profile Block
+- **Removed:** `topBarFrame`, `lblBreadcrumb`, `searchTopBar`, `lblClock`, `clockTimer`, `bellFrame/bellIcon/bellBadge`.
+- **Added:** `profileBlock` (QFrame, transparent, 52px tall) containing:
+  - Left: `lblPageTitle` ("Staff Management") — bold, 20px.
+  - Right: `userCard` (QFrame, white card, rounded, hover effect) containing:
+    - Circular `userAvatar` label ("ME", blue #2563EB bg, 36×36).
+    - VBox: `userName` ("ME") + `userRole` ("Admin").
+    - `userCaret` ("›") caret icon.
+- `userCard` has `eventFilter` installed on it in `setupConnections()`. On `MouseButtonRelease`, `EmployeesWidget` emits `profileClicked()`.
+- `employeeswidget.h`: Added `signals: void profileClicked()`, `QFrame *profileBlock`, `protected: bool eventFilter()` override. Removed clock/bell members.
+- `styles.qss`: Added Section 2 "PROFILE BLOCK" with styles for `#profileBlock`, `#lblPageTitle`, `#userCard`, `#userName`, `#userRole`, `#userCaret`. Removed Section 2 "TOP BAR" (topBarFrame, lblBreadcrumb, searchTopBar, lblClock, bellFrame, bellIcon, bellBadge).
 
-**###4 Simplified Staff Names:**
-
-| Old Name | New Name | ID |
-|---|---|---|
-| James Carter | Staff A | EMP-1042 |
-| Sarah Mitchell | Manager A | EMP-1043 |
-| Priya Nair | Staff B | EMP-1044 |
-| Liam Johnson | Staff C | EMP-1045 |
-| Aisha Rahman | Staff D | EMP-1046 |
-| Tom Nguyen | Manager B | EMP-1047 |
-| Emily Chen | Admin | EMP-1048 |
-
-**###5 Right-side Info Panels:**  
-- Layout changed: `mainLayout` now contains a `contentRowLayout (QHBoxLayout)`.
-  - Left side: `rosterCard` with stretch factor 3.
-  - Right side: `QVBoxLayout` containing `nextShiftPanel` and `absentTodayPanel`, each with stretch factor 1.
-- `createInfoPanel(title, iconEmoji, objectName)` factory: builds a card with a coloured header bar (blue for Next Shift, soft red for Absent Today), a thin separator, and an empty body with a "— No data —" placeholder hint in the centre.
-
-#### `resources/styles/styles.qss` — Restructured
-
-Completely reorganized the EmployeesWidget block into **8 clearly labelled sections** with banner comments:
-
+#### ###4 — Fixed merge bug: "invalid use of class View_Navigator"
+**Root cause:** After the team merge renamed `Main_View` → `Dashboard_View` and introduced the `Control_Navigator` / `View_Navigator` architecture, the old `main_control.h` still contained:
+```cpp
+#include "view/main_view.h"  // ← file deleted in merge
 ```
-1. ROOT WIDGET
-2. TOP BAR (breadcrumb, search, clock, bell)
-3. METRIC SUMMARY CARDS
-4. ROSTER CARD (header, search, add-btn)
-5. STAFF TABLE (table, header view, name label, action buttons)
-6. TABLE FOOTER
-7. RIGHT INFO PANELS (Next Shift / Absent Today)
-8. SHARED SCROLLBARS
-```
+And `main_control.cpp` still called `Main_View` methods (`switchPage()`, constructor, etc.). Qt's MOC / CMake picked this up and caused cascading "invalid use of class" errors.
 
-New QSS rules added for:
-- `#tableActionBtn` — action icon buttons (previously only inline in C++)
-- `#nextShiftPanel`, `#absentTodayPanel` — right panel card shells
-- `#nextShiftPanelHeader`, `#absentTodayPanelHeader` — coloured header bars
-- `#infoPanelTitle`, `#infoPanelIcon`, `#infoPanelDivider`, `#infoPanelBody`, `#infoPanelHint` — shared panel internals
+**Fix:**
+- `src/control/main_control.h` → Replaced with a safe stub that **forward-declares** `Main_View` (no include) and provides an empty no-op `Main_Control` class body. The file is kept (not deleted) to avoid further Git conflicts.
+- `src/control/main_control.cpp` → Replaced with a 3-line stub that only includes the fixed header and leaves a comment explaining the migration.
 
-Also added inline comments in `.qss` explaining which styles must remain in C++ (per-instance colours for avatars, badges, and metric icons).
+**Architecture note:** All real logic is now in `Control_Navigator` / `Dashboard_Control`. `main_control.h/.cpp` are dead code and can be safely deleted after team alignment.
 
-#### Files Modified
+### Files Modified
 | File | Action |
 |---|---|
-| `src/view/employeeswidget.h` | Updated — new panel members & factory |
-| `src/view/employeeswidget.cpp` | Updated — all 5 changes applied |
-| `resources/styles/styles.qss` | EmployeesWidget section fully restructured (8 sections) |
+| `src/view/employeeswidget.h` | Updated — removed panels/clock, added profileBlock/filterCombo/eventFilter |
+| `src/view/employeeswidget.cpp` | Updated — all 3 UI changes applied |
+| `resources/styles/styles.qss` | Updated — Section 2 replaced, right-panel sections removed, filterCombo added |
+| `src/control/main_control.h` | Bug fix — replaced broken include with safe stub |
+| `src/control/main_control.cpp` | Bug fix — replaced broken method calls with stub |
 | `ai-logs/25127052_AIUsageLog.md` | Updated this log |
 
 ---
 
-## AI Tools Used
-- **Antigravity IDE (Claude Sonnet 4.6 Thinking)** — code generation, file reading/writing, planning
-- `view_file`, `list_dir` — for codebase exploration
-- `write_to_file`, `replace_file_content`, `run_command` — for all file edits
+## Session 4 — Hotfixes (~21:48)
 
----
+### Bug Fix 1: Missing slot declaration
+**Error:** `no declaration matches 'void Dashboard_View::on_btnLogout_clicked()'` / `Out-of-line definition of 'on_btnLogout_clicked' does not match any declaration in 'Dashboard_View'`
 
-*Log written by AI assistant on behalf of student 25127052.*
+**Root cause:** Qt's auto-connect naming convention (`on_<objectName>_<signal>`) requires the slot to be declared in the class header. `Dashboard_View.cpp` defined `on_btnLogout_clicked()` but `Dashboard_View.h` had no `private slots:` block at all — likely omitted during the merge that renamed the class from `Main_View` to `Dashboard_View`.
+
+**Fix:** Added `private slots: void on_btnLogout_clicked();` to [`Dashboard_View.h`](src/view/Dashboard_View.h).
+
+### Bug Fix 2: Vtable undefined reference
+**Error:** `undefined reference to 'vtable for Main_Control'` in `Login_Control.cpp.obj`
+
+**Root cause:** `Login_Control.cpp` was still trying to instantiate `Main_Control` (`new Main_Control(this)`). Because `Main_Control` is obsolete and wasn't processed properly by the build system (it's not even in `CMakeLists.txt`), trying to link to its constructor and vtable caused a linker error. With `Control_Navigator` handling view switching via the `loginSuccessful` signal anyway, instantiating `Main_Control` is redundant.
+
+**Fix:** Removed the `new Main_Control(this)` code entirely from `Login_Control.cpp`, and removed `#include "main_control.h"`.
+
+### Bug Fix 3: Missing sidebar navigation
+**Error:** After refactoring to `Dashboard_View`, clicking the sidebar buttons (Overview, HR, Timekeep, Salary, Report, Settings) did not navigate to their respective pages because the slots were not defined.
+
+**Fix:** Added the necessary `on_btnMenu_<Page>_clicked` slots to `Dashboard_View.h` and implemented them in `Dashboard_View.cpp` to call `ui->stackedWidget->setCurrentWidget(ui->page<Page>)`.
+
+| File | Change |
+|---|---|
+| `src/view/Dashboard_View.h` | Added `private slots: void on_btnLogout_clicked();` and menu button slots |
+| `src/view/Dashboard_View.cpp` | Implemented menu button slots |
+| `src/control/Login_Control.cpp` | Removed obsolete references to `Main_Control` |
+| `ai-logs/25127052_AIUsageLog.md` | Updated this log |

@@ -24,6 +24,15 @@ public:
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
 
+private slots:
+    void on_btnMenu_Overview_clicked();
+    void on_btnMenu_HR_clicked();
+    void on_btnMenu_Timekeep_clicked();
+    void on_btnMenu_Salary_clicked();
+    void on_btnMenu_Report_clicked();
+    void on_btnMenu_Settings_clicked();
+    void on_btnLogout_clicked();
+
 private:
     Ui::Dashboard_View *ui;
     Dashboard_Control *controller;

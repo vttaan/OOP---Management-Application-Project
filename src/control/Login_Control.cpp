@@ -1,6 +1,5 @@
 #include "Login_Control.h"
 #include "view/Login_View.h"
-#include "main_control.h"
 
 Login_Control::Login_Control(QObject *parent)
     : QObject(parent), view(new Login_View(this)), currentUser(nullptr)
@@ -53,16 +52,10 @@ void Login_Control::handleLoginSubmission(const QString &username, const QString
         if (currentUser->getRole() == "Manager")
         {
             qDebug() << "Manager logged in - Mo giao dien Quan ly";
-
-            Main_Control *mainCtrl = new Main_Control(this);
-            mainCtrl->init();
         }
         else if (currentUser->getRole() == "Staff")
         {
             qDebug() << "Staff logged in - Mo giao dien Nhan vien";
-
-            Main_Control *mainCtrl = new Main_Control(this);
-            mainCtrl->init();
         }
     }
     else

@@ -2,22 +2,21 @@
 #define EMPLOYEESWIDGET_H
 
 #include <QWidget>
-#include <QSqlTableModel>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
-#include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QComboBox>
 #include <QTableWidget>
 #include <QTableWidgetItem>
 #include <QHeaderView>
 #include <QFrame>
-#include <QScrollArea>
 #include <QTimer>
 #include <QDateTime>
 #include <QSizePolicy>
 #include <QFont>
+#include <QEvent>
 #include <QFile>
 #include <QTextStream>
 
@@ -28,20 +27,26 @@ public:
     explicit EmployeesWidget(QWidget *parent = nullptr);
     ~EmployeesWidget();
 
+signals:
+    void profileClicked();
+
+protected:
+    bool eventFilter(QObject *watched, QEvent *event) override;
+
 private slots:
     void filterEmployees(const QString &searchText);
+    void applyRoleFilter(int index);
     void handleAddEmployee();
-    void updateClock();
 
 private:
-    // --- Setup Methods ---
+    // --- Setup ---
     void setupUi();
     void setupTableHeader();
     void populateTable();
     void setupConnections();
     void logEvent(const QString &eventType, const QString &details);
 
-    // --- Helper Widget Factories ---
+    // --- Widget Factories ---
     QLabel*      createAvatar(const QString &initials, const QString &bgColor);
     QFrame*      createMetricCard(const QString &iconEmoji,
                                   const QString &iconBg,
@@ -55,33 +60,19 @@ private:
     QLabel*      createRoleBadge(const QString &role);
     QPushButton* createActionButton(const QString &emoji, const QString &tooltip);
 
-    // --- Right-side Info Panels ---
-    QFrame*      createInfoPanel(const QString &title,
-                                 const QString &iconEmoji,
-                                 const QString &objectName);
-
-    // --- Top Bar ---
-    QLabel    *lblBreadcrumb;
-    QLineEdit *searchTopBar;
-    QLabel    *lblClock;
-    QTimer    *clockTimer;
+    // --- Profile Block (top-right) ---
+    QFrame      *profileBlock;
 
     // --- Metric Cards Row ---
     QHBoxLayout *metricsLayout;
 
-    // --- Main content row (table + right panels) ---
-    QHBoxLayout *contentRowLayout;
-
-    // --- Roster Card (left) ---
-    QFrame     *rosterCard;
-    QLineEdit  *searchRoster;
+    // --- Roster Card ---
+    QFrame      *rosterCard;
+    QLineEdit   *searchRoster;
+    QComboBox   *filterCombo;
     QPushButton *addEmployeeBtn;
     QTableWidget *employeesTable;
     QLabel      *footerLabel;
-
-    // --- Right Info Panels ---
-    QFrame      *nextShiftPanel;
-    QFrame      *absentTodayPanel;
 
     // --- Main Layout ---
     QVBoxLayout *mainLayout;

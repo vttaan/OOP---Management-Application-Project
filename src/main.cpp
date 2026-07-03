@@ -3,6 +3,7 @@
 #include <QTextStream>
 #include <QDebug>
 #include "control/Control_Navigator.h"
+#include "view/View_Navigator.h"
 
 int main(int argc, char *argv[])
 {

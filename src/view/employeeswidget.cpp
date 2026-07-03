@@ -1,16 +1,11 @@
 #include "employeeswidget.h"
-#include <QSqlDatabase>
-#include <QCoreApplication>
-#include <QDir>
 #include <QFile>
 #include <QTextStream>
 #include <QDateTime>
 #include <QDebug>
-#include <QSqlError>
-#include <QSqlQuery>
 #include <QApplication>
-#include <QSpacerItem>
 #include <QColor>
+#include <QMouseEvent>
 
 // ============================================================
 // Constructor / Destructor
@@ -44,50 +39,68 @@ void EmployeesWidget::setupUi()
     mainLayout->setSpacing(16);
 
     // --------------------------------------------------------
-    // TOP BAR  —  breadcrumb | search | clock | bell
+    // PROFILE BLOCK  (replaces old top bar)
+    // Shows: avatar initials | name | role badge — clickable → profile page
     // --------------------------------------------------------
-    QFrame *topBarFrame = new QFrame();
-    topBarFrame->setObjectName("topBarFrame");
-    QHBoxLayout *topBarLayout = new QHBoxLayout(topBarFrame);
-    topBarLayout->setContentsMargins(0, 0, 0, 0);
-    topBarLayout->setSpacing(12);
+    profileBlock = new QFrame();
+    profileBlock->setObjectName("profileBlock");
+    profileBlock->setCursor(Qt::PointingHandCursor);
 
-    lblBreadcrumb = new QLabel("CorpHQ  ›  Staff");
-    lblBreadcrumb->setObjectName("lblBreadcrumb");
+    QHBoxLayout *profileLayout = new QHBoxLayout(profileBlock);
+    profileLayout->setContentsMargins(0, 0, 0, 0);
+    profileLayout->setSpacing(0);
 
-    searchTopBar = new QLineEdit();
-    searchTopBar->setObjectName("searchTopBar");
-    searchTopBar->setPlaceholderText("  Quick search…  ⌘K");
-    searchTopBar->setFixedHeight(34);
-    searchTopBar->setFixedWidth(210);
+    // Left: page breadcrumb title
+    QLabel *lblPageTitle = new QLabel("Staff Management");
+    lblPageTitle->setObjectName("lblPageTitle");
 
-    lblClock = new QLabel();
-    lblClock->setObjectName("lblClock");
-    clockTimer = new QTimer(this);
-    connect(clockTimer, &QTimer::timeout, this, &EmployeesWidget::updateClock);
-    clockTimer->start(1000);
-    updateClock();
+    // Right: user identity card (clickable)
+    QFrame *userCard = new QFrame();
+    userCard->setObjectName("userCard");
+    userCard->setCursor(Qt::PointingHandCursor);
+    QHBoxLayout *userCardLayout = new QHBoxLayout(userCard);
+    userCardLayout->setContentsMargins(10, 6, 10, 6);
+    userCardLayout->setSpacing(10);
 
-    // Bell with badge
-    QFrame *bellFrame = new QFrame();
-    bellFrame->setObjectName("bellFrame");
-    bellFrame->setFixedSize(36, 36);
-    QLabel *bellIcon = new QLabel("🔔", bellFrame);
-    bellIcon->setObjectName("bellIcon");
-    bellIcon->setGeometry(0, 0, 36, 36);
-    bellIcon->setAlignment(Qt::AlignCenter);
-    QLabel *bellBadge = new QLabel("2", bellFrame);
-    bellBadge->setObjectName("bellBadge");
-    bellBadge->setGeometry(21, 1, 15, 15);
-    bellBadge->setAlignment(Qt::AlignCenter);
+    // Circular avatar with initials
+    QLabel *userAvatar = new QLabel("ME");
+    userAvatar->setObjectName("userAvatar");
+    userAvatar->setFixedSize(36, 36);
+    userAvatar->setAlignment(Qt::AlignCenter);
+    userAvatar->setStyleSheet(
+        "background-color: #2563EB;"
+        "color: #FFFFFF;"
+        "border-radius: 18px;"
+        "font-size: 12px;"
+        "font-weight: bold;"
+    );
 
-    topBarLayout->addWidget(lblBreadcrumb);
-    topBarLayout->addStretch();
-    topBarLayout->addWidget(searchTopBar);
-    topBarLayout->addWidget(lblClock);
-    topBarLayout->addWidget(bellFrame);
+    // Name + role column
+    QVBoxLayout *userInfoLayout = new QVBoxLayout();
+    userInfoLayout->setSpacing(1);
 
-    mainLayout->addWidget(topBarFrame);
+    QLabel *userName = new QLabel("ME");
+    userName->setObjectName("userName");
+
+    QLabel *userRole = new QLabel("Admin");
+    userRole->setObjectName("userRole");
+
+    userInfoLayout->addWidget(userName);
+    userInfoLayout->addWidget(userRole);
+
+    // Caret icon
+    QLabel *caretIcon = new QLabel("›");
+    caretIcon->setObjectName("userCaret");
+
+    userCardLayout->addWidget(userAvatar);
+    userCardLayout->addLayout(userInfoLayout);
+    userCardLayout->addWidget(caretIcon);
+
+    profileLayout->addWidget(lblPageTitle);
+    profileLayout->addStretch();
+    profileLayout->addWidget(userCard);
+
+    mainLayout->addWidget(profileBlock);
 
     // --------------------------------------------------------
     // METRICS CARDS  (3-column)
@@ -119,12 +132,8 @@ void EmployeesWidget::setupUi()
     mainLayout->addLayout(metricsLayout);
 
     // --------------------------------------------------------
-    // CONTENT ROW  —  Roster table (left) + Info panels (right)
+    // ROSTER CARD
     // --------------------------------------------------------
-    contentRowLayout = new QHBoxLayout();
-    contentRowLayout->setSpacing(14);
-
-    // ---- LEFT: Roster Card ----
     rosterCard = new QFrame();
     rosterCard->setObjectName("rosterCard");
     rosterCard->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -133,7 +142,7 @@ void EmployeesWidget::setupUi()
     rosterLayout->setContentsMargins(0, 0, 0, 0);
     rosterLayout->setSpacing(0);
 
-    // Roster header row
+    // Roster header
     QFrame *rosterHeader = new QFrame();
     rosterHeader->setObjectName("rosterHeader");
     QHBoxLayout *rosterHeaderLayout = new QHBoxLayout(rosterHeader);
@@ -149,12 +158,24 @@ void EmployeesWidget::setupUi()
     titleBlock->addWidget(rosterTitle);
     titleBlock->addWidget(rosterSubtitle);
 
+    // Search bar
     searchRoster = new QLineEdit();
     searchRoster->setObjectName("searchRoster");
-    searchRoster->setPlaceholderText("  Search staff...");
+    searchRoster->setPlaceholderText("  🔍  Search staff...");
     searchRoster->setFixedHeight(34);
     searchRoster->setFixedWidth(190);
 
+    // Sort / Filter combo  (###2)
+    filterCombo = new QComboBox();
+    filterCombo->setObjectName("filterCombo");
+    filterCombo->setFixedHeight(34);
+    filterCombo->addItem("All Roles");
+    filterCombo->addItem("Staff");
+    filterCombo->addItem("Manager");
+    filterCombo->addItem("Admin");
+    filterCombo->setCursor(Qt::PointingHandCursor);
+
+    // Add Staff button
     addEmployeeBtn = new QPushButton("+ Add Staff");
     addEmployeeBtn->setObjectName("addEmployeeBtn");
     addEmployeeBtn->setFixedHeight(34);
@@ -163,10 +184,11 @@ void EmployeesWidget::setupUi()
     rosterHeaderLayout->addLayout(titleBlock);
     rosterHeaderLayout->addStretch();
     rosterHeaderLayout->addWidget(searchRoster);
+    rosterHeaderLayout->addWidget(filterCombo);
     rosterHeaderLayout->addWidget(addEmployeeBtn);
     rosterLayout->addWidget(rosterHeader);
 
-    // Divider line
+    // Divider
     QFrame *divider = new QFrame();
     divider->setObjectName("tableDivider");
     divider->setFrameShape(QFrame::HLine);
@@ -175,7 +197,7 @@ void EmployeesWidget::setupUi()
     // Table
     employeesTable = new QTableWidget();
     employeesTable->setObjectName("employeesTable");
-    employeesTable->setColumnCount(7); // removed Department col
+    employeesTable->setColumnCount(7);
     employeesTable->verticalHeader()->setVisible(false);
     employeesTable->setShowGrid(false);
     employeesTable->setAlternatingRowColors(true);
@@ -196,38 +218,13 @@ void EmployeesWidget::setupUi()
     footerFrame->setObjectName("tableFooterFrame");
     QHBoxLayout *footerLayout = new QHBoxLayout(footerFrame);
     footerLayout->setContentsMargins(18, 8, 18, 8);
-    footerLabel = new QLabel("Showing 7 of 7 staff · 5 active, 1 absent, 1 pending");
+    footerLabel = new QLabel("Showing 7 of 7 staff  ·  5 active, 1 absent, 1 pending");
     footerLabel->setObjectName("footerLabel");
     footerLayout->addWidget(footerLabel);
     footerLayout->addStretch();
     rosterLayout->addWidget(footerFrame);
 
-    contentRowLayout->addWidget(rosterCard, 3); // stretch factor 3
-
-    // ---- RIGHT: Info Panels column ----
-    QVBoxLayout *rightPanelColumn = new QVBoxLayout();
-    rightPanelColumn->setSpacing(14);
-
-    // Next Shift panel
-    nextShiftPanel = createInfoPanel(
-        "Next Shift",
-        "🗓️",
-        "nextShiftPanel"
-    );
-
-    // Absent Today panel
-    absentTodayPanel = createInfoPanel(
-        "Absent Today",
-        "🚫",
-        "absentTodayPanel"
-    );
-
-    rightPanelColumn->addWidget(nextShiftPanel, 1);
-    rightPanelColumn->addWidget(absentTodayPanel, 1);
-
-    contentRowLayout->addLayout(rightPanelColumn, 1); // stretch factor 1
-
-    mainLayout->addLayout(contentRowLayout);
+    mainLayout->addWidget(rosterCard);
 }
 
 void EmployeesWidget::setupTableHeader()
@@ -236,38 +233,34 @@ void EmployeesWidget::setupTableHeader()
     QStringList headers = {"EMPLOYEE ID", "NAME", "ROLE",
                            "PAY TYPE", "MONTHLY RATE", "STATUS", "ACTIONS"};
     employeesTable->setHorizontalHeaderLabels(headers);
-
-    // NAME column stretches
     employeesTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
-
-    employeesTable->setColumnWidth(0, 100); // ID
-    employeesTable->setColumnWidth(2, 88);  // ROLE
-    employeesTable->setColumnWidth(3, 84);  // PAY TYPE
-    employeesTable->setColumnWidth(4, 105); // MONTHLY RATE
-    employeesTable->setColumnWidth(5, 90);  // STATUS
-    employeesTable->setColumnWidth(6, 80);  // ACTIONS
+    employeesTable->setColumnWidth(0, 100);
+    employeesTable->setColumnWidth(2, 88);
+    employeesTable->setColumnWidth(3, 84);
+    employeesTable->setColumnWidth(4, 105);
+    employeesTable->setColumnWidth(5, 90);
+    employeesTable->setColumnWidth(6, 80);
 }
 
 // ============================================================
-// Populate Table  —  F&B simplified names, monthly salaries
+// Populate Table — F&B simplified names, monthly salaries
 // ============================================================
 
 void EmployeesWidget::populateTable()
 {
-    // Cols: 0=ID, 1=Name+Avatar, 2=Role, 3=PayType, 4=MonthlyRate, 5=Status, 6=Actions
     struct EmployeeRecord {
         QString id, name, initials, avatarColor;
         QString role, payType, monthlyRate, status;
     };
 
     QList<EmployeeRecord> data = {
-        {"EMP-1042", "Staff A",     "SA", "#3B82F6", "Staff",   "Hourly",  "$2,280/mo",  "Active"},
-        {"EMP-1043", "Staff B",     "SB", "#10B981", "Staff",   "Hourly",  "$1,980/mo",  "Active"},
-        {"EMP-1044", "Staff C",     "SC", "#F59E0B", "Staff",   "Hourly",  "$2,100/mo",  "Absent"},
-        {"EMP-1045", "Staff D",     "SD", "#EF4444", "Staff",   "Hourly",  "$2,050/mo",  "Active"},
-        {"EMP-1046", "Manager A",   "MA", "#8B5CF6", "Manager", "Salary",  "$4,200/mo",  "Active"},
-        {"EMP-1047", "Manager B",   "MB", "#6366F1", "Manager", "Salary",  "$4,500/mo",  "Pending"},
-        {"EMP-1048", "Admin",       "AD", "#14B8A6", "Admin",   "Salary",  "$3,800/mo",  "Active"},
+        {"EMP-1042", "Staff A",   "SA", "#3B82F6", "Staff",   "Hourly", "$2,280/mo", "Active"},
+        {"EMP-1043", "Staff B",   "SB", "#10B981", "Staff",   "Hourly", "$1,980/mo", "Active"},
+        {"EMP-1044", "Staff C",   "SC", "#F59E0B", "Staff",   "Hourly", "$2,100/mo", "Absent"},
+        {"EMP-1045", "Staff D",   "SD", "#EF4444", "Staff",   "Hourly", "$2,050/mo", "Active"},
+        {"EMP-1046", "Manager A", "MA", "#8B5CF6", "Manager", "Salary", "$4,200/mo", "Active"},
+        {"EMP-1047", "Manager B", "MB", "#6366F1", "Manager", "Salary", "$4,500/mo", "Pending"},
+        {"EMP-1048", "Admin",     "AD", "#14B8A6", "Admin",   "Salary", "$3,800/mo", "Active"},
     };
 
     employeesTable->setRowCount(data.size());
@@ -281,18 +274,19 @@ void EmployeesWidget::populateTable()
         idItem->setForeground(QColor("#64748B"));
         idItem->setFont(QFont("Segoe UI", 9));
         idItem->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+        // Store the role in UserRole for filtering
+        idItem->setData(Qt::UserRole, emp.role);
         employeesTable->setItem(row, 0, idItem);
 
-        // Col 1 — Name with circular avatar
+        // Col 1 — Name + avatar
         QWidget *nameWidget = new QWidget();
         QHBoxLayout *nameLayout = new QHBoxLayout(nameWidget);
         nameLayout->setContentsMargins(8, 4, 8, 4);
         nameLayout->setSpacing(10);
-        QLabel *avatar = createAvatar(emp.initials, emp.avatarColor);
+        nameLayout->addWidget(createAvatar(emp.initials, emp.avatarColor));
         QLabel *nameLabel = new QLabel(emp.name);
         nameLabel->setObjectName("empNameLabel");
         nameLabel->setFont(QFont("Segoe UI", 10, QFont::DemiBold));
-        nameLayout->addWidget(avatar);
         nameLayout->addWidget(nameLabel);
         nameLayout->addStretch();
         employeesTable->setCellWidget(row, 1, nameWidget);
@@ -327,7 +321,7 @@ void EmployeesWidget::populateTable()
         statusLayout->addStretch();
         employeesTable->setCellWidget(row, 5, statusWidget);
 
-        // Col 6 — Actions (edit + delete)
+        // Col 6 — Actions
         QWidget *actionsWidget = new QWidget();
         QHBoxLayout *actionsLayout = new QHBoxLayout(actionsWidget);
         actionsLayout->setContentsMargins(6, 4, 6, 4);
@@ -348,8 +342,20 @@ void EmployeesWidget::populateTable()
 void EmployeesWidget::setupConnections()
 {
     connect(searchRoster, &QLineEdit::textChanged, this, &EmployeesWidget::filterEmployees);
+    connect(filterCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &EmployeesWidget::applyRoleFilter);
     connect(addEmployeeBtn, &QPushButton::clicked, this, &EmployeesWidget::handleAddEmployee);
+
+    // Profile block click — forward to Dashboard_View via signal
+    // We install an event filter on the userCard child
+    QFrame *userCard = profileBlock->findChild<QFrame*>("userCard");
+    if (userCard) {
+        userCard->installEventFilter(this);
+    }
 }
+
+
+
 
 // ============================================================
 // Slots
@@ -358,25 +364,46 @@ void EmployeesWidget::setupConnections()
 void EmployeesWidget::filterEmployees(const QString &searchText)
 {
     logEvent("UI Data Fetch", QString("Filtering staff by: '%1'").arg(searchText));
+    const QString roleFilter = filterCombo->currentIndex() == 0
+                                ? QString()
+                                : filterCombo->currentText();
+
     for (int row = 0; row < employeesTable->rowCount(); ++row) {
-        bool match = false;
-        for (int col = 0; col < employeesTable->columnCount(); ++col) {
-            QTableWidgetItem *item = employeesTable->item(row, col);
-            if (item && item->text().contains(searchText, Qt::CaseInsensitive)) {
-                match = true;
-                break;
-            }
-            QWidget *w = employeesTable->cellWidget(row, col);
-            if (w) {
-                QLabel *lbl = w->findChild<QLabel*>("empNameLabel");
-                if (lbl && lbl->text().contains(searchText, Qt::CaseInsensitive)) {
-                    match = true;
+        // Role filter
+        QString rowRole;
+        QTableWidgetItem *id0 = employeesTable->item(row, 0);
+        if (id0) rowRole = id0->data(Qt::UserRole).toString();
+
+        bool roleMatch = roleFilter.isEmpty() || rowRole == roleFilter;
+
+        // Text filter — check item cells and name label
+        bool textMatch = searchText.isEmpty();
+        if (!textMatch) {
+            for (int col = 0; col < employeesTable->columnCount(); ++col) {
+                QTableWidgetItem *item = employeesTable->item(row, col);
+                if (item && item->text().contains(searchText, Qt::CaseInsensitive)) {
+                    textMatch = true;
                     break;
+                }
+                QWidget *w = employeesTable->cellWidget(row, col);
+                if (w) {
+                    QLabel *lbl = w->findChild<QLabel*>("empNameLabel");
+                    if (lbl && lbl->text().contains(searchText, Qt::CaseInsensitive)) {
+                        textMatch = true;
+                        break;
+                    }
                 }
             }
         }
-        employeesTable->setRowHidden(row, !match && !searchText.isEmpty());
+
+        employeesTable->setRowHidden(row, !(textMatch && roleMatch));
     }
+}
+
+void EmployeesWidget::applyRoleFilter(int /*index*/)
+{
+    // Re-run filter with current search text & new combo value
+    filterEmployees(searchRoster->text());
 }
 
 void EmployeesWidget::handleAddEmployee()
@@ -384,14 +411,23 @@ void EmployeesWidget::handleAddEmployee()
     logEvent("System Event", "Add Staff button clicked.");
 }
 
-void EmployeesWidget::updateClock()
+// ============================================================
+// Event filter — profile card click
+// ============================================================
+
+bool EmployeesWidget::eventFilter(QObject *watched, QEvent *event)
 {
-    QDateTime now = QDateTime::currentDateTime();
-    lblClock->setText(now.toString("ddd, MMM d  hh:mm AP"));
+    QFrame *userCard = profileBlock ? profileBlock->findChild<QFrame*>("userCard") : nullptr;
+    if (watched == userCard && event->type() == QEvent::MouseButtonRelease) {
+        logEvent("Navigation", "Profile block clicked — emitting profileClicked.");
+        emit profileClicked();
+        return true;
+    }
+    return QWidget::eventFilter(watched, event);
 }
 
 // ============================================================
-// Helper Widget Factories
+// Widget Factories
 // ============================================================
 
 QLabel* EmployeesWidget::createAvatar(const QString &initials, const QString &bgColor)
@@ -400,7 +436,6 @@ QLabel* EmployeesWidget::createAvatar(const QString &initials, const QString &bg
     avatar->setObjectName("empAvatar");
     avatar->setFixedSize(32, 32);
     avatar->setAlignment(Qt::AlignCenter);
-    // Inline style needed here because QSS cannot address per-instance background colors
     avatar->setStyleSheet(QString(
         "background-color: %1;"
         "color: #FFFFFF;"
@@ -429,7 +464,6 @@ QFrame* EmployeesWidget::createMetricCard(const QString &iconEmoji,
     cardLayout->setContentsMargins(16, 14, 16, 14);
     cardLayout->setSpacing(14);
 
-    // Circular icon  — inline style needed for per-card colour
     QLabel *iconLabel = new QLabel(iconEmoji);
     iconLabel->setObjectName("metricIcon");
     iconLabel->setFixedSize(50, 50);
@@ -441,7 +475,6 @@ QFrame* EmployeesWidget::createMetricCard(const QString &iconEmoji,
         "font-size: 20px;"
     ).arg(iconBg, iconColor));
 
-    // Text block
     QVBoxLayout *textLayout = new QVBoxLayout();
     textLayout->setSpacing(3);
 
@@ -458,8 +491,7 @@ QFrame* EmployeesWidget::createMetricCard(const QString &iconEmoji,
     subRow->addWidget(subtitleLabel);
     if (!badge.isEmpty()) {
         QLabel *badgeLabel = new QLabel(badge);
-        badgeLabel->setStyleSheet(QString(
-            "color: %1; font-weight: bold; font-size: 10px;").arg(badgeColor));
+        badgeLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 10px;").arg(badgeColor));
         subRow->addWidget(badgeLabel);
     }
     subRow->addStretch();
@@ -475,76 +507,12 @@ QFrame* EmployeesWidget::createMetricCard(const QString &iconEmoji,
     return card;
 }
 
-// Creates a labelled info panel (Next Shift / Absent Today)
-// with an icon, title, and empty body space ready for data.
-QFrame* EmployeesWidget::createInfoPanel(const QString &title,
-                                          const QString &iconEmoji,
-                                          const QString &objectName)
-{
-    QFrame *panel = new QFrame();
-    panel->setObjectName(objectName);
-    panel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
-    panel->setMinimumWidth(220);
-
-    QVBoxLayout *panelLayout = new QVBoxLayout(panel);
-    panelLayout->setContentsMargins(0, 0, 0, 0);
-    panelLayout->setSpacing(0);
-
-    // Panel header bar
-    QFrame *headerBar = new QFrame();
-    headerBar->setObjectName(objectName + QString("Header"));
-    QHBoxLayout *headerLayout = new QHBoxLayout(headerBar);
-    headerLayout->setContentsMargins(14, 12, 14, 12);
-    headerLayout->setSpacing(8);
-
-    QLabel *iconLbl = new QLabel(iconEmoji);
-    iconLbl->setObjectName("infoPanelIcon");
-    iconLbl->setFixedSize(24, 24);
-    iconLbl->setAlignment(Qt::AlignCenter);
-
-    QLabel *titleLbl = new QLabel(title);
-    titleLbl->setObjectName("infoPanelTitle");
-
-    headerLayout->addWidget(iconLbl);
-    headerLayout->addWidget(titleLbl);
-    headerLayout->addStretch();
-    panelLayout->addWidget(headerBar);
-
-    // Thin separator
-    QFrame *sep = new QFrame();
-    sep->setObjectName("infoPanelDivider");
-    sep->setFrameShape(QFrame::HLine);
-    panelLayout->addWidget(sep);
-
-    // Body — empty placeholder space
-    QFrame *body = new QFrame();
-    body->setObjectName("infoPanelBody");
-    body->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-    QVBoxLayout *bodyLayout = new QVBoxLayout(body);
-    bodyLayout->setContentsMargins(14, 14, 14, 14);
-    bodyLayout->setSpacing(10);
-
-    // Placeholder hint label
-    QLabel *hintLbl = new QLabel("— No data —");
-    hintLbl->setObjectName("infoPanelHint");
-    hintLbl->setAlignment(Qt::AlignCenter);
-    bodyLayout->addStretch();
-    bodyLayout->addWidget(hintLbl);
-    bodyLayout->addStretch();
-
-    panelLayout->addWidget(body, 1);
-
-    return panel;
-}
-
 QLabel* EmployeesWidget::createStatusBadge(const QString &status)
 {
     QLabel *badge = new QLabel(status);
     badge->setAlignment(Qt::AlignCenter);
     badge->setFixedHeight(20);
 
-    // Inline styles — per-status colours cannot come from named-object QSS
     QString style;
     if (status == "Active")
         style = "background-color:#DCFCE7;color:#15803D;border-radius:10px;font-size:10px;font-weight:bold;padding:1px 9px;";
@@ -563,7 +531,6 @@ QLabel* EmployeesWidget::createRoleBadge(const QString &role)
     badge->setAlignment(Qt::AlignCenter);
     badge->setFixedHeight(20);
 
-    // Inline styles — per-role colours cannot come from named-object QSS
     QString style;
     if (role == "Manager")
         style = "background-color:#EDE9FE;color:#6D28D9;border-radius:10px;font-size:10px;font-weight:bold;padding:1px 9px;";
