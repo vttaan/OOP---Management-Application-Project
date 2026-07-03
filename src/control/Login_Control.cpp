@@ -1,5 +1,6 @@
 #include "Login_Control.h"
 #include "main_control.h"
+#include "view/Login_View.h"
 
 Login_Control::Login_Control(QObject *parent)
     : QObject(parent), view(new Login_View()), currentUser(nullptr)
