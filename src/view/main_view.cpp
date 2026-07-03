@@ -39,31 +39,12 @@ Main_View::Main_View(QWidget *parent) :
             row++;
         }
     }
-
-    connect(ui->btnMenu_Overview, &QPushButton::clicked, this, [=]() {
-        ui->stackedWidget->setCurrentIndex(0); // Lật về trang Tổng quan (Giao diện cũ)
-    });
-
-    connect(ui->btnMenu_HR, &QPushButton::clicked, this, [=]() {
-        ui->stackedWidget->setCurrentIndex(1); // Lật sang trang trống Nhân sự
-    });
-
-    connect(ui->btnMenu_Timekeep, &QPushButton::clicked, this, [=]() {
-        ui->stackedWidget->setCurrentIndex(2); // Lật sang trang trống Chấm công
-    });
-
-    connect(ui->btnMenu_Salary, &QPushButton::clicked, this, [=]() {
-        ui->stackedWidget->setCurrentIndex(3); // Lật sang trang trống Lương
-    });
-
-    connect(ui->btnMenu_Report, &QPushButton::clicked, this, [=]() {
-        ui->stackedWidget->setCurrentIndex(4); // Lật sang trang trống Báo cáo
-    });
-
-    connect(ui->btnMenu_Settings, &QPushButton::clicked, this, [=]() {
-        ui->stackedWidget->setCurrentIndex(5); // Lật sang trang trống Cài đặt
-    });
-
+    connect(ui->btnMenu_Overview, &QPushButton::clicked, this, &Main_View::menuOverviewClicked);
+    connect(ui->btnMenu_HR, &QPushButton::clicked, this, &Main_View::menuHRClicked);
+    connect(ui->btnMenu_Timekeep, &QPushButton::clicked, this, &Main_View::menuTimekeepClicked);
+    connect(ui->btnMenu_Salary, &QPushButton::clicked, this, &Main_View::menuSalaryClicked);
+    connect(ui->btnMenu_Report, &QPushButton::clicked, this, &Main_View::menuReportClicked);
+    connect(ui->btnMenu_Settings, &QPushButton::clicked, this, &Main_View::menuSettingsClicked);
 
     ui->lblAvatar->setCursor(Qt::PointingHandCursor);
     ui->lblUserName->setCursor(Qt::PointingHandCursor);
@@ -74,13 +55,16 @@ Main_View::Main_View(QWidget *parent) :
     ui->lblUserName->installEventFilter(this);
     ui->lblUserRole->installEventFilter(this);
     ui->lblDropdown->installEventFilter(this);
-
 }
-
 
 Main_View::~Main_View()
 {
     delete ui;
+}
+
+void Main_View::switchPage(int pageIndex)
+{
+    ui->stackedWidget->setCurrentIndex(pageIndex);
 }
 
 bool Main_View::eventFilter(QObject *watched, QEvent *event)
@@ -89,10 +73,8 @@ bool Main_View::eventFilter(QObject *watched, QEvent *event)
         if (watched == ui->lblAvatar || watched == ui->lblUserName ||
             watched == ui->lblUserRole || watched == ui->lblDropdown) {
 
-            ui->stackedWidget->setCurrentIndex(6);
-            return true;
+            emit profileClicked();
         }
     }
-
     return QWidget::eventFilter(watched, event);
 }
