@@ -2,11 +2,10 @@
 #include "view/Login_View.h"
 
 
-Login_Control::Login_Control(QObject *parent)
-    :QObject(parent), view(new Login_View(this)), currentUser(nullptr){
 
-    bool kt = connect(view, &Login_View::loginSubmitted, this, &Login_Control::handleLoginSubmission);
-    Q_ASSERT(kt);
+Login_Control::Login_Control(QObject *parent)
+    :QObject(parent), view(nullptr), currentUser(nullptr){
+
 }
 Login_Control::~Login_Control() {
     if (view) delete view;
@@ -20,6 +19,13 @@ Login_View* Login_Control::getView()  {
     return this->view;
 }
 
+void Login_Control::setView(Login_View* view) {
+    this->view = view;
+    if (this->view) {
+        QObject::connect(this->view, &Login_View::loginSubmitted, this, &Login_Control::handleLoginSubmission);
+    }
+}
+
 void Login_Control::handleLoginSubmission(const QString& username,const QString& password){
     Login_Model model;
     //qDebug() << "pending\n";
@@ -27,8 +33,7 @@ void Login_Control::handleLoginSubmission(const QString& username,const QString&
     if (user != nullptr) {
         //qDebug() << "success\n";
         currentUser = user;
-        emit loginSuccessful();
-        //view->hide();
+        emit loginSuccessful(this->currentUser);
 
 
         if (currentUser->getRole() == "Manager") {
@@ -45,3 +50,5 @@ void Login_Control::handleLoginSubmission(const QString& username,const QString&
         view->clearPassword();
     }
 }
+
+User* Login_Control::getUser() { return currentUser; }

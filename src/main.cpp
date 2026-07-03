@@ -3,6 +3,7 @@
 #include <QFile>
 #include <QTextStream>
 
+#include "control/Control_Navigator.h"
 #include "view/View_Navigator.h"
 
 // #include "control/Login_Control.h"
@@ -46,8 +47,8 @@ int main(int argc, char *argv[])
         qDebug() << "Cannot load QSS File from path";
     }
 
-    View_Navigator appWindow;
-    appWindow.show();
+    Control_Navigator* appWindow = new Control_Navigator;
+    appWindow->viewWindow->show();
 
     return a.exec();
 }

@@ -1,14 +1,16 @@
 #include "View_Navigator.h"
 #include "ui_View_Navigator.h"
-#include "Login_View.h"
-#include "Profile_View.h"
-#include "main_view.h"
-#include "control/Login_Control.h"
+#include "control/Control_Navigator.h"
 #include <QStackedWidget>
+#include "view/Profile_View.h"
 
-View_Navigator::View_Navigator(QWidget *parent)
+View_Navigator::View_Navigator(Control_Navigator* controller, QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::View_Navigator)
+    , controller(controller)
+    , loginPage(new Login_View(controller->loginController))
+    , dashboardPage(new Dashboard_View(controller->dashboardController))
+    , profilePage(new Profile_View(controller->profileController))
 {
     ui->setupUi(this);
 
@@ -19,45 +21,34 @@ View_Navigator::View_Navigator(QWidget *parent)
         delete widget;
     }
 
-    // create pages
-    Main_View* dashboard_page = new Main_View(this);
-    Profile_View* profile_page = new Profile_View(this);
-    Login_Control* login_control = new Login_Control(this);
-    Login_View* login_page = login_control->getView();
+    // Set the views on the controllers
+    controller->loginController->setView(loginPage);
+    controller->profileController->setView(profilePage);
+    controller->dashboardController->setView(dashboardPage);
 
     // add pages
     // index note for each page
-    ui->stackedWidget->addWidget(login_page); // index 0
-    ui->stackedWidget->addWidget(dashboard_page); // index 1
-    ui->stackedWidget->addWidget(profile_page); // index 2
+    ui->stackedWidget->addWidget(loginPage); // index 0
+    ui->stackedWidget->addWidget(dashboardPage); // index 1
+    ui->stackedWidget->addWidget(profilePage); // index 2
     // default : login page
     ui->stackedWidget->setCurrentIndex(0);
 
-    // connect signals
-    connect(login_control, &Login_Control::loginSuccessful, this, [this]() {
-        qDebug() << "Dashboard\n";
-        ui->stackedWidget->setCurrentIndex(1);
-    });
-
-    connect(dashboard_page, &Main_View::logoutSubmitted, this, [this, login_page]() {
-        qDebug() << "Log out\n";
-        ui->stackedWidget->setCurrentIndex(0);
-        login_page->clearInputs();
-        emit logoutSubmitted();
-    });
-
-    connect(dashboard_page, &Main_View::profilePageClicked, this, [this]() {
-        qDebug() << "Profile page\n";
-        ui->stackedWidget->setCurrentIndex(2);
-    } );
-
-    connect(profile_page, &Profile_View::backToPrevious, this, [this]() {
-        qDebug() << "Dashboard\n";
-        ui->stackedWidget->setCurrentIndex(1);
-    });
+    // Navigation is managed directly by Control_Navigator now.
 
 
 
+}
+
+QWidget* View_Navigator::getWindow() { return currentWindow; }
+
+Control_Navigator* View_Navigator::getController() { return controller; }
+Ui::View_Navigator* View_Navigator::getUI() { return ui; }
+
+void View_Navigator::setPageIndex(int index) {
+    if (ui && ui->stackedWidget) {
+        ui->stackedWidget->setCurrentIndex(index);
+    }
 }
 
 View_Navigator::~View_Navigator()

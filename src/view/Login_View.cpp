@@ -118,7 +118,6 @@ void Login_View::on_txtLoginPassword_returnPressed()
         QMessageBox::warning(this, "Warning - Invalid information", "Enter fully your password and username");
         return;
     }
-
     emit loginSubmitted(user, pass);
     qDebug() << "login\n";
 }

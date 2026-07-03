@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Main_View</class>
- <widget class="QWidget" name="Main_View">
+ <class>Dashboard_View</class>
+ <widget class="QWidget" name="Dashboard_View">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -15,7 +15,7 @@
   </property>
   <property name="styleSheet">
    <string notr="true">
-QWidget#Main_View {
+QWidget#Dashboard_View {
     background-color: #f8f9fa;
 }
 

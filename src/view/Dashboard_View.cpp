@@ -1,12 +1,14 @@
-#include "main_view.h"
-#include "ui_main_view.h"
+#include "Dashboard_View.h"
+#include "ui_Dashboard_View.h"
+#include "control/Dashboard_Control.h"
 #include "employeecard.h"
 #include <QGridLayout>
 #include <QMouseEvent>
 
-Main_View::Main_View(QWidget *parent) :
+Dashboard_View::Dashboard_View(Dashboard_Control* controller, QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::Main_View)
+    ui(new Ui::Dashboard_View()),
+    controller(controller)
 {
     ui->setupUi(this);
 
@@ -83,27 +85,32 @@ Main_View::Main_View(QWidget *parent) :
 }
 
 
-Main_View::~Main_View()
+Dashboard_View::~Dashboard_View()
 {
+    ui = nullptr;
     delete ui;
 }
 
-bool Main_View::eventFilter(QObject *watched, QEvent *event)
+Dashboard_Control* Dashboard_View::getController() const {
+    return controller;
+}
+
+bool Dashboard_View::eventFilter(QObject *watched, QEvent *event)
 {
     if (event->type() == QEvent::MouseButtonPress) {
         if (watched == ui->lblAvatar || watched == ui->lblUserName ||
             watched == ui->lblUserRole || watched == ui->lblDropdown) {
             ui->stackedWidget->setCurrentIndex(0);
-            emit  profilePageClicked(); // switch to profile_view
+            emit this->getController()->profilePageClicked(); // switch to profile_view
             return true;
         }
     }
 
     return QWidget::eventFilter(watched, event);
 }
-void Main_View::on_btnLogout_clicked()
+void Dashboard_View::on_btnLogout_clicked()
 {
-    emit logoutSubmitted();
+    emit this->getController()->logoutSubmitted();
 }
 
 
