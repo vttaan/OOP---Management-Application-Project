@@ -1,4 +1,4 @@
-
+﻿
 Login_View {
     background-color: white;
 }
@@ -336,4 +336,356 @@ QLabel[class="lblFieldValue"] {
     font-family: "Segoe UI", Arial, sans-serif;
     font-size: 14px;
     font-weight: 700;
+}
+
+
+/* ╔══════════════════════════════════════════════════════════╗ */
+/* ║          EmployeesWidget  —  F&B Dashboard Theme         ║ */
+/* ║  Sections:                                               ║ */
+/* ║    1. Root Widget                                        ║ */
+/* ║    2. Top Bar (breadcrumb, search, clock, bell)          ║ */
+/* ║    3. Metric Summary Cards                               ║ */
+/* ║    4. Roster Card (header, search, add-btn)              ║ */
+/* ║    5. Staff Table                                        ║ */
+/* ║    6. Table Footer                                       ║ */
+/* ║    7. Right Info Panels (Next Shift / Absent Today)      ║ */
+/* ║    8. Shared Scrollbars                                  ║ */
+/* ╚══════════════════════════════════════════════════════════╝ */
+
+
+/* ── 1. ROOT WIDGET ─────────────────────────────────────── */
+
+EmployeesWidget {
+    background-color: #F8FAFC;
+    color: #0F172A;
+    font-family: "Segoe UI", "Inter", Arial, sans-serif;
+}
+
+
+/* ── 2. TOP BAR ─────────────────────────────────────────── */
+
+EmployeesWidget #topBarFrame {
+    background-color: #FFFFFF;
+    border-bottom: 1px solid #E2E8F0;
+    min-height: 50px;
+    max-height: 50px;
+}
+
+EmployeesWidget #lblBreadcrumb {
+    color: #64748B;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+
+EmployeesWidget #searchTopBar {
+    background-color: #F1F5F9;
+    color: #374151;
+    border: 1px solid #E2E8F0;
+    border-radius: 17px;
+    padding: 3px 14px;
+    font-size: 12px;
+}
+EmployeesWidget #searchTopBar:focus {
+    border: 1px solid #93C5FD;
+    background-color: #FFFFFF;
+}
+
+EmployeesWidget #lblClock {
+    color: #475569;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 0px 6px;
+}
+
+EmployeesWidget #bellFrame {
+    border-radius: 18px;
+}
+EmployeesWidget #bellIcon {
+    font-size: 17px;
+}
+EmployeesWidget #bellBadge {
+    background-color: #EF4444;
+    color: #FFFFFF;
+    border-radius: 7px;
+    font-size: 8px;
+    font-weight: bold;
+}
+
+
+/* ── 3. METRIC SUMMARY CARDS ────────────────────────────── */
+
+EmployeesWidget #metricCard {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+}
+EmployeesWidget #metricCard:hover {
+    border-color: #BFDBFE;
+    background-color: #F8FBFF;
+}
+
+EmployeesWidget #metricTitle {
+    color: #64748B;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+}
+
+EmployeesWidget #metricValue {
+    color: #0F172A;
+    font-size: 26px;
+    font-weight: 700;
+}
+
+EmployeesWidget #metricSubtitle {
+    color: #94A3B8;
+    font-size: 11px;
+}
+
+/*
+ * NOTE: metricIcon background-color and border-radius are set
+ * inline in C++ (createMetricCard) because each card uses a
+ * different colour that cannot be expressed in static QSS.
+ */
+
+
+/* ── 4. ROSTER CARD ─────────────────────────────────────── */
+
+EmployeesWidget #rosterCard {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+}
+
+EmployeesWidget #rosterHeader {
+    background-color: transparent;
+}
+
+EmployeesWidget #rosterTitle {
+    color: #0F172A;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+EmployeesWidget #rosterSubtitle {
+    color: #94A3B8;
+    font-size: 11px;
+}
+
+EmployeesWidget #tableDivider {
+    color: #E2E8F0;
+    max-height: 1px;
+}
+
+EmployeesWidget #searchRoster {
+    background-color: #F8FAFC;
+    color: #374151;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    padding: 3px 12px;
+    font-size: 12px;
+}
+EmployeesWidget #searchRoster:focus {
+    border: 1px solid #93C5FD;
+    background-color: #FFFFFF;
+}
+
+EmployeesWidget #addEmployeeBtn {
+    background-color: #2563EB;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 8px;
+    padding: 0px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    min-width: 100px;
+}
+EmployeesWidget #addEmployeeBtn:hover {
+    background-color: #1D4ED8;
+}
+EmployeesWidget #addEmployeeBtn:pressed {
+    background-color: #1E40AF;
+}
+
+
+/* ── 5. STAFF TABLE ─────────────────────────────────────── */
+
+EmployeesWidget #employeesTable {
+    background-color: #FFFFFF;
+    alternate-background-color: #F8FAFC;
+    color: #0F172A;
+    border: none;
+    gridline-color: transparent;
+    selection-background-color: #EFF6FF;
+    selection-color: #1E40AF;
+    outline: none;
+}
+
+EmployeesWidget #employeesTable::item {
+    padding: 5px 8px;
+    border-bottom: 1px solid #F1F5F9;
+}
+EmployeesWidget #employeesTable::item:hover {
+    background-color: #F0F9FF;
+}
+EmployeesWidget #employeesTable::item:selected {
+    background-color: #EFF6FF;
+    color: #1E40AF;
+}
+
+EmployeesWidget QHeaderView {
+    background-color: transparent;
+}
+EmployeesWidget QHeaderView::section {
+    background-color: #F8FAFC;
+    color: #64748B;
+    padding: 9px 8px;
+    border: none;
+    border-bottom: 2px solid #E2E8F0;
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+}
+
+/* Staff name label inside the cell widget */
+EmployeesWidget #empNameLabel {
+    color: #1E293B;
+    font-size: 12px;
+    font-weight: 600;
+    background-color: transparent;
+}
+
+/*
+ * NOTE: empAvatar, status badges, and role badges use inline
+ * styles in C++ because each instance requires a unique colour.
+ */
+
+/* Action icon buttons in the last column */
+EmployeesWidget #tableActionBtn {
+    background-color: transparent;
+    border: 1px solid #E2E8F0;
+    border-radius: 6px;
+    font-size: 13px;
+}
+EmployeesWidget #tableActionBtn:hover {
+    background-color: #F1F5F9;
+    border-color: #CBD5E1;
+}
+EmployeesWidget #tableActionBtn:pressed {
+    background-color: #E2E8F0;
+}
+
+
+/* ── 6. TABLE FOOTER ────────────────────────────────────── */
+
+EmployeesWidget #tableFooterFrame {
+    background-color: #F8FAFC;
+    border-top: 1px solid #E2E8F0;
+    border-bottom-left-radius: 14px;
+    border-bottom-right-radius: 14px;
+}
+
+EmployeesWidget #footerLabel {
+    color: #94A3B8;
+    font-size: 11px;
+}
+
+
+/* ── 7. RIGHT INFO PANELS  (Next Shift / Absent Today) ──── */
+
+/* Shared panel card shell */
+EmployeesWidget #nextShiftPanel,
+EmployeesWidget #absentTodayPanel {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+}
+
+/* Panel header bars */
+EmployeesWidget #nextShiftPanelHeader {
+    background-color: #EFF6FF;
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+    border-bottom: 1px solid #DBEAFE;
+}
+
+EmployeesWidget #absentTodayPanelHeader {
+    background-color: #FFF5F5;
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+    border-bottom: 1px solid #FEE2E2;
+}
+
+/* Panel title text */
+EmployeesWidget #infoPanelTitle {
+    color: #0F172A;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+/* Panel icon */
+EmployeesWidget #infoPanelIcon {
+    font-size: 16px;
+    background-color: transparent;
+}
+
+/* Thin separator under header */
+EmployeesWidget #infoPanelDivider {
+    color: #E2E8F0;
+    max-height: 1px;
+}
+
+/* Empty body area */
+EmployeesWidget #infoPanelBody {
+    background-color: transparent;
+}
+
+/* Placeholder hint text */
+EmployeesWidget #infoPanelHint {
+    color: #CBD5E1;
+    font-size: 12px;
+    font-style: italic;
+    background-color: transparent;
+}
+
+
+/* ── 8. SCROLLBARS ──────────────────────────────────────── */
+
+EmployeesWidget QScrollBar:vertical {
+    border: none;
+    background-color: #F8FAFC;
+    width: 7px;
+    margin: 0px;
+}
+EmployeesWidget QScrollBar::handle:vertical {
+    background-color: #CBD5E1;
+    min-height: 24px;
+    border-radius: 3px;
+}
+EmployeesWidget QScrollBar::handle:vertical:hover {
+    background-color: #94A3B8;
+}
+EmployeesWidget QScrollBar::add-line:vertical,
+EmployeesWidget QScrollBar::sub-line:vertical {
+    height: 0px;
+}
+
+EmployeesWidget QScrollBar:horizontal {
+    border: none;
+    background-color: #F8FAFC;
+    height: 7px;
+    margin: 0px;
+}
+EmployeesWidget QScrollBar::handle:horizontal {
+    background-color: #CBD5E1;
+    min-width: 24px;
+    border-radius: 3px;
+}
+EmployeesWidget QScrollBar::handle:horizontal:hover {
+    background-color: #94A3B8;
+}
+EmployeesWidget QScrollBar::add-line:horizontal,
+EmployeesWidget QScrollBar::sub-line:horizontal {
+    width: 0px;
 }

@@ -1,6 +1,7 @@
 #include "main_view.h"
 #include "ui_main_view.h"
 #include "employeecard.h"
+#include "employeeswidget.h"
 #include <QGridLayout>
 #include <QMouseEvent>
 
@@ -79,6 +80,22 @@ Main_View::Main_View(QWidget *parent) :
     // profile avatar dropbox
     QWidget* avatarBox = new QWidget(this);
     avatarBox->setLayout(ui->horizontalLayout_UserInfo);
+
+    // Embed EmployeesWidget into the HR page layout
+    QLayout* hrLayout = ui->pageHR->layout();
+    if (hrLayout) {
+        QLayoutItem *item;
+        while ((item = hrLayout->takeAt(0)) != nullptr) {
+            if (item->widget()) {
+                delete item->widget();
+            }
+            delete item;
+        }
+    } else {
+        hrLayout = new QVBoxLayout(ui->pageHR);
+    }
+    EmployeesWidget *employeesWidget = new EmployeesWidget(this);
+    hrLayout->addWidget(employeesWidget);
 
 }
 
