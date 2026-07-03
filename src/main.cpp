@@ -1,26 +1,29 @@
 #include <QApplication>
 #include <QFile>
 #include <QTextStream>
-#include <QWidget>
-
-#include "view/View_Navigator.h"
+#include <QDebug>
 
 #include "control/Login_Control.h"
-int main(int argc, char *argv[]) {
+
+int main(int argc, char *argv[])
+{
   QApplication app(argc, argv);
 
-  // set up qss file
-  QFile styleFile(":styles/styles.qss");
-  if (styleFile.open(QFile::ReadOnly | QFile::Text)) {
+  QFile styleFile(":/styles/styles.qss");
+  if (styleFile.open(QFile::ReadOnly | QFile::Text))
+  {
     QTextStream stream(&styleFile);
     app.setStyleSheet(stream.readAll());
     styleFile.close();
-    qDebug() << "Load QSS File success";
-  } else
-    qDebug() << "Can not load QSS File";
-  //
+    qDebug() << "Load QSS File success!";
+  }
+  else
+  {
+    qDebug() << "Can not load QSS File!";
+  }
 
-  View_Navigator navigator;
-  navigator.show();
+  Login_Control loginController;
+  loginController.init(); // Lệnh này sẽ hiển thị màn hình Login_View
+
   return app.exec();
 }

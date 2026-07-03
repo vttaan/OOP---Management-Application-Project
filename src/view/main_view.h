@@ -4,8 +4,9 @@
 #include <QWidget>
 #include <QHBoxLayout>
 
-namespace Ui {
-class Main_View;
+namespace Ui
+{
+    class Main_View;
 }
 
 class Main_View : public QWidget
@@ -15,11 +16,12 @@ class Main_View : public QWidget
 public:
     explicit Main_View(QWidget *parent = nullptr);
     ~Main_View();
-protected:
-    bool eventFilter(QObject*watched,QEvent*event)override;
 
-private slots:
-    void on_btnLogout_clicked();
+    void switchPage(int pageIndex);
+
+protected:
+    bool eventFilter(QObject *watched, QEvent *event) override;
+
 private:
     Ui::Main_View *ui;
 signals:
@@ -27,22 +29,26 @@ signals:
     void profilePageClicked();
 };
 
-class clickableBox : public QWidget {
+class clickableBox : public QWidget
+{
     Q_OBJECT
 private:
-    QHBoxLayout* layout;
+    QHBoxLayout *layout;
+
 public:
-    clickableBox(QWidget* parent = nullptr) : QWidget(parent) {
+    clickableBox(QWidget *parent = nullptr) : QWidget(parent)
+    {
         layout = new QHBoxLayout(this);
     }
-    QHBoxLayout* getLayout() { return layout; }
+    QHBoxLayout *getLayout() { return layout; }
 signals:
     void clicked();
+
 protected:
-    void mousePressEvent(QMouseEvent* event) override {
+    void mousePressEvent(QMouseEvent *event) override
+    {
         emit clicked();
     }
 };
-
 
 #endif

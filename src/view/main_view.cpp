@@ -5,14 +5,13 @@
 #include <QGridLayout>
 #include <QMouseEvent>
 
-Main_View::Main_View(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::Main_View)
+Main_View::Main_View(QWidget *parent) : QWidget(parent),
+                                        ui(new Ui::Main_View)
 {
     ui->setupUi(this);
 
     // 1. Tạo một Layout dạng Lưới (Grid) và gắn nó vào khu vực thanh cuộn
-    QGridLayout* gridLayout = new QGridLayout(ui->scrollAreaWidgetContents);
+    QGridLayout *gridLayout = new QGridLayout(ui->scrollAreaWidgetContents);
     gridLayout->setSpacing(20); // Khoảng cách giữa các thẻ
 
     QStringList avatars = {":/images/image1.jpg", ":/images/image2.jpg", ":/images/image3.jpg",
@@ -27,44 +26,27 @@ Main_View::Main_View(QWidget *parent) :
     int col = 0;
     int maxColumns = 4;
 
-    for(int i = 0; i < 7; i++) {
-        EmployeeCard* card = new EmployeeCard(this);
+    for (int i = 0; i < 7; i++)
+    {
+        EmployeeCard *card = new EmployeeCard(this);
 
         card->setData(avatars[i], names[i], roles[i], "✉️ " + emails[i], "📞 " + phones[i]);
 
         gridLayout->addWidget(card, row, col);
 
         col++;
-        if (col >= maxColumns) {
+        if (col >= maxColumns)
+        {
             col = 0;
             row++;
         }
     }
-
-    connect(ui->btnMenu_Overview, &QPushButton::clicked, this, [=]() {
-        ui->stackedWidget->setCurrentIndex(0); // Lật về trang Tổng quan (Giao diện cũ)
-    });
-
-    connect(ui->btnMenu_HR, &QPushButton::clicked, this, [=]() {
-        ui->stackedWidget->setCurrentIndex(1); // Lật sang trang trống Nhân sự
-    });
-
-    connect(ui->btnMenu_Timekeep, &QPushButton::clicked, this, [=]() {
-        ui->stackedWidget->setCurrentIndex(2); // Lật sang trang trống Chấm công
-    });
-
-    connect(ui->btnMenu_Salary, &QPushButton::clicked, this, [=]() {
-        ui->stackedWidget->setCurrentIndex(3); // Lật sang trang trống Lương
-    });
-
-    connect(ui->btnMenu_Report, &QPushButton::clicked, this, [=]() {
-        ui->stackedWidget->setCurrentIndex(4); // Lật sang trang trống Báo cáo
-    });
-
-    connect(ui->btnMenu_Settings, &QPushButton::clicked, this, [=]() {
-        ui->stackedWidget->setCurrentIndex(5); // Lật sang trang trống Cài đặt
-    });
-
+    connect(ui->btnMenu_Overview, &QPushButton::clicked, this, &Main_View::menuOverviewClicked);
+    connect(ui->btnMenu_HR, &QPushButton::clicked, this, &Main_View::menuHRClicked);
+    connect(ui->btnMenu_Timekeep, &QPushButton::clicked, this, &Main_View::menuTimekeepClicked);
+    connect(ui->btnMenu_Salary, &QPushButton::clicked, this, &Main_View::menuSalaryClicked);
+    connect(ui->btnMenu_Report, &QPushButton::clicked, this, &Main_View::menuReportClicked);
+    connect(ui->btnMenu_Settings, &QPushButton::clicked, this, &Main_View::menuSettingsClicked);
 
     ui->lblAvatar->setCursor(Qt::PointingHandCursor);
     ui->lblUserName->setCursor(Qt::PointingHandCursor);
@@ -76,51 +58,57 @@ Main_View::Main_View(QWidget *parent) :
     ui->lblUserRole->installEventFilter(this);
     ui->lblDropdown->installEventFilter(this);
 
-
     // profile avatar dropbox
-    QWidget* avatarBox = new QWidget(this);
+    QWidget *avatarBox = new QWidget(this);
     avatarBox->setLayout(ui->horizontalLayout_UserInfo);
 
     // Embed EmployeesWidget into the HR page layout
-    QLayout* hrLayout = ui->pageHR->layout();
-    if (hrLayout) {
+    QLayout *hrLayout = ui->pageHR->layout();
+    if (hrLayout)
+    {
         QLayoutItem *item;
-        while ((item = hrLayout->takeAt(0)) != nullptr) {
-            if (item->widget()) {
+        while ((item = hrLayout->takeAt(0)) != nullptr)
+        {
+            if (item->widget())
+            {
                 delete item->widget();
             }
             delete item;
         }
-    } else {
+    }
+    else
+    {
         hrLayout = new QVBoxLayout(ui->pageHR);
     }
     EmployeesWidget *employeesWidget = new EmployeesWidget(this);
     hrLayout->addWidget(employeesWidget);
-
 }
-
 
 Main_View::~Main_View()
 {
     delete ui;
 }
 
+void Main_View::switchPage(int pageIndex)
+{
+    ui->stackedWidget->setCurrentIndex(pageIndex);
+}
+
 bool Main_View::eventFilter(QObject *watched, QEvent *event)
 {
-    if (event->type() == QEvent::MouseButtonPress) {
+    if (event->type() == QEvent::MouseButtonPress)
+    {
         if (watched == ui->lblAvatar || watched == ui->lblUserName ||
-            watched == ui->lblUserRole || watched == ui->lblDropdown) {
+            watched == ui->lblUserRole || watched == ui->lblDropdown)
+        {
             ui->stackedWidget->setCurrentIndex(0);
-            emit  profilePageClicked(); // switch to profile_view
+            emit profilePageClicked(); // switch to profile_view
             return true;
         }
     }
-
     return QWidget::eventFilter(watched, event);
 }
 void Main_View::on_btnLogout_clicked()
 {
     emit logoutSubmitted();
 }
-
-

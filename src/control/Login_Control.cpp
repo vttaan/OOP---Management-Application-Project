@@ -1,46 +1,59 @@
 #include "Login_Control.h"
-#include "view/Login_View.h"
-
+#include "main_control.h"
 
 Login_Control::Login_Control(QObject *parent)
-    :QObject(parent), view(new Login_View(this)), currentUser(nullptr){
+    : QObject(parent), view(new Login_View()), currentUser(nullptr)
+{
 
-    bool kt = connect(view, &Login_View::loginSubmitted, this, &Login_Control::handleLoginSubmission);
-    Q_ASSERT(kt);
+    connect(view, &Login_View::loginSubmitted, this, &Login_Control::handleLoginSubmission);
 }
-Login_Control::~Login_Control() {
-    if (view) delete view;
-    if (currentUser) delete currentUser;
+
+Login_Control::~Login_Control()
+{
+    if (view)
+        delete view;
+    if (currentUser)
+        delete currentUser;
 }
-void Login_Control::init(){
+
+void Login_Control::init()
+{
     view->show();
 }
 
-Login_View* Login_Control::getView()  {
+Login_View *Login_Control::getView()
+{
     return this->view;
 }
 
-void Login_Control::handleLoginSubmission(const QString& username,const QString& password){
+void Login_Control::handleLoginSubmission(const QString &username, const QString &password)
+{
     Login_Model model;
-    //qDebug() << "pending\n";
-    User *user = model.verifyLogin(username, password);
-    if (user != nullptr) {
-        //qDebug() << "success\n";
+    User *user = model.verifyLogin(username.trimmed(), password.trimmed());
+
+    if (user != nullptr)
+    {
         currentUser = user;
-        emit loginSuccessful();
-        //view->hide();
 
+        view->hide();
 
-        if (currentUser->getRole() == "Manager") {
-            qDebug() << "Manager";
-            // MainController
+        if (currentUser->getRole() == "Manager")
+        {
+            qDebug() << "Manager logged in - Mo giao dien Quan ly";
 
-        } else if (currentUser->getRole() == "Staff") {
-            qDebug() << "Staff";
-            // MainController
+            Main_Control *mainCtrl = new Main_Control(this);
+            mainCtrl->init();
         }
+        else if (currentUser->getRole() == "Staff")
+        {
+            qDebug() << "Staff logged in - Mo giao dien Nhan vien";
 
-    } else {
+            Main_Control *mainCtrl = new Main_Control(this);
+            mainCtrl->init();
+        }
+    }
+    else
+    {
         QMessageBox::critical(view, "Login Failed", "Wrong username or Password!");
         view->clearPassword();
     }

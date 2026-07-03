@@ -7,7 +7,6 @@ private:
     SessionManager();
     ~SessionManager();
 
-    // Prevent copying and assignment
     SessionManager(const SessionManager &) = delete;
     SessionManager &operator=(const SessionManager &) = delete;
 
