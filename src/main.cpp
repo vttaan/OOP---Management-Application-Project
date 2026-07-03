@@ -3,7 +3,7 @@
 #include <QFile>
 #include <QTextStream>
 
-#include "view/main_view.h"
+#include "view/View_Navigator.h"
 
 // #include "control/Login_Control.h"
 // int main(int argc, char *argv[])
@@ -32,8 +32,22 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    Main_View dashboard;
-    dashboard.show();
+    // Load and apply stylesheet globally
+    QFile styleFile(":/styles/styles.qss");
+    if (styleFile.open(QFile::ReadOnly | QFile::Text))
+    {
+        QTextStream stream(&styleFile);
+        a.setStyleSheet(stream.readAll());
+        styleFile.close();
+        qDebug() << "Load QSS File success";
+    }
+    else
+    {
+        qDebug() << "Cannot load QSS File from path";
+    }
+
+    View_Navigator appWindow;
+    appWindow.show();
 
     return a.exec();
 }
