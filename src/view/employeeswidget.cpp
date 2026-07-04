@@ -109,18 +109,18 @@ void EmployeesWidget::setupUi()
     metricsLayout->setSpacing(14);
 
     QFrame *payrollCard = createMetricCard(
-        "💰", "#DBEAFE", "#2563EB",
+        ":/images/dolar-svgrepo-com.svg", "#DBEAFE", "#2563EB",
         "Total Monthly Payroll", "$46.6K",
         "↑ +3.2% vs last month",
         "+3.2%", "#16A34A"
     );
     QFrame *staffCard = createMetricCard(
-        "👥", "#DCFCE7", "#16A34A",
+        ":/images/people-svgrepo-com.svg", "#DCFCE7", "#16A34A",
         "Active Staff On-Shift", "5 / 7",
         "Currently clocked in"
     );
     QFrame *absenceCard = createMetricCard(
-        "⚠️", "#FEF9C3", "#CA8A04",
+        ":/images/warning-circle-svgrepo-com.svg", "#FEF9C3", "#CA8A04",
         "Pending Absences", "2",
         "1 absent · 1 pending approval"
     );
@@ -161,7 +161,7 @@ void EmployeesWidget::setupUi()
     // Search bar
     searchRoster = new QLineEdit();
     searchRoster->setObjectName("searchRoster");
-    searchRoster->setPlaceholderText("  🔍  Search staff...");
+    searchRoster->setPlaceholderText("Search staff...");
     searchRoster->setFixedHeight(34);
     searchRoster->setFixedWidth(190);
 
@@ -326,8 +326,8 @@ void EmployeesWidget::populateTable()
         QHBoxLayout *actionsLayout = new QHBoxLayout(actionsWidget);
         actionsLayout->setContentsMargins(6, 4, 6, 4);
         actionsLayout->setSpacing(5);
-        actionsLayout->addWidget(createActionButton("✏️", "Edit"));
-        actionsLayout->addWidget(createActionButton("🗑️", "Delete"));
+        actionsLayout->addWidget(createActionButton(":/images/edit-svgrepo-com.svg", "Edit"));
+        actionsLayout->addWidget(createActionButton(":/images/trash-bin-trash-svgrepo-com.svg", "Delete"));
         actionsLayout->addStretch();
         employeesTable->setCellWidget(row, 6, actionsWidget);
 
@@ -446,7 +446,7 @@ QLabel* EmployeesWidget::createAvatar(const QString &initials, const QString &bg
     return avatar;
 }
 
-QFrame* EmployeesWidget::createMetricCard(const QString &iconEmoji,
+QFrame* EmployeesWidget::createMetricCard(const QString &iconText,
                                            const QString &iconBg,
                                            const QString &iconColor,
                                            const QString &title,
@@ -464,7 +464,13 @@ QFrame* EmployeesWidget::createMetricCard(const QString &iconEmoji,
     cardLayout->setContentsMargins(16, 14, 16, 14);
     cardLayout->setSpacing(14);
 
-    QLabel *iconLabel = new QLabel(iconEmoji);
+    QLabel *iconLabel = new QLabel();
+    if (iconText.startsWith(":/images/")) {
+        QPixmap pix(iconText);
+        iconLabel->setPixmap(pix.scaled(24, 24, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    } else {
+        iconLabel->setText(iconText);
+    }
     iconLabel->setObjectName("metricIcon");
     iconLabel->setFixedSize(50, 50);
     iconLabel->setAlignment(Qt::AlignCenter);
@@ -543,12 +549,18 @@ QLabel* EmployeesWidget::createRoleBadge(const QString &role)
     return badge;
 }
 
-QPushButton* EmployeesWidget::createActionButton(const QString &emoji, const QString &tooltip)
+QPushButton* EmployeesWidget::createActionButton(const QString &text, const QString &tooltip)
 {
-    QPushButton *btn = new QPushButton(emoji);
+    QPushButton *btn = new QPushButton();
+    if (text.startsWith(":/images/")) {
+        btn->setIcon(QIcon(text));
+        btn->setIconSize(QSize(16, 16));
+        btn->setFixedSize(28, 28);
+    } else {
+        btn->setText(text);
+    }
     btn->setObjectName("tableActionBtn");
     btn->setToolTip(tooltip);
-    btn->setFixedSize(28, 28);
     btn->setCursor(Qt::PointingHandCursor);
     return btn;
 }

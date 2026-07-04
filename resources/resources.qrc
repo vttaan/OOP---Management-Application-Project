@@ -14,5 +14,10 @@
         <file>images/image1.jpg</file>
         <file>images/homeIcon.png</file>
         <file>images/avatarSample.png</file>
+        <file>images/trash-bin-trash-svgrepo-com.svg</file>
+        <file>images/edit-svgrepo-com.svg</file>
+        <file>images/people-svgrepo-com.svg</file>
+        <file>images/warning-circle-svgrepo-com.svg</file>
+        <file>images/dolar-svgrepo-com.svg</file>
     </qresource>
 </RCC>

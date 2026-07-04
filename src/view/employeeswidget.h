@@ -48,7 +48,7 @@ private:
 
     // --- Widget Factories ---
     QLabel*      createAvatar(const QString &initials, const QString &bgColor);
-    QFrame*      createMetricCard(const QString &iconEmoji,
+    QFrame*      createMetricCard(const QString &iconText,
                                   const QString &iconBg,
                                   const QString &iconColor,
                                   const QString &title,
@@ -58,7 +58,7 @@ private:
                                   const QString &badgeColor = QString());
     QLabel*      createStatusBadge(const QString &status);
     QLabel*      createRoleBadge(const QString &role);
-    QPushButton* createActionButton(const QString &emoji, const QString &tooltip);
+    QPushButton* createActionButton(const QString &text, const QString &tooltip);
 
     // --- Profile Block (top-right) ---
     QFrame      *profileBlock;

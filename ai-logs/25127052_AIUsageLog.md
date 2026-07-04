@@ -106,3 +106,18 @@ And `main_control.cpp` still called `Main_View` methods (`switchPage()`, constru
 | `src/view/Dashboard_View.cpp` | Implemented menu button slots |
 | `src/control/Login_Control.cpp` | Removed obsolete references to `Main_Control` |
 | `ai-logs/25127052_AIUsageLog.md` | Updated this log |
+
+---
+
+## Session 5 — Build Optimization (~22:10)
+
+### Issue: Very slow compilation times
+**Root Cause 1:** The `CMakeLists.txt` contained major duplicates. Several files (`Dashboard_View.h/.cpp/.ui`, `View_Navigator.h/.cpp/.ui`, `Profile_View.h/.cpp/.ui`, `employeeswidget.h`, `Profile_Control.cpp`) were defined in the `PROJECT_SOURCES` variable *and* appended again manually to the `qt_add_executable()` call. `Profile_Control.cpp` was even appended twice in `qt_add_executable()`. This causes CMake to process files multiple times. For `AUTOUIC` and `AUTOMOC`, this means regenerating headers, and compiling `.cpp` files multiple times during the build process, directly leading to massively bloated build times.
+
+**Root Cause 2:** In `.h` files (e.g. `employeeswidget.h`), there is a heavy reliance on direct `#include <Q...>` (17+ Qt includes) instead of forward declarations. While refactoring all includes would be a large architectural change, fixing the CMake issue resolves the most egregious build-time duplication.
+
+**Fix:** Cleaned up `CMakeLists.txt` to remove all files from `qt_add_executable` that were already included in `PROJECT_SOURCES`.
+
+| File | Change |
+|---|---|
+| `CMakeLists.txt` | Removed duplicate source definitions from `qt_add_executable` |
