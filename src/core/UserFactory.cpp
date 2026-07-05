@@ -15,7 +15,7 @@ User *UserFactory::createNewUser(QString r, short int idEmp, QString ava, QStrin
 {
     QSqlQuery query;
     short int lastIdOfRole = 0;
-    query.prepare("SECLECT MAX(IdEmployee) AS MaxID FROM PROFILES WHERE role = : u");
+    query.prepare("SELECT MAX(IdEmployee) AS MaxID FROM PROFILES WHERE role = : u");
     query.bindValue(":u", r);
     if (query.exec())
     {

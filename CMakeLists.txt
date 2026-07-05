@@ -74,12 +74,28 @@ set(PROJECT_SOURCES
         src/view/employeeswidget.ui
 )
 
+<<<<<<< Updated upstream
 qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
     src/view/employeecard.h src/view/employeecard.cpp src/view/employeecard.ui
     src/control/Profile_Control.h src/control/Profile_Control.cpp
     src/control/Control_Navigator.h src/control/Control_Navigator.cpp
     src/control/Dashboard_Control.h src/control/Dashboard_Control.cpp)
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core Qt6::Widgets Qt6::Sql)
+=======
+qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
+    src/view/Dashboard_View.h src/view/Dashboard_View.cpp src/view/Dashboard_View.ui
+    src/view/employeecard.h src/view/employeecard.cpp src/view/employeecard.ui
+
+    src/view/Profile_View.h src/view/Profile_View.cpp src/view/Profile_View.ui
+    src/view/View_Navigator.h src/view/View_Navigator.cpp src/view/View_Navigator.ui
+    src/view/employeeswidget.h
+    src/control/Profile_Control.h src/control/Profile_Control.cpp
+    src/control/Profile_Control.cpp
+    src/control/Control_Navigator.h src/control/Control_Navigator.cpp
+    src/control/Dashboard_Control.h src/control/Dashboard_Control.cpp
+    src/model/Employee_Model.cpp src/model/Employee_Model.h)
+target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core Qt6::Widgets Qt6::Sql)
+>>>>>>> Stashed changes
 target_include_directories(${PROJECT_NAME} PRIVATE src)
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/database 
