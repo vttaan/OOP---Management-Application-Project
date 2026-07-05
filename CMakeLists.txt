@@ -42,8 +42,10 @@ set(PROJECT_SOURCES
     # file in Model
         # HEADER
         src/model/Login_Model.h
+        src/model/Change_password.h
         # CPP
         src/model/Login_Model.cpp
+        src/model/Change_password.cpp
 
     # file in Control
         # HEADER

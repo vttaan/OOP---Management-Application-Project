@@ -121,3 +121,39 @@ And `main_control.cpp` still called `Main_View` methods (`switchPage()`, constru
 | File | Change |
 |---|---|
 | `CMakeLists.txt` | Removed duplicate source definitions from `qt_add_executable` |
+
+---
+
+## Session 6 — UI Refinements & Password Model Implementation (~13:20)
+
+### Task 1: UI Icon Replacements and Clean Up
+**Details:** The `employeeswidget` originally used emojis for action buttons and metric cards. We needed to replace these with scalable vector graphics (SVGs) for a more professional and consistent look, and remove the emojis to simplify the codebase.
+
+**Fix:** 
+- Removed emojis from `employeeswidget.cpp` and `employeeswidget.h`.
+- Registered new SVG icons (`dolar-svgrepo-com.svg`, `edit-svgrepo-com.svg`, `people-svgrepo-com.svg`, `warning-circle-svgrepo-com.svg`, `trash-bin-trash-svgrepo-com.svg`, and `sort-vertical-svgrepo-com.svg`) in `resources.qrc`.
+- Updated `createMetricCard` and `createActionButton` to dynamically load `QPixmap` and `QIcon` when image paths are passed.
+- Added a new sort button (`sortBtn`) next to the filter combo box in the roster header.
+- Cleaned up obsolete `.png` files from the filesystem.
+
+| File | Change |
+|---|---|
+| `src/view/employeeswidget.h` | Removed emoji parameters; added `sortBtn` |
+| `src/view/employeeswidget.cpp` | Replaced strings with SVG paths; added QIcon/QPixmap logic; added sort button to layout |
+| `resources/resources.qrc` | Added new SVG files; removed obsolete PNG files |
+| `resources/images/*` | Deleted old `.png` files |
+
+### Task 2: Change Password Model Implementation
+**Details:** Needed a new model to handle the logic of updating a user's password securely (hashing, verifying old password, saving to DB).
+
+**Fix:**
+- Designed and implemented the `Change_password` class.
+- Added an enum `PasswordChangeResult` to clearly communicate status (success, wrong old password, weak new password, database error).
+- Implemented `verifyOldPassword`, `validatePasswordStrength`, and `executePasswordUpdate` methods relying on SQLite and `Security::hashPassword`.
+- Added the new model files to `CMakeLists.txt` for compilation.
+
+| File | Change |
+|---|---|
+| `src/model/Change_password.h` | Created class structure and result enum |
+| `src/model/Change_password.cpp` | Implemented business logic for password updates |
+| `CMakeLists.txt` | Appended new source files to `PROJECT_SOURCES` |
