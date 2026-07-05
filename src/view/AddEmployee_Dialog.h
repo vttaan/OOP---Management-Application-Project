@@ -14,16 +14,18 @@ class AddEmployee_Dialog : public QDialog {
 public:
     explicit AddEmployee_Dialog(QWidget *parent = nullptr);
 
-    // Getters — Controller đọc sau khi dialog accepted
+    // Getters — Controller reads after dialog is accepted
     QString getName()       const;
     QString getRole()       const;
+    QString getGender()     const;
     QString getPhone()      const;
     QString getDob()        const;
     QString getAddress()    const;
     QString getCitizenId()  const;
+    QString getAvatarPath() const;
+    // Auto-generated (not shown in UI): username = citizenId, password = default
     QString getUsername()   const;
     QString getPassword()   const;
-    QString getAvatarPath() const;
 
 private slots:
     void onConfirm();
@@ -43,10 +45,12 @@ private:
     QLineEdit *inpUsername;
     QLineEdit *inpPassword;
     QComboBox *cmbRole;
+    QComboBox *cmbGender;
 
-    // --- Avatar UI ---
-    QLabel *lblAvatarPreview;
+    // Avatar UI
+    QLabel      *lblAvatarPreview;
     QPushButton *btnUpload;
+
     // Buttons
     QPushButton *btnConfirm;
     QPushButton *btnCancel;

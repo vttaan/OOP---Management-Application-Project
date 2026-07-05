@@ -29,9 +29,9 @@ User *UserFactory::createNewUser(QString r, short int idEmp, QString ava, QStrin
     }
 
     if (r == "Manager")
-        return new Manager(r, newId, ava, idCit, n, d, add, phone);
+        return new Manager(r, newId, ava, idCit, n, d, add, phone, gender);
     else if (r == "Staff")
-        return new Staff(r, newId, ava, idCit, n, d, add, phone);
+        return new Staff(r, newId, ava, idCit, n, d, add, phone, gender);
 
     return nullptr;
 }

@@ -16,7 +16,8 @@ EmployeesWidget::EmployeesWidget(QWidget *parent)
     : QWidget(parent)
 {
     setupUi();
-
+    buildFilterDropdown();
+    buildSortDropdown();
     setupConnections();
 }
 
@@ -37,8 +38,7 @@ void EmployeesWidget::setupUi()
     mainLayout->setSpacing(16);
 
     // --------------------------------------------------------
-    // PROFILE BLOCK  (replaces old top bar)
-    // Shows: avatar initials | name | role badge — clickable → profile page
+    // PROFILE BLOCK
     // --------------------------------------------------------
     profileBlock = new QFrame();
     profileBlock->setObjectName("profileBlock");
@@ -49,7 +49,7 @@ void EmployeesWidget::setupUi()
     profileLayout->setSpacing(0);
 
     // Left: page breadcrumb title
-    QLabel *lblPageTitle = new QLabel("Staff Management");
+    QLabel *lblPageTitle = new QLabel("Quản lý nhân viên");
     lblPageTitle->setObjectName("lblPageTitle");
 
     // Right: user identity card (clickable)
@@ -73,7 +73,7 @@ void EmployeesWidget::setupUi()
     QLabel *userName = new QLabel("ME");
     userName->setObjectName("userName");
 
-    QLabel *userRole = new QLabel("Admin");
+    QLabel *userRole = new QLabel("Quản trị viên");
     userRole->setObjectName("userRole");
 
     userInfoLayout->addWidget(userName);
@@ -94,24 +94,24 @@ void EmployeesWidget::setupUi()
     mainLayout->addWidget(profileBlock);
 
     // --------------------------------------------------------
-    // METRICS CARDS  (3-column)
+    // METRICS CARDS (3-column)
     // --------------------------------------------------------
     metricsLayout = new QHBoxLayout();
     metricsLayout->setSpacing(14);
 
     QFrame *payrollCard = createMetricCard(
         ":/images/dolar-svgrepo-com.svg", "#DBEAFE", "#2563EB",
-        "Total Monthly Payroll", "$46.6K",
-        "↑ +3.2% vs last month",
+        "Tổng bảng lương tháng", "$46.6K",
+        "↑ +3.2% so với tháng trước",
         "+3.2%", "#16A34A");
     QFrame *staffCard = createMetricCard(
         ":/images/people-svgrepo-com.svg", "#DCFCE7", "#16A34A",
-        "Active Staff On-Shift", "5 / 7",
-        "Currently clocked in");
+        "Nhân viên đang làm việc", "5 / 7",
+        "Hiện đang trong ca");
     QFrame *absenceCard = createMetricCard(
         ":/images/warning-circle-svgrepo-com.svg", "#FEF9C3", "#CA8A04",
-        "Pending Absences", "2",
-        "1 absent · 1 pending approval");
+        "Vắng mặt chờ duyệt", "2",
+        "1 vắng · 1 chờ phê duyệt");
 
     metricsLayout->addWidget(payrollCard);
     metricsLayout->addWidget(staffCard);
@@ -130,7 +130,7 @@ void EmployeesWidget::setupUi()
     rosterLayout->setContentsMargins(0, 0, 0, 0);
     rosterLayout->setSpacing(0);
 
-    // Roster header
+    // ---- Roster header ----
     QFrame *rosterHeader = new QFrame();
     rosterHeader->setObjectName("rosterHeader");
     QHBoxLayout *rosterHeaderLayout = new QHBoxLayout(rosterHeader);
@@ -139,9 +139,9 @@ void EmployeesWidget::setupUi()
 
     QVBoxLayout *titleBlock = new QVBoxLayout();
     titleBlock->setSpacing(2);
-    QLabel *rosterTitle = new QLabel("Staff Roster");
+    QLabel *rosterTitle = new QLabel("Danh sách nhân viên");
     rosterTitle->setObjectName("rosterTitle");
-    QLabel *rosterSubtitle = new QLabel("7 employees total");
+    QLabel *rosterSubtitle = new QLabel("Tổng cộng 7 nhân viên");
     rosterSubtitle->setObjectName("rosterSubtitle");
     titleBlock->addWidget(rosterTitle);
     titleBlock->addWidget(rosterSubtitle);
@@ -149,19 +149,18 @@ void EmployeesWidget::setupUi()
     // Search bar
     searchRoster = new QLineEdit();
     searchRoster->setObjectName("searchRoster");
-    searchRoster->setPlaceholderText("Search staff...");
+    searchRoster->setPlaceholderText("Tìm kiếm nhân viên...");
     searchRoster->setFixedHeight(34);
     searchRoster->setFixedWidth(190);
 
-    // Sort / Filter combo  (###2)
-    filterCombo = new QComboBox();
-    filterCombo->setObjectName("filterCombo");
-    filterCombo->setFixedHeight(34);
-    filterCombo->addItem("All Roles");
-    filterCombo->addItem("Staff");
-    filterCombo->addItem("Manager");
-    filterCombo->addItem("Admin");
-    filterCombo->setCursor(Qt::PointingHandCursor);
+    // Filter button (icon only — replaces old filterCombo)
+    filterBtn = new QPushButton();
+    filterBtn->setObjectName("filterBtn");
+    filterBtn->setIcon(QIcon(":/images/filter.svg"));
+    filterBtn->setIconSize(QSize(16, 16));
+    filterBtn->setFixedSize(34, 34);
+    filterBtn->setToolTip("Lọc");
+    filterBtn->setCursor(Qt::PointingHandCursor);
 
     // Sort button
     sortBtn = new QPushButton();
@@ -169,11 +168,11 @@ void EmployeesWidget::setupUi()
     sortBtn->setIcon(QIcon(":/images/sort-vertical-svgrepo-com.svg"));
     sortBtn->setIconSize(QSize(16, 16));
     sortBtn->setFixedSize(34, 34);
-    sortBtn->setToolTip("Sort");
+    sortBtn->setToolTip("Sắp xếp");
     sortBtn->setCursor(Qt::PointingHandCursor);
 
     // Add Staff button
-    addEmployeeBtn = new QPushButton("+ Add Staff");
+    addEmployeeBtn = new QPushButton("+ Thêm nhân viên");
     addEmployeeBtn->setObjectName("addEmployeeBtn");
     addEmployeeBtn->setFixedHeight(34);
     addEmployeeBtn->setCursor(Qt::PointingHandCursor);
@@ -181,16 +180,37 @@ void EmployeesWidget::setupUi()
     rosterHeaderLayout->addLayout(titleBlock);
     rosterHeaderLayout->addStretch();
     rosterHeaderLayout->addWidget(searchRoster);
-    rosterHeaderLayout->addWidget(filterCombo);
+    rosterHeaderLayout->addWidget(filterBtn);
     rosterHeaderLayout->addWidget(sortBtn);
     rosterHeaderLayout->addWidget(addEmployeeBtn);
     rosterLayout->addWidget(rosterHeader);
 
-    // Divider
+    // Header divider
     QFrame *divider = new QFrame();
     divider->setObjectName("tableDivider");
     divider->setFrameShape(QFrame::HLine);
     rosterLayout->addWidget(divider);
+
+    // ---- Sort Tag Bar (hidden until a sort field is chosen) ----
+    sortTagBar = new QFrame();
+    sortTagBar->setObjectName("sortTagBar");
+    QHBoxLayout *sortTagLayout = new QHBoxLayout(sortTagBar);
+    sortTagLayout->setContentsMargins(18, 6, 18, 6);
+    sortTagLayout->setSpacing(8);
+
+    QLabel *sortTagPrefix = new QLabel("Sắp xếp:");
+    sortTagPrefix->setObjectName("sortTagPrefix");
+
+    sortTagLabel = new QLabel();
+    sortTagLabel->setObjectName("sortTagLabel");
+    sortTagLabel->setCursor(Qt::PointingHandCursor);
+
+    sortTagLayout->addWidget(sortTagPrefix);
+    sortTagLayout->addWidget(sortTagLabel);
+    sortTagLayout->addStretch();
+
+    sortTagBar->hide();
+    rosterLayout->addWidget(sortTagBar);
 
     // Table
     employeesTable = new QTableWidget();
@@ -216,7 +236,7 @@ void EmployeesWidget::setupUi()
     footerFrame->setObjectName("tableFooterFrame");
     QHBoxLayout *footerLayout = new QHBoxLayout(footerFrame);
     footerLayout->setContentsMargins(18, 8, 18, 8);
-    footerLabel = new QLabel("Showing 7 of 7 staff  ·  5 active, 1 absent, 1 pending");
+    footerLabel = new QLabel("Hiển thị 7 / 7 nhân viên  ·  5 đang làm, 1 vắng, 1 chờ duyệt");
     footerLabel->setObjectName("footerLabel");
     footerLayout->addWidget(footerLabel);
     footerLayout->addStretch();
@@ -227,28 +247,147 @@ void EmployeesWidget::setupUi()
 
 void EmployeesWidget::setupTableHeader()
 {
-    // Cols: ID | NAME | ROLE | PAY TYPE | MONTHLY RATE | STATUS | ACTIONS
-    QStringList headers = {"EMPLOYEE ID", "NAME", "ROLE",
-                           "PAY TYPE", "MONTHLY RATE", "STATUS", "ACTIONS"};
+    // Cols: MÃ NV | TÊN | VAI TRÒ | LOẠI LƯƠNG | MỨC LƯƠNG | TRẠNG THÁI | THAO TÁC
+    QStringList headers = {"MÃ NHÂN VIÊN", "TÊN", "VAI TRÒ",
+                           "LOẠI LƯƠNG", "MỨC LƯƠNG", "TRẠNG THÁI", "THAO TÁC"};
     employeesTable->setHorizontalHeaderLabels(headers);
     employeesTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
     employeesTable->setColumnWidth(0, 100);
     employeesTable->setColumnWidth(2, 88);
     employeesTable->setColumnWidth(3, 84);
     employeesTable->setColumnWidth(4, 105);
-    employeesTable->setColumnWidth(5, 90);
+    employeesTable->setColumnWidth(5, 100);
     employeesTable->setColumnWidth(6, 80);
 }
 
 // ============================================================
-// Populate Table — F&B simplified names, monthly salaries
+// Build Filter Dropdown (floating child widget)
 // ============================================================
 
+void EmployeesWidget::buildFilterDropdown()
+{
+    filterDropdown = new QFrame(this);
+    filterDropdown->setObjectName("filterDropdown");
+    filterDropdown->setFrameShape(QFrame::StyledPanel);
+    filterDropdown->raise();
+    filterDropdown->hide();
+
+    QVBoxLayout *layout = new QVBoxLayout(filterDropdown);
+    layout->setContentsMargins(14, 10, 14, 12);
+    layout->setSpacing(6);
+
+    // --- Role section ---
+    QLabel *lblRole = new QLabel("Vai trò");
+    lblRole->setObjectName("filterSectionLabel");
+    layout->addWidget(lblRole);
+
+    chkStaff   = new QCheckBox("Nhân viên");
+    chkManager = new QCheckBox("Quản lý");
+    chkAdmin   = new QCheckBox("Quản trị viên");
+    layout->addWidget(chkStaff);
+    layout->addWidget(chkManager);
+    layout->addWidget(chkAdmin);
+
+    // Separator
+    QFrame *sep = new QFrame();
+    sep->setFrameShape(QFrame::HLine);
+    sep->setObjectName("filterSeparator");
+    layout->addWidget(sep);
+
+    // --- Gender section ---
+    QLabel *lblGender = new QLabel("Giới tính");
+    lblGender->setObjectName("filterSectionLabel");
+    layout->addWidget(lblGender);
+
+    chkMale   = new QCheckBox("Nam");
+    chkFemale = new QCheckBox("Nữ");
+    layout->addWidget(chkMale);
+    layout->addWidget(chkFemale);
+
+    filterDropdown->adjustSize();
+}
+
 // ============================================================
-// loadEmployees — slot called by Controller to update the table
+// Build Sort Dropdown (floating child widget)
+// ============================================================
+
+void EmployeesWidget::buildSortDropdown()
+{
+    sortDropdown = new QFrame(this);
+    sortDropdown->setObjectName("sortDropdown");
+    sortDropdown->setFrameShape(QFrame::StyledPanel);
+    sortDropdown->raise();
+    sortDropdown->hide();
+
+    QVBoxLayout *layout = new QVBoxLayout(sortDropdown);
+    layout->setContentsMargins(12, 8, 12, 8);
+    layout->setSpacing(4);
+
+    QPushButton *btnSortId   = new QPushButton("Sắp xếp theo Mã NV");
+    QPushButton *btnSortName = new QPushButton("Sắp xếp theo Tên");
+
+    btnSortId->setObjectName("sortDropdownItem");
+    btnSortName->setObjectName("sortDropdownItem");
+    btnSortId->setFlat(true);
+    btnSortName->setFlat(true);
+    btnSortId->setCursor(Qt::PointingHandCursor);
+    btnSortName->setCursor(Qt::PointingHandCursor);
+
+    layout->addWidget(btnSortId);
+    layout->addWidget(btnSortName);
+
+    sortDropdown->adjustSize();
+
+    connect(btnSortId,   &QPushButton::clicked, this, [this]() { onSortFieldSelected("id"); });
+    connect(btnSortName, &QPushButton::clicked, this, [this]() { onSortFieldSelected("name"); });
+}
+
+// ============================================================
+// Connections
+// ============================================================
+
+void EmployeesWidget::setupConnections()
+{
+    // Add button
+    connect(addEmployeeBtn, &QPushButton::clicked, this, &EmployeesWidget::handleAddEmployee);
+
+    // Search bar — emit combined update when text changes
+    connect(searchRoster, &QLineEdit::textChanged, this, &EmployeesWidget::emitUpdateRequest);
+
+    // Filter dropdown toggle
+    connect(filterBtn, &QPushButton::clicked, this, &EmployeesWidget::toggleFilterDropdown);
+
+    // Filter checkboxes — emit combined update on any change
+    connect(chkStaff,   &QCheckBox::checkStateChanged, this, &EmployeesWidget::emitUpdateRequest);
+    connect(chkManager, &QCheckBox::checkStateChanged, this, &EmployeesWidget::emitUpdateRequest);
+    connect(chkAdmin,   &QCheckBox::checkStateChanged, this, &EmployeesWidget::emitUpdateRequest);
+    connect(chkMale,    &QCheckBox::checkStateChanged, this, &EmployeesWidget::emitUpdateRequest);
+    connect(chkFemale,  &QCheckBox::checkStateChanged, this, &EmployeesWidget::emitUpdateRequest);
+
+    // Sort dropdown toggle
+    connect(sortBtn, &QPushButton::clicked, this, &EmployeesWidget::toggleSortDropdown);
+
+    // Sort tag label click via event filter
+    sortTagLabel->installEventFilter(this);
+
+    // Profile block click — event filter on userCard
+    QFrame *userCard = profileBlock->findChild<QFrame *>("userCard");
+    if (userCard)
+        userCard->installEventFilter(this);
+}
+
+// ============================================================
+// loadEmployees — called by Controller to update the table
 // ============================================================
 
 void EmployeesWidget::loadEmployees(const QList<User *> &employees)
+{
+    // The controller already applied filter→search→sort before calling us;
+    // just render what we received.
+    renderTable(employees);
+}
+
+void EmployeesWidget::renderTable(const QList<User *> &employees)
 {
     QStringList avatarColors = {
         "#3B82F6", "#10B981", "#F59E0B", "#EF4444",
@@ -265,14 +404,15 @@ void EmployeesWidget::loadEmployees(const QList<User *> &employees)
         QString colorHex = avatarColors[row % avatarColors.size()];
         QString initials = emp->getName().left(2).toUpper();
 
-        // Col 0 — ID
+        // Col 0 — ID  (stores role, id, gender in UserRole data — Bug 5 fix & new)
         QTableWidgetItem *idItem = new QTableWidgetItem(
-            QString("EMP-%1").arg(emp->getIdEmployee()));
+            QString("NV-%1").arg(emp->getIdEmployee()));
         idItem->setForeground(QColor("#64748B"));
         idItem->setFont(QFont("Segoe UI", 9));
         idItem->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-        idItem->setData(Qt::UserRole, emp->getRole());
+        idItem->setData(Qt::UserRole,     emp->getRole());
         idItem->setData(Qt::UserRole + 1, emp->getIdEmployee());
+        idItem->setData(Qt::UserRole + 2, emp->getGender()); // store gender for filter
         employeesTable->setItem(row, 0, idItem);
 
         // Col 1 — Name + avatar
@@ -297,7 +437,7 @@ void EmployeesWidget::loadEmployees(const QList<User *> &employees)
         employeesTable->setCellWidget(row, 2, roleWidget);
 
         // Col 3 — Pay Type
-        QString payType = (emp->getRole() == "Staff") ? "Hourly" : "Salary";
+        QString payType = (emp->getRole() == "Staff") ? "Theo giờ" : "Cố định";
         QTableWidgetItem *payItem = new QTableWidgetItem(payType);
         payItem->setForeground(QColor("#374151"));
         payItem->setFont(QFont("Segoe UI", 9));
@@ -305,7 +445,7 @@ void EmployeesWidget::loadEmployees(const QList<User *> &employees)
         employeesTable->setItem(row, 3, payItem);
 
         // Col 4 — Monthly Rate
-        QString rateStr = QString("$%1/mo")
+        QString rateStr = QString("$%1/th")
                               .arg(QString::number(emp->getSalary(), 'f', 0));
         QTableWidgetItem *rateItem = new QTableWidgetItem(rateStr);
         rateItem->setForeground(QColor("#0F172A"));
@@ -317,117 +457,178 @@ void EmployeesWidget::loadEmployees(const QList<User *> &employees)
         QWidget *statusWidget = new QWidget();
         QHBoxLayout *statusLayout = new QHBoxLayout(statusWidget);
         statusLayout->setContentsMargins(8, 4, 8, 4);
-        statusLayout->addWidget(createStatusBadge("Active"));
+        statusLayout->addWidget(createStatusBadge("Đang làm"));
         statusLayout->addStretch();
         employeesTable->setCellWidget(row, 5, statusWidget);
 
-        // Col 6 — Actions — only emits signal, does not call model
+        // Col 6 — Actions — Bug 6 fix: connect signals with captured empId
+        int empId = emp->getIdEmployee();
         QWidget *actionsWidget = new QWidget();
         QHBoxLayout *actionsLayout = new QHBoxLayout(actionsWidget);
         actionsLayout->setContentsMargins(6, 4, 6, 4);
         actionsLayout->setSpacing(5);
-        actionsLayout->addWidget(createActionButton(":/images/edit-svgrepo-com.svg", "Edit"));
-        actionsLayout->addWidget(createActionButton(":/images/trash-bin-trash-svgrepo-com.svg", "Delete"));
+
+        QPushButton *editBtn = createActionButton(":/images/edit-svgrepo-com.svg", "Chỉnh sửa");
+        QPushButton *delBtn  = createActionButton(":/images/trash-bin-trash-svgrepo-com.svg", "Xóa");
+
+        connect(editBtn, &QPushButton::clicked, this, [this, empId]() {
+            emit requestEditEmployee(empId);
+        });
+        connect(delBtn, &QPushButton::clicked, this, [this, empId]() {
+            emit requestDeleteEmployee(empId);
+        });
+
+        actionsLayout->addWidget(editBtn);
+        actionsLayout->addWidget(delBtn);
         actionsLayout->addStretch();
         employeesTable->setCellWidget(row, 6, actionsWidget);
     }
-
-    logEvent("UI Data Load", QString("Loaded staff row %1: %2").arg(row + 1).arg(emp.name));
-}
 }
 
 // ============================================================
-// Connections
+// showError / showSuccess — Bug 4 fix
 // ============================================================
 
-void EmployeesWidget::setupConnections()
+void EmployeesWidget::showError(const QString &msg)
 {
-    connect(addEmployeeBtn, &QPushButton::clicked, this, &EmployeesWidget::handleAddEmployee);
+    QMessageBox::critical(this, "Lỗi", msg);
+}
 
-    // Profile block click — forward to Dashboard_View via signal
-    // We install an event filter on the userCard child
-    QFrame *userCard = profileBlock->findChild<QFrame *>("userCard");
-    if (userCard)
-    {
-        userCard->installEventFilter(this);
+void EmployeesWidget::showSuccess(const QString &msg)
+{
+    QMessageBox::information(this, "Thành công", msg);
+}
+
+// ============================================================
+// emitUpdateRequest — collects all active criteria and signals the Controller
+// ============================================================
+
+void EmployeesWidget::emitUpdateRequest()
+{
+    QString searchText = searchRoster->text();
+
+    QStringList roles;
+    if (chkStaff->isChecked())   roles << "Staff";
+    if (chkManager->isChecked()) roles << "Manager";
+    if (chkAdmin->isChecked())   roles << "Admin";
+
+    QStringList genders;
+    if (chkMale->isChecked())   genders << "Nam" << "Male";
+    if (chkFemale->isChecked()) genders << "Nữ" << "Female";
+
+    emit requestUpdate(searchText, roles, genders, m_sortField, m_sortDir);
+}
+
+void EmployeesWidget::toggleFilterDropdown()
+{
+    if (m_filterOpen) {
+        filterDropdown->hide();
+        filterBtn->setIcon(QIcon(":/images/filter.svg"));
+        m_filterOpen = false;
+    } else {
+        // Position below filterBtn
+        QPoint pos = filterBtn->mapTo(this, QPoint(0, filterBtn->height() + 2));
+        filterDropdown->adjustSize();
+        filterDropdown->move(pos);
+        filterDropdown->raise();
+        filterDropdown->show();
+        filterBtn->setIcon(QIcon(":/images/filter-slash.svg"));
+        m_filterOpen = true;
     }
 }
 
 // ============================================================
-// Slots
+// Sort Slots
 // ============================================================
 
-void EmployeesWidget::filterEmployees(const QString &searchText)
+void EmployeesWidget::toggleSortDropdown()
 {
-    logEvent("UI Data Fetch", QString("Filtering staff by: '%1'").arg(searchText));
-    const QString roleFilter = filterCombo->currentIndex() == 0
-                                   ? QString()
-                                   : filterCombo->currentText();
-
-    for (int row = 0; row < employeesTable->rowCount(); ++row)
-    {
-        // Role filter
-        QString rowRole;
-        QTableWidgetItem *id0 = employeesTable->item(row, 0);
-        if (id0)
-            rowRole = id0->data(Qt::UserRole).toString();
-
-        bool roleMatch = roleFilter.isEmpty() || rowRole == roleFilter;
-
-        // Text filter — check item cells and name label
-        bool textMatch = searchText.isEmpty();
-        if (!textMatch)
-        {
-            for (int col = 0; col < employeesTable->columnCount(); ++col)
-            {
-                QTableWidgetItem *item = employeesTable->item(row, col);
-                if (item && item->text().contains(searchText, Qt::CaseInsensitive))
-                {
-                    textMatch = true;
-                    break;
-                }
-                QWidget *w = employeesTable->cellWidget(row, col);
-                if (w)
-                {
-                    QLabel *lbl = w->findChild<QLabel *>("empNameLabel");
-                    if (lbl && lbl->text().contains(searchText, Qt::CaseInsensitive))
-                    {
-                        textMatch = true;
-                        break;
-                    }
-                }
-            }
-        }
-
-        employeesTable->setRowHidden(row, !(textMatch && roleMatch));
+    if (m_sortOpen) {
+        sortDropdown->hide();
+        m_sortOpen = false;
+    } else {
+        QPoint pos = sortBtn->mapTo(this, QPoint(0, sortBtn->height() + 2));
+        sortDropdown->adjustSize();
+        sortDropdown->move(pos);
+        sortDropdown->raise();
+        sortDropdown->show();
+        m_sortOpen = true;
     }
 }
 
-void EmployeesWidget::applyRoleFilter(int /*index*/)
+void EmployeesWidget::onSortFieldSelected(const QString &field)
 {
-    // Re-run filter with current search text & new combo value
-    filterEmployees(searchRoster->text());
+    // Close dropdown
+    sortDropdown->hide();
+    m_sortOpen = false;
+
+    m_sortField = field;
+    m_sortDir   = 1; // ascending initially
+
+    // Update sort button icon
+    sortBtn->setIcon(QIcon(":/images/sort-from-bottom-to-top.svg"));
+
+    // Show sort tag chip
+    QString fieldName = (field == "id") ? "Mã NV" : "Tên";
+    sortTagLabel->setText(QString("📌 Theo %1: từ thấp đến cao  ✕").arg(fieldName));
+    sortTagBar->show();
+
+    // Ask the Controller to sort (it will filter+search+sort and call loadEmployees)
+    emitUpdateRequest();
 }
+
+void EmployeesWidget::cycleSortDirection()
+{
+    if (m_sortField.isEmpty()) return;
+
+    if (m_sortDir == 1) {
+        // ascending → descending
+        m_sortDir = -1;
+        sortBtn->setIcon(QIcon(":/images/sort-from-top-to-bottom.svg"));
+        QString fieldName = (m_sortField == "id") ? "Mã NV" : "Tên";
+        sortTagLabel->setText(QString("📌 Theo %1: từ cao đến thấp  ✕").arg(fieldName));
+    } else {
+        // descending → reset (remove sort)
+        m_sortDir   = 0;
+        m_sortField = "";
+        sortBtn->setIcon(QIcon(":/images/sort-vertical-svgrepo-com.svg"));
+        sortTagBar->hide();
+    }
+
+    // Ask the Controller to re-apply all criteria with new sort direction
+    emitUpdateRequest();
+}
+
+// ============================================================
+// Slot — handleAddEmployee
+// ============================================================
 
 void EmployeesWidget::handleAddEmployee()
 {
-    // View only emits signal — Controller will show dialog and call model
-    logEvent("System Event", "Add Staff button clicked — emitting requestAddEmployee.");
     emit requestAddEmployee();
 }
 
 // ============================================================
-// Event filter — profile card click
+// Event filter — profile card click + sort tag click
 // ============================================================
 
 bool EmployeesWidget::eventFilter(QObject *watched, QEvent *event)
 {
+    // Profile card click
     QFrame *userCard = profileBlock ? profileBlock->findChild<QFrame *>("userCard") : nullptr;
     if (watched == userCard && event->type() == QEvent::MouseButtonRelease)
     {
         emit profileClicked();
         return true;
     }
+
+    // Sort tag label click → cycle sort direction
+    if (watched == sortTagLabel && event->type() == QEvent::MouseButtonRelease)
+    {
+        cycleSortDirection();
+        return true;
+    }
+
     return QWidget::eventFilter(watched, event);
 }
 
@@ -506,7 +707,8 @@ QFrame *EmployeesWidget::createMetricCard(const QString &iconText,
     if (!badge.isEmpty())
     {
         QLabel *badgeLabel = new QLabel(badge);
-        badgeLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 10px;").arg(badgeColor));
+        badgeLabel->setStyleSheet(
+            QString("color: %1; font-weight: bold; font-size: 10px;").arg(badgeColor));
         subRow->addWidget(badgeLabel);
     }
     subRow->addStretch();
@@ -529,12 +731,15 @@ QLabel *EmployeesWidget::createStatusBadge(const QString &status)
     badge->setFixedHeight(20);
 
     QString style;
-    if (status == "Active")
-        style = "background-color:#DCFCE7;color:#15803D;border-radius:10px;font-size:10px;font-weight:bold;padding:1px 9px;";
-    else if (status == "Absent")
-        style = "background-color:#FEE2E2;color:#DC2626;border-radius:10px;font-size:10px;font-weight:bold;padding:1px 9px;";
+    if (status == "Đang làm" || status == "Active")
+        style = "background-color:#DCFCE7;color:#15803D;border-radius:10px;"
+                "font-size:10px;font-weight:bold;padding:1px 9px;";
+    else if (status == "Vắng" || status == "Absent")
+        style = "background-color:#FEE2E2;color:#DC2626;border-radius:10px;"
+                "font-size:10px;font-weight:bold;padding:1px 9px;";
     else
-        style = "background-color:#FEF3C7;color:#D97706;border-radius:10px;font-size:10px;font-weight:bold;padding:1px 9px;";
+        style = "background-color:#FEF3C7;color:#D97706;border-radius:10px;"
+                "font-size:10px;font-weight:bold;padding:1px 9px;";
 
     badge->setStyleSheet(style);
     return badge;
@@ -542,17 +747,26 @@ QLabel *EmployeesWidget::createStatusBadge(const QString &status)
 
 QLabel *EmployeesWidget::createRoleBadge(const QString &role)
 {
-    QLabel *badge = new QLabel(role);
+    // Display Vietnamese label but use the English role string for logic checks
+    QString displayRole;
+    if      (role == "Manager") displayRole = "Quản lý";
+    else if (role == "Admin")   displayRole = "Quản trị viên";
+    else                        displayRole = "Nhân viên";
+
+    QLabel *badge = new QLabel(displayRole);
     badge->setAlignment(Qt::AlignCenter);
     badge->setFixedHeight(20);
 
     QString style;
     if (role == "Manager")
-        style = "background-color:#EDE9FE;color:#6D28D9;border-radius:10px;font-size:10px;font-weight:bold;padding:1px 9px;";
+        style = "background-color:#EDE9FE;color:#6D28D9;border-radius:10px;"
+                "font-size:10px;font-weight:bold;padding:1px 9px;";
     else if (role == "Admin")
-        style = "background-color:#DBEAFE;color:#1D4ED8;border-radius:10px;font-size:10px;font-weight:bold;padding:1px 9px;";
+        style = "background-color:#DBEAFE;color:#1D4ED8;border-radius:10px;"
+                "font-size:10px;font-weight:bold;padding:1px 9px;";
     else
-        style = "background-color:#F1F5F9;color:#475569;border-radius:10px;font-size:10px;font-weight:bold;padding:1px 9px;";
+        style = "background-color:#F1F5F9;color:#475569;border-radius:10px;"
+                "font-size:10px;font-weight:bold;padding:1px 9px;";
 
     badge->setStyleSheet(style);
     return badge;

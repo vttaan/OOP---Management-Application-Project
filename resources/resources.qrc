@@ -22,5 +22,9 @@
         <file>images/warning-circle-svgrepo-com.svg</file>
         <file>images/dolar-svgrepo-com.svg</file>
         <file>images/sort-vertical-svgrepo-com.svg</file>
+        <file>images/filter.svg</file>
+        <file>images/filter-slash.svg</file>
+        <file>images/sort-from-bottom-to-top.svg</file>
+        <file>images/sort-from-top-to-bottom.svg</file>
     </qresource>
 </RCC>

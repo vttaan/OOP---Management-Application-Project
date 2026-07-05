@@ -2,6 +2,7 @@
 #include <QObject>
 #include <QMessageBox>
 #include <QDebug>
+#include <algorithm>
 #include "model/Employee_Model.h"
 #include "core/UserFactory.h"
 #include "view/AddEmployee_Dialog.h"
@@ -33,6 +34,12 @@ private slots:
     void handleAddEmployee();
     void handleEditEmployee(int idEmployee);
     void handleDeleteEmployee(int idEmployee);
+    // Combined slot: receives all active view criteria and applies filter→search→sort pipeline
+    void handleUpdate(const QString &searchText,
+                      const QStringList &roles,
+                      const QStringList &genders,
+                      const QString &sortField,
+                      int sortDir);
 
 private:
     EmployeesWidget  *m_view;

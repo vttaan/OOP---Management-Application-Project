@@ -4,46 +4,47 @@
 #include <QPixmap>
 #include <QPainter>
 #include <QPainterPath>
+#include <QFile>
 
 AddEmployee_Dialog::AddEmployee_Dialog(QWidget *parent)
     : QDialog(parent)
 {
-    setWindowTitle("Add New Employee");
+    setWindowTitle("Thêm nhân viên mới");
     setMinimumWidth(420);
     setModal(true);
-
-
     m_avatarPath = "";
-
     setupUi();
 }
 
 
+// ============================================================
 // UI Setup
+// ============================================================
 void AddEmployee_Dialog::setupUi()
 {
     this->setObjectName("AddEmployee_Dialog");
-    //Main layout
+
+    // Main layout
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
     mainLayout->setSpacing(16);
     mainLayout->setContentsMargins(28, 24, 28, 24);
 
-    //Title
-    QLabel *lblTitle = new QLabel("Add New Employee");
+    // Title
+    QLabel *lblTitle = new QLabel("Thêm nhân viên mới");
     lblTitle->setObjectName("dlgTitle");
     mainLayout->addWidget(lblTitle);
 
-    QLabel *lblSub = new QLabel("Fill in all fields below to create a new employee.");
+    QLabel *lblSub = new QLabel("Điền đầy đủ thông tin bên dưới để tạo nhân viên.");
     lblSub->setObjectName("dlgSub");
     mainLayout->addWidget(lblSub);
 
-    // --- Divider ---
+    // Divider
     QFrame *divider = new QFrame();
     divider->setObjectName("dlgDivider");
     divider->setFrameShape(QFrame::HLine);
     mainLayout->addWidget(divider);
 
-    // --- Form ---
+    // Form
     QFormLayout *form = new QFormLayout();
     form->setSpacing(10);
     form->setLabelAlignment(Qt::AlignRight | Qt::AlignVCenter);
@@ -62,27 +63,30 @@ void AddEmployee_Dialog::setupUi()
         return lbl;
     };
 
-    inpName      = makeInput("e.g. Nguyen Van A");
-    inpPhone     = makeInput("e.g. 0901234567");
+    inpName      = makeInput("vd: Nguyễn Văn A");
+    inpPhone     = makeInput("vd: 0901234567");
     inpDob       = makeInput("YYYY-MM-DD");
-    inpAddress   = makeInput("e.g. 123 Le Loi, Ho Chi Minh");
-    inpCitizenId = makeInput("e.g. 012345678901");
-    inpUsername  = makeInput("Login username");
-    inpPassword  = makeInput("Login password");
-    inpPassword->setEchoMode(QLineEdit::Password);
+    inpAddress   = makeInput("vd: 123 Lê Lợi, TP.HCM");
+    inpCitizenId = makeInput("vd: 012345678901");
 
     cmbRole = new QComboBox();
-    cmbRole->addItem("Staff");
-    cmbRole->addItem("Manager");
+    cmbRole->addItem("Nhân viên");
+    cmbRole->addItem("Quản lý");
     cmbRole->setMinimumHeight(32);
 
-    //AVATAR UPLOAD SECTION
-    lblAvatarPreview = new QLabel("No Avatar");
+    cmbGender = new QComboBox();
+    cmbGender->addItem("Nam");
+    cmbGender->addItem("Nữ");
+    cmbGender->addItem("Khác");
+    cmbGender->setMinimumHeight(32);
+
+    // Avatar upload section
+    lblAvatarPreview = new QLabel("Chưa có ảnh");
     lblAvatarPreview->setObjectName("lblAvatarPreview");
     lblAvatarPreview->setFixedSize(100, 100);
     lblAvatarPreview->setAlignment(Qt::AlignCenter);
 
-    btnUpload = new QPushButton("Browse...");
+    btnUpload = new QPushButton("Chọn ảnh...");
     btnUpload->setObjectName("btnUpload");
     btnUpload->setCursor(Qt::PointingHandCursor);
 
@@ -91,12 +95,12 @@ void AddEmployee_Dialog::setupUi()
     avatarLayout->addWidget(btnUpload);
     avatarLayout->addStretch();
 
-    //Connect Upload button
+    // Connect upload button
     connect(btnUpload, &QPushButton::clicked, this, [=]() {
         QString filePath = QFileDialog::getOpenFileName(this,
-                                                        "Select Avatar",
+                                                        "Chọn ảnh đại diện",
                                                         "",
-                                                        "Images (*.png *.jpg *.jpeg)");
+                                                        "Hình ảnh (*.png *.jpg *.jpeg)");
         if (!filePath.isEmpty()) {
             m_avatarPath = filePath;
             QPixmap pix(filePath);
@@ -105,7 +109,9 @@ void AddEmployee_Dialog::setupUi()
                 QPixmap target(size, size);
                 target.fill(Qt::transparent);
 
-                QPixmap scaledSrc = pix.scaled(size, size, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+                QPixmap scaledSrc = pix.scaled(size, size,
+                                               Qt::KeepAspectRatioByExpanding,
+                                               Qt::SmoothTransformation);
 
                 QPainter painter(&target);
                 painter.setRenderHint(QPainter::Antialiasing, true);
@@ -115,7 +121,7 @@ void AddEmployee_Dialog::setupUi()
                 path.addEllipse(0, 0, size, size);
                 painter.setClipPath(path);
 
-                int x = (scaledSrc.width() - size) / 2;
+                int x = (scaledSrc.width()  - size) / 2;
                 int y = (scaledSrc.height() - size) / 2;
                 painter.drawPixmap(0, 0, scaledSrc, x, y, size, size);
 
@@ -125,42 +131,47 @@ void AddEmployee_Dialog::setupUi()
     });
 
     // Add rows to form
-    form->addRow(makeLabel("Avatar"),         avatarLayout); // Add Avatar to form
-    form->addRow(makeLabel("Full Name *"),    inpName);
-    form->addRow(makeLabel("Role *"),         cmbRole);
-    form->addRow(makeLabel("Phone"),          inpPhone);
-    form->addRow(makeLabel("Date of Birth"),  inpDob);
-    form->addRow(makeLabel("Address"),        inpAddress);
-    form->addRow(makeLabel("Citizen ID"),     inpCitizenId);
+    form->addRow(makeLabel("Ảnh đại diện"),    avatarLayout);
+    form->addRow(makeLabel("Họ và tên *"),      inpName);
+    form->addRow(makeLabel("Vai trò *"),        cmbRole);
+    form->addRow(makeLabel("Giới tính"),        cmbGender);
+    form->addRow(makeLabel("Số điện thoại"),    inpPhone);
+    form->addRow(makeLabel("Ngày sinh"),        inpDob);
+    form->addRow(makeLabel("Địa chỉ"),          inpAddress);
+    form->addRow(makeLabel("CCCD / CMND *"),    inpCitizenId);
 
-    // Separator for account section
-    QLabel *lblAccount = new QLabel("— Account Credentials —");
+    // Account credentials section
+    QLabel *lblAccount = new QLabel("— Thông tin tài khoản —");
     lblAccount->setObjectName("lblAccount");
     lblAccount->setAlignment(Qt::AlignCenter);
     form->addRow(lblAccount);
 
-    form->addRow(makeLabel("Username *"),  inpUsername);
-    form->addRow(makeLabel("Password *"),  inpPassword);
+    inpUsername = makeInput("Tên đăng nhập");
+    inpPassword = makeInput("Mật khẩu");
+    inpPassword->setEchoMode(QLineEdit::Password);
+
+    form->addRow(makeLabel("Tên đăng nhập *"), inpUsername);
+    form->addRow(makeLabel("Mật khẩu *"),      inpPassword);
 
     mainLayout->addLayout(form);
 
-    //Error label
+    // Error label
     lblError = new QLabel();
     lblError->setObjectName("lblError");
     lblError->setWordWrap(true);
     lblError->setVisible(false);
     mainLayout->addWidget(lblError);
 
-    //Buttons
+    // Buttons
     QHBoxLayout *btnLayout = new QHBoxLayout();
     btnLayout->setSpacing(10);
 
-    btnCancel = new QPushButton("Cancel");
+    btnCancel = new QPushButton("Hủy");
     btnCancel->setObjectName("btnCancel");
     btnCancel->setMinimumHeight(36);
     btnCancel->setCursor(Qt::PointingHandCursor);
 
-    btnConfirm = new QPushButton("Add Employee");
+    btnConfirm = new QPushButton("Thêm nhân viên");
     btnConfirm->setObjectName("btnConfirm");
     btnConfirm->setMinimumHeight(36);
     btnConfirm->setCursor(Qt::PointingHandCursor);
@@ -170,9 +181,10 @@ void AddEmployee_Dialog::setupUi()
     btnLayout->addWidget(btnConfirm);
     mainLayout->addLayout(btnLayout);
 
-    //Connections
+    // Connections
     connect(btnConfirm, &QPushButton::clicked, this, &AddEmployee_Dialog::onConfirm);
     connect(btnCancel,  &QPushButton::clicked, this, &QDialog::reject);
+
     QFile file(":/styles/Employee_View_styles.qss");
     if (file.open(QFile::ReadOnly)) {
         this->setStyleSheet(QLatin1String(file.readAll()));
@@ -180,23 +192,31 @@ void AddEmployee_Dialog::setupUi()
     }
 }
 
+// ============================================================
 // Validate + Accept
+// ============================================================
 bool AddEmployee_Dialog::validate()
 {
     if (inpName->text().trimmed().isEmpty()) {
-        lblError->setText("⚠  Full name is required.");
+        lblError->setText("⚠  Họ và tên là bắt buộc.");
         lblError->setVisible(true);
         inpName->setFocus();
         return false;
     }
+    if (inpCitizenId->text().trimmed().isEmpty()) {
+        lblError->setText("⚠  Số CCCD / CMND là bắt buộc.");
+        lblError->setVisible(true);
+        inpCitizenId->setFocus();
+        return false;
+    }
     if (inpUsername->text().trimmed().isEmpty()) {
-        lblError->setText("⚠  Username is required.");
+        lblError->setText("⚠  Tên đăng nhập là bắt buộc.");
         lblError->setVisible(true);
         inpUsername->setFocus();
         return false;
     }
     if (inpPassword->text().isEmpty()) {
-        lblError->setText("⚠  Password is required.");
+        lblError->setText("⚠  Mật khẩu là bắt buộc.");
         lblError->setVisible(true);
         inpPassword->setFocus();
         return false;
@@ -209,7 +229,6 @@ void AddEmployee_Dialog::onConfirm()
 {
     if (validate())
         accept();
-    // close dialog immediately and flag QDialog::Accept
 }
 
 // ============================================================
@@ -217,11 +236,22 @@ void AddEmployee_Dialog::onConfirm()
 // ============================================================
 
 QString AddEmployee_Dialog::getName()       const { return inpName->text().trimmed(); }
-QString AddEmployee_Dialog::getRole()       const { return cmbRole->currentText(); }
+
+// Role is stored in English internally; map from Vietnamese display text
+QString AddEmployee_Dialog::getRole()       const
+{
+    QString vn = cmbRole->currentText();
+    if (vn == "Quản lý") return "Manager";
+    return "Staff";
+}
+
+QString AddEmployee_Dialog::getGender()     const { return cmbGender->currentText(); }
 QString AddEmployee_Dialog::getPhone()      const { return inpPhone->text().trimmed(); }
 QString AddEmployee_Dialog::getDob()        const { return inpDob->text().trimmed(); }
 QString AddEmployee_Dialog::getAddress()    const { return inpAddress->text().trimmed(); }
 QString AddEmployee_Dialog::getCitizenId()  const { return inpCitizenId->text().trimmed(); }
+QString AddEmployee_Dialog::getAvatarPath() const { return m_avatarPath; }
+
+// Auto-generated credentials — username and password from real input fields
 QString AddEmployee_Dialog::getUsername()   const { return inpUsername->text().trimmed(); }
 QString AddEmployee_Dialog::getPassword()   const { return inpPassword->text(); }
-QString AddEmployee_Dialog::getAvatarPath() const { return m_avatarPath; } // Getter for avatar path

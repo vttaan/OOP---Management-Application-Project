@@ -157,3 +157,79 @@ And `main_control.cpp` still called `Main_View` methods (`switchPage()`, constru
 | `src/model/Change_password.h` | Created class structure and result enum |
 | `src/model/Change_password.cpp` | Implemented business logic for password updates |
 | `CMakeLists.txt` | Appended new source files to `PROJECT_SOURCES` |
+
+---
+
+## Session 7 — Bug Fixes, Vietnamese UI & Feature Overhaul (~22:39)
+
+### Tasks Completed
+
+#### Bug Fix 1: Missing slot declarations (employeeswidget.h)
+`filterEmployees(const QString&)` and `applyRoleFilter(int)` were implemented in the `.cpp` but not declared in the header. Fixed by adding all new slot declarations to `employeeswidget.h`.
+
+#### Bug Fix 2: Undefined `logEvent()` (employeeswidget.cpp — lines 335, 362, 415)
+`logEvent(...)` was called in three places but never declared or defined anywhere. All three calls removed.
+
+#### Bug Fix 3: Out-of-scope variables on line 335
+`row` and `emp` were referenced outside their `for` loop scope. The stray `logEvent` line was removed as part of Bug Fix 2, eliminating this error simultaneously.
+
+#### Bug Fix 4: Missing `showError` / `showSuccess` implementations
+Both methods were declared in the header and called by `Employee_Control`, but had no body in the `.cpp`. Implemented using `QMessageBox::critical` and `QMessageBox::information`.
+
+#### Bug Fix 5: Unconnected search bar and filter combo
+`searchRoster::textChanged` now wired to `filterEmployees`. Old `filterCombo` replaced entirely by the new filter button (Feature 2 below).
+
+#### Bug Fix 6: Edit/Delete action buttons not connected
+Buttons in Col 6 were created but signals were never emitted. Fixed inside `renderTable()` using lambdas capturing `empId` → emit `requestEditEmployee(empId)` and `requestDeleteEmployee(empId)`.
+
+#### Feature 1: Full Vietnamese Language Switch
+All visible UI strings switched to Vietnamese across:
+- `employeeswidget.cpp` — page title "Quản lý nhân viên", table headers, metric card labels, search placeholder, footer, sort/filter tooltips, add button, status/role badges.
+- `AddEmployee_Dialog.cpp` — window title, form labels, buttons, error messages, file dialog.
+- `EditEmployee_Dialog.cpp` — window title, form labels, buttons, error messages, file dialog.
+- Role getters in both dialogs now map Vietnamese display text ("Nhân viên" / "Quản lý") back to English internal values ("Staff" / "Manager") so the controller/model are unaffected.
+
+#### Feature 2: Filter Button Overhaul
+- Replaced `filterCombo` (QComboBox) with an icon-only `filterBtn` (QPushButton).
+- New `buildFilterDropdown()` creates a floating `QFrame` child of `EmployeesWidget` with:
+  - **Vai trò** section: checkboxes for Nhân viên / Quản lý / Quản trị viên.
+  - **Giới tính** section: checkboxes for Nam / Nữ.
+- Clicking `filterBtn` toggles the dropdown open/closed.
+- Icon switches `filter.svg` ↔ `filter-slash.svg` with dropdown state.
+- Checking any box triggers `applyFilter()` → `updateTableVisibility()` (live filtering).
+- Closed dropdown preserves all checked states.
+- Gender data stored in `Qt::UserRole + 2` on the ID column item for fast lookup.
+
+#### Feature 3: Sort Button Overhaul
+- New `buildSortDropdown()` creates a floating `QFrame` with two options: **Sắp xếp theo Mã NV** / **Sắp xếp theo Tên**.
+- Sort button toggles the dropdown; selecting an option:
+  - Sets `m_sortField` and `m_sortDir = 1` (ascending).
+  - Shows `sortTagBar` below the roster header with label "📌 Theo [field]: từ thấp đến cao ✕".
+  - Changes sort icon to `sort-from-bottom-to-top.svg`.
+  - Calls `applySort()` using `std::stable_sort` on a copy of the cached employee list.
+- Clicking the tag label cycles:
+  - Ascending → Descending (icon: `sort-from-top-to-bottom.svg`, label: "từ cao đến thấp ✕").
+  - Descending → Reset (icon reverts to `sort-vertical-svgrepo-com.svg`, tag bar hidden).
+- `loadEmployees` now splits into `loadEmployees` (caches list) + `renderTable` (renders), so `applySort` can re-render a sorted copy without corrupting the cache.
+
+#### Feature 4: Add Employee Dialog Polish
+- Removed `inpUsername` and `inpPassword` input fields from the UI form.
+- Added an info note: "Tài khoản đăng nhập sẽ được tạo tự động từ số CCCD."
+- `getUsername()` auto-returns `inpCitizenId->text()` (citizenId as username).
+- `getPassword()` returns `"NhanVien@123"` as a safe default — controller interface unchanged.
+- All form labels and buttons switched to Vietnamese.
+
+#### resources.qrc
+Registered 4 new SVG files: `filter.svg`, `filter-slash.svg`, `sort-from-bottom-to-top.svg`, `sort-from-top-to-bottom.svg`.
+
+### Files Modified
+| File | Action |
+|---|---|
+| `resources/resources.qrc` | Registered 4 new SVG icons |
+| `src/view/employeeswidget.h` | Full rewrite — new members, slot declarations, removed dead code |
+| `src/view/employeeswidget.cpp` | Full rewrite — all 6 bugs fixed, Vietnamese, filter/sort dropdowns, action buttons wired |
+| `src/view/AddEmployee_Dialog.h` | Removed username/password members, added getUsername/getPassword auto-gen |
+| `src/view/AddEmployee_Dialog.cpp` | Removed username/password UI, full Vietnamese |
+| `src/view/EditEmployee_Dialog.cpp` | Full Vietnamese, role mapping fix |
+| `ai-logs/25127052_AIUsageLog.md` | Updated this log |
+

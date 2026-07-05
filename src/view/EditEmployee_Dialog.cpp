@@ -8,7 +8,7 @@ EditEmployee_Dialog::EditEmployee_Dialog(User *emp, QWidget *parent)
     : QDialog(parent)
 {
     setObjectName("EditEmployee_Dialog");
-    setWindowTitle("Edit Employee");
+    setWindowTitle("Chỉnh sửa nhân viên");
     setMinimumWidth(420);
     setModal(true);
     setupUi(emp);
@@ -23,11 +23,11 @@ void EditEmployee_Dialog::setupUi(User *emp)
     mainLayout->setContentsMargins(28, 24, 28, 24);
 
     // --- Title ---
-    QLabel *lblTitle = new QLabel("Edit Employee");
+    QLabel *lblTitle = new QLabel("Chỉnh sửa nhân viên");
     lblTitle->setObjectName("dlgTitle");
     mainLayout->addWidget(lblTitle);
 
-    QLabel *lblSub = new QLabel("Update the employee information below.");
+    QLabel *lblSub = new QLabel("Cập nhật thông tin nhân viên bên dưới.");
     lblSub->setObjectName("dlgSub");
     mainLayout->addWidget(lblSub);
 
@@ -60,25 +60,29 @@ void EditEmployee_Dialog::setupUi(User *emp)
     };
 
 
-    inpName      = makeInput("e.g. Nguyen Van A",            emp ? emp->getName()        : "");
-    inpPhone     = makeInput("e.g. 0901234567",              emp ? emp->getPhoneNum()    : "");
-    inpDob       = makeInput("YYYY-MM-DD",                   emp ? emp->getDOB()         : "");
-    inpAddress   = makeInput("e.g. 123 Le Loi, Ho Chi Minh", emp ? emp->getAddress()     : "");
-    inpCitizenId = makeInput("e.g. 012345678901",            emp ? emp->getIndentityID() : "");
+    inpName      = makeInput("vd: Nguyễn Văn A",          emp ? emp->getName()        : "");
+    inpPhone     = makeInput("vd: 0901234567",             emp ? emp->getPhoneNum()    : "");
+    inpDob       = makeInput("YYYY-MM-DD",                 emp ? emp->getDOB()         : "");
+    inpAddress   = makeInput("vd: 123 Lê Lợi, TP.HCM",   emp ? emp->getAddress()     : "");
+    inpCitizenId = makeInput("vd: 012345678901",           emp ? emp->getIdentityID() : "");
 
     cmbRole = new QComboBox();
-    cmbRole->addItem("Staff");
-    cmbRole->addItem("Manager");
+    cmbRole->addItem("Nhân viên");
+    cmbRole->addItem("Quản lý");
     cmbRole->setMinimumHeight(32);
 
 
     if (emp) {
-        int idx = cmbRole->findText(emp->getRole());
+        // Map English role to Vietnamese display text
+        QString displayRole = emp->getRole();
+        if (displayRole == "Manager") displayRole = "Quản lý";
+        else displayRole = "Nhân viên";
+        int idx = cmbRole->findText(displayRole);
         if (idx >= 0) cmbRole->setCurrentIndex(idx);
     }
 
     //AVATAR UPLOAD SECTION
-    lblAvatarPreview = new QLabel("No Avatar");
+    lblAvatarPreview = new QLabel("Chưa có ảnh");
     lblAvatarPreview->setObjectName("lblAvatarPreview");
     lblAvatarPreview->setFixedSize(100, 100);
     lblAvatarPreview->setAlignment(Qt::AlignCenter);
@@ -109,7 +113,7 @@ void EditEmployee_Dialog::setupUi(User *emp)
         }
     }
 
-    btnUpload = new QPushButton("Browse...");
+    btnUpload = new QPushButton("Chọn ảnh...");
     btnUpload->setObjectName("btnUpload");
     btnUpload->setCursor(Qt::PointingHandCursor);
 
@@ -120,9 +124,9 @@ void EditEmployee_Dialog::setupUi(User *emp)
 
     connect(btnUpload, &QPushButton::clicked, this, [=]() {
         QString filePath = QFileDialog::getOpenFileName(this,
-                                                        "Select Avatar",
+                                                        "Chọn ảnh đại diện",
                                                         "",
-                                                        "Images (*.png *.jpg *.jpeg)");
+                                                        "Hình ảnh (*.png *.jpg *.jpeg)");
         if (!filePath.isEmpty()) {
             m_avatarPath = filePath;
             QPixmap pix(filePath);
@@ -150,13 +154,13 @@ void EditEmployee_Dialog::setupUi(User *emp)
         }
     });
 
-    form->addRow(makeLabel("Avatar"),        avatarLayout);
-    form->addRow(makeLabel("Full Name *"),   inpName);
-    form->addRow(makeLabel("Role *"),        cmbRole);
-    form->addRow(makeLabel("Phone"),         inpPhone);
-    form->addRow(makeLabel("Date of Birth"), inpDob);
-    form->addRow(makeLabel("Address"),       inpAddress);
-    form->addRow(makeLabel("Citizen ID"),    inpCitizenId);
+    form->addRow(makeLabel("Ảnh đại diện"),    avatarLayout);
+    form->addRow(makeLabel("Họ và tên *"),    inpName);
+    form->addRow(makeLabel("Vai trò *"),      cmbRole);
+    form->addRow(makeLabel("Số điện thoại"),  inpPhone);
+    form->addRow(makeLabel("Ngày sinh"),      inpDob);
+    form->addRow(makeLabel("Địa chỉ"),        inpAddress);
+    form->addRow(makeLabel("CCCD / CMND"),    inpCitizenId);
     mainLayout->addLayout(form);
 
     //Error label
@@ -170,12 +174,12 @@ void EditEmployee_Dialog::setupUi(User *emp)
     QHBoxLayout *btnLayout = new QHBoxLayout();
     btnLayout->setSpacing(10);
 
-    btnCancel = new QPushButton("Cancel");
+    btnCancel = new QPushButton("Hủy");
     btnCancel->setObjectName("btnCancel");
     btnCancel->setMinimumHeight(36);
     btnCancel->setCursor(Qt::PointingHandCursor);
 
-    btnConfirm = new QPushButton("Save Changes");
+    btnConfirm = new QPushButton("Lưu thay đổi");
     btnConfirm->setObjectName("btnConfirm");
     btnConfirm->setMinimumHeight(36);
     btnConfirm->setCursor(Qt::PointingHandCursor);
@@ -192,7 +196,7 @@ void EditEmployee_Dialog::setupUi(User *emp)
 bool EditEmployee_Dialog::validate()
 {
     if (inpName->text().trimmed().isEmpty()) {
-        lblError->setText("⚠  Full name is required.");
+        lblError->setText("⚠  Họ và tên là bắt buộc.");
         lblError->setVisible(true);
         inpName->setFocus();
         return false;
@@ -209,7 +213,11 @@ void EditEmployee_Dialog::onConfirm()
 
 // Getters
 QString EditEmployee_Dialog::getName()      const { return inpName->text().trimmed(); }
-QString EditEmployee_Dialog::getRole()      const { return cmbRole->currentText(); }
+QString EditEmployee_Dialog::getRole()      const {
+    QString vn = cmbRole->currentText();
+    if (vn == "Quản lý") return "Manager";
+    return "Staff";
+}
 QString EditEmployee_Dialog::getPhone()     const { return inpPhone->text().trimmed(); }
 QString EditEmployee_Dialog::getDob()       const { return inpDob->text().trimmed(); }
 QString EditEmployee_Dialog::getAddress()   const { return inpAddress->text().trimmed(); }

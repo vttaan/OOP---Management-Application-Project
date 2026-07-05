@@ -14,6 +14,7 @@ private:
     bool cmpAscending(User *a, User *b, vector<QString> contentSort);
     bool cmpDescending(User *a, User *b, vector<QString> contentSort);
     bool rabinKarp(QString pattern, QString contentSearch);
+    QString saveAvatarLocally(int empId, const QString &sourcePath);
 
 public:
     Employee_Model();
@@ -24,4 +25,8 @@ public:
     vector<User *> searchInEmployee(QString contentSearch);
     vector<User *> filterInEmployee(vector<QString> contentFilter);
     vector<User *> sortInEmployee(QString typeOrder, vector<QString> contentSort);
+    QList<User *> getAllEmployees();
+    bool addEmployee(User *emp, const QString &username, const QString &password);
+    bool updateEmployee(User *emp);
+    bool deleteEmployee(int idEmployee);
 };
