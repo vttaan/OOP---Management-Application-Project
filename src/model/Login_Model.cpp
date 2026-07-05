@@ -21,6 +21,7 @@ User* Login_Model::verifyLogin(const QString& userName, const QString& password)
 	queryProfile.prepare("SECLECT * FROM PROFILES WHERE idEmployee = :u");
 	queryProfile.bindValue(":u", idEmployee);
 
+<<<<<<< Updated upstream
 	if (!queryProfile.exec() || !queryProfile.next()) return nullptr;
 
 	QString curRole = queryProfile.value("role").toString();
@@ -35,4 +36,25 @@ User* Login_Model::verifyLogin(const QString& userName, const QString& password)
 		curPhone);
 
 	return curUser;
+=======
+    QSqlQuery queryProfile(openData);
+    queryProfile.prepare("SELECT * FROM PROFILES WHERE idEmployee = :u");
+    queryProfile.bindValue(":u", idEmployee);
+    if(!queryProfile.exec() || !queryProfile.next()) {
+        qDebug() << "ERROR NOT EXEC QUERY IN VERIFY LOGIN\n";
+        return nullptr;
+    }
+    else qDebug() << "EXEC QUERY VERIFY LOGIN SUCCESS\n";
+    QString curRole = queryProfile.value("role").toString();
+    QString curIdIdentity = queryProfile.value("IdCitizenIdentity").toString();
+    QString curName = queryProfile.value("name").toString();
+    QString curPhone = queryProfile.value("phoneNum").toString();
+    QString curDob = queryProfile.value("dob").toString();
+    QString curAddress = queryProfile.value("address").toString();
+    QString curAvatarPath = queryProfile.value("avatarPath").toString();
+    QString curGender = queryProfile.value("Gender").toString();
+    User *curUser = UserFactory::createContainsUser(curRole, idEmployee, curAvatarPath, curIdIdentity, curName, curDob, curAddress,
+                                                    curPhone, curGender);
+    return curUser;
+>>>>>>> Stashed changes
 }
