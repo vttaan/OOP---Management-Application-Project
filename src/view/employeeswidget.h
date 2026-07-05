@@ -17,8 +17,6 @@
 #include <QSizePolicy>
 #include <QFont>
 #include <QEvent>
-#include <QFile>
-#include <QTextStream>
 
 class EmployeesWidget : public QWidget
 {
@@ -44,7 +42,6 @@ private:
     void setupTableHeader();
     void populateTable();
     void setupConnections();
-    void logEvent(const QString &eventType, const QString &details);
 
     // --- Widget Factories ---
     QLabel*      createAvatar(const QString &initials, const QString &bgColor);
@@ -70,6 +67,7 @@ private:
     QFrame      *rosterCard;
     QLineEdit   *searchRoster;
     QComboBox   *filterCombo;
+    QPushButton *sortBtn;
     QPushButton *addEmployeeBtn;
     QTableWidget *employeesTable;
     QLabel      *footerLabel;

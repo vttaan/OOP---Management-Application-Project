@@ -1,11 +1,11 @@
 #include "employeeswidget.h"
-#include <QFile>
-#include <QTextStream>
-#include <QDateTime>
 #include <QDebug>
 #include <QApplication>
 #include <QColor>
 #include <QMouseEvent>
+#include <QIcon>
+#include <QSize>
+#include <QPixmap>
 
 // ============================================================
 // Constructor / Destructor
@@ -14,16 +14,13 @@
 EmployeesWidget::EmployeesWidget(QWidget *parent)
     : QWidget(parent)
 {
-    logEvent("System Event", "EmployeesWidget initialized.");
     setupUi();
     populateTable();
     setupConnections();
-    logEvent("System Event", "EmployeesWidget setup completed.");
 }
 
 EmployeesWidget::~EmployeesWidget()
 {
-    logEvent("System Event", "EmployeesWidget destroyed.");
 }
 
 // ============================================================
@@ -175,6 +172,15 @@ void EmployeesWidget::setupUi()
     filterCombo->addItem("Admin");
     filterCombo->setCursor(Qt::PointingHandCursor);
 
+    // Sort button
+    sortBtn = new QPushButton();
+    sortBtn->setObjectName("sortBtn");
+    sortBtn->setIcon(QIcon(":/images/sort-vertical-svgrepo-com.svg"));
+    sortBtn->setIconSize(QSize(16, 16));
+    sortBtn->setFixedSize(34, 34);
+    sortBtn->setToolTip("Sort");
+    sortBtn->setCursor(Qt::PointingHandCursor);
+
     // Add Staff button
     addEmployeeBtn = new QPushButton("+ Add Staff");
     addEmployeeBtn->setObjectName("addEmployeeBtn");
@@ -185,6 +191,7 @@ void EmployeesWidget::setupUi()
     rosterHeaderLayout->addStretch();
     rosterHeaderLayout->addWidget(searchRoster);
     rosterHeaderLayout->addWidget(filterCombo);
+    rosterHeaderLayout->addWidget(sortBtn);
     rosterHeaderLayout->addWidget(addEmployeeBtn);
     rosterLayout->addWidget(rosterHeader);
 
@@ -331,7 +338,7 @@ void EmployeesWidget::populateTable()
         actionsLayout->addStretch();
         employeesTable->setCellWidget(row, 6, actionsWidget);
 
-        logEvent("UI Data Load", QString("Loaded staff row %1: %2").arg(row + 1).arg(emp.name));
+
     }
 }
 
@@ -363,7 +370,6 @@ void EmployeesWidget::setupConnections()
 
 void EmployeesWidget::filterEmployees(const QString &searchText)
 {
-    logEvent("UI Data Fetch", QString("Filtering staff by: '%1'").arg(searchText));
     const QString roleFilter = filterCombo->currentIndex() == 0
                                 ? QString()
                                 : filterCombo->currentText();
@@ -408,7 +414,6 @@ void EmployeesWidget::applyRoleFilter(int /*index*/)
 
 void EmployeesWidget::handleAddEmployee()
 {
-    logEvent("System Event", "Add Staff button clicked.");
 }
 
 // ============================================================
@@ -419,7 +424,6 @@ bool EmployeesWidget::eventFilter(QObject *watched, QEvent *event)
 {
     QFrame *userCard = profileBlock ? profileBlock->findChild<QFrame*>("userCard") : nullptr;
     if (watched == userCard && event->type() == QEvent::MouseButtonRelease) {
-        logEvent("Navigation", "Profile block clicked — emitting profileClicked.");
         emit profileClicked();
         return true;
     }
@@ -565,30 +569,3 @@ QPushButton* EmployeesWidget::createActionButton(const QString &text, const QStr
     return btn;
 }
 
-// ============================================================
-// Logging
-// ============================================================
-
-void EmployeesWidget::logEvent(const QString &eventType, const QString &details)
-{
-    QString logFileName = "ai-logs/25127052_AIUsageLog.md";
-    QFile logFile(logFileName);
-    bool isNewFile = !logFile.exists();
-
-    if (logFile.open(QIODevice::Append | QIODevice::Text)) {
-        QTextStream out(&logFile);
-        if (isNewFile) {
-            out << "# Application Activity Log — EmployeesWidget\n\n";
-            out << "| Timestamp | Event Type | Details |\n";
-            out << "|---|---|---|\n";
-        }
-        QString timestamp = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss");
-        QString safe = details;
-        safe.replace("|", "\\|");
-        safe.replace("\n", " ");
-        out << "| " << timestamp << " | **" << eventType << "** | " << safe << " |\n";
-        logFile.close();
-    } else {
-        qWarning() << "Failed to open log file:" << logFileName;
-    }
-}
