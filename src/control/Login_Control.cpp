@@ -5,20 +5,6 @@
 
 
 Login_Control::Login_Control(QObject *parent)
-<<<<<<< Updated upstream
-    :QObject(parent), view(nullptr), currentUser(nullptr){
-
-}
-Login_Control::~Login_Control() {
-    if (view) delete view;
-    if (currentUser) delete currentUser;
-}
-void Login_Control::init(){
-    view->show();
-}
-
-Login_View* Login_Control::getView()  {
-=======
     : QObject(parent), view(new Login_View(this)), currentSession(nullptr)
 {
     bool ok = connect(view, &Login_View::loginSubmitted, this, &Login_Control::handleLoginSubmission);
@@ -29,8 +15,6 @@ Login_Control::~Login_Control()
 {
     if (view)
         delete view;
-    // if (currentSession)
-    //     delete currentSession;
 }
 
 void Login_Control::init()
@@ -42,45 +26,17 @@ void Login_Control::init()
 
 Login_View *Login_Control::getView()
 {
->>>>>>> Stashed changes
     return this->view;
 }
 
 void Login_Control::setView(Login_View* view) {
     this->view = view;
-<<<<<<< Updated upstream
-    if (this->view) {
-=======
     if (this->view)
     {
         this->view->setController(this);
->>>>>>> Stashed changes
         QObject::connect(this->view, &Login_View::loginSubmitted, this, &Login_Control::handleLoginSubmission);
     }
 }
-
-<<<<<<< Updated upstream
-void Login_Control::handleLoginSubmission(const QString& username,const QString& password){
-    Login_Model model;
-    //qDebug() << "pending\n";
-    User *user = model.verifyLogin(username, password);
-    if (user != nullptr) {
-        //qDebug() << "success\n";
-        currentUser = user;
-        emit loginSuccessful(this->currentUser);
-
-
-        if (currentUser->getRole() == "Manager") {
-            qDebug() << "Manager";
-            // MainController
-
-        } else if (currentUser->getRole() == "Staff") {
-            qDebug() << "Staff";
-            // MainController
-        }
-
-    } else {
-=======
 
 void Login_Control::handleLoginSubmission(const QString &username, const QString &password)
 {
@@ -107,14 +63,9 @@ void Login_Control::handleLoginSubmission(const QString &username, const QString
     }
     else
     {
->>>>>>> Stashed changes
         QMessageBox::critical(view, "Login Failed", "Wrong username or Password!");
         view->clearPassword();
     }
 }
 
-<<<<<<< Updated upstream
-User* Login_Control::getUser() { return currentUser; }
-=======
 //User *Login_Control::getUser() { return this->currentSession->getCurrentUser(); }
->>>>>>> Stashed changes

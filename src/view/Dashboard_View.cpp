@@ -108,11 +108,6 @@ bool Dashboard_View::eventFilter(QObject *watched, QEvent *event)
 
     return QWidget::eventFilter(watched, event);
 }
-<<<<<<< Updated upstream
-void Dashboard_View::on_btnLogout_clicked()
-{
-    emit this->getController()->logoutSubmitted();
-=======
 
 void Dashboard_View::on_btnMenu_Overview_clicked() {
     if (ui && ui->stackedWidget) ui->stackedWidget->setCurrentWidget(ui->pageOverview);
@@ -148,7 +143,4 @@ void Dashboard_View::on_btnLogout_clicked()
         qDebug() << "emit logout";
         emit controller->logoutSubmitted();
     }
->>>>>>> Stashed changes
 }
-
-
