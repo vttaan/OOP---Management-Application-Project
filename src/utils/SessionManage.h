@@ -4,20 +4,22 @@
 class SessionManager
 {
 private:
-    SessionManager();
-    ~SessionManager();
 
     // Prevent copying and assignment
     SessionManager(const SessionManager &) = delete;
     SessionManager &operator=(const SessionManager &) = delete;
 
-    User *currentUser;
+    User *currentUser = nullptr;
 
 public:
+
+    SessionManager();
+    ~SessionManager();
     static SessionManager *getInstance();
 
     void saveCurrentInfo(User *user);
     void clearInfo();
-    const User *getCurrentUser() const;
+    User *getCurrentUser() const;
+    //void setCurrentUser(User* user);
     bool checkPermission(const QString &requiredRole) const;
 };

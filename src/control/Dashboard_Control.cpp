@@ -1,15 +1,16 @@
 #include "Dashboard_Control.h"
+#include "view/Dashboard_View.h"
 
 Dashboard_Control::Dashboard_Control(QObject *parent)
-    :QObject(parent), view(nullptr), currentUser(nullptr){
+    :QObject(parent), view(nullptr), currentSession(nullptr){
 
 }
 Dashboard_Control::~Dashboard_Control() {
     if (view) delete view;
-    if (currentUser) delete currentUser;
+    if (currentSession) delete currentSession;
 }
 void Dashboard_Control::init(){
-    view->show();
+    this->getView()->show();
 }
 
 Dashboard_View* Dashboard_Control::getView()  {
@@ -18,4 +19,7 @@ Dashboard_View* Dashboard_Control::getView()  {
 
 void Dashboard_Control::setView(Dashboard_View* view) {
     this->view = view;
+    if (this->view) {
+        this->view->setController(this);
+    }
 }

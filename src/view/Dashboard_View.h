@@ -3,6 +3,7 @@
 #include <QEvent>
 #include <QWidget>
 #include <QHBoxLayout>
+#include "control/Dashboard_Control.h"
 
 class Dashboard_Control;
 
@@ -18,6 +19,12 @@ public:
     Dashboard_View(Dashboard_Control* controller = nullptr, QWidget *parent = nullptr);
     Dashboard_Control* getController() const;
     ~Dashboard_View();
+<<<<<<< Updated upstream
+=======
+    Dashboard_Control *getController() const;
+    void setController(Dashboard_Control *controller);
+
+>>>>>>> Stashed changes
 protected:
     bool eventFilter(QObject*watched,QEvent*event)override;
 

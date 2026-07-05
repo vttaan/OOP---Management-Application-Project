@@ -1,33 +1,45 @@
 #include "Control_Navigator.h"
+#include "Login_Control.h"
+#include "Dashboard_Control.h"
+#include "Profile_Control.h"
 #include "view/View_Navigator.h"
+#include "utils/SessionManage.h"
 
 
 Control_Navigator::Control_Navigator()
 {
-    this->dashboardController = new Dashboard_Control();
-    this->loginController = new Login_Control();
-    this->profileController = new Profile_Control();
+    this->currentSession = new SessionManager();
+    this->viewWindow = new View_Navigator(this); // Initialize viewWindow FIRST!
 
-    this->viewWindow = new View_Navigator(this);
+    this->dashboardController = new Dashboard_Control(this);
+    this->dashboardController->currentSession = this->currentSession;
+    this->dashboardController->setView(this->viewWindow->dashboardPage);
 
-    this->loginController->setParent(this->viewWindow);
-    this->profileController->setParent(this->viewWindow);
-    this->dashboardController->setParent(this->viewWindow);
+    this->loginController = new Login_Control(this);
+    this->loginController->currentSession = this->currentSession;
+    this->loginController->setView(this->viewWindow->loginPage);
+
+    this->profileController = new Profile_Control(this);
+    this->profileController->currentSession = this->currentSession;
+    this->profileController->setView(this->viewWindow->profilePage);
 
     QObject::connect(this->loginController, &Login_Control::loginSuccessful,
                      this->viewWindow, [this]() {
         this->switchTab(1); // Switch to Dashboard (index 1)
+        // the whole app's session is updated
     });
 
     QObject::connect(this->dashboardController, &Dashboard_Control::logoutSubmitted,
                      this->viewWindow, [this]() {
         this->switchTab(0); // Switch to Login (index 0)
-        this->loginController->getView()->clearInputs();
+        qDebug() << "logout";
+        this->loginController->init();
     });
 
     QObject::connect(this->dashboardController, &Dashboard_Control::profilePageClicked,
                      this->viewWindow, [this]() {
         this->switchTab(2); // Switch to Profile (index 2)
+        // no need to load user data for profile since its session already pointed to the whole app's session
     });
 
     QObject::connect(this->profileController, &Profile_Control::backToPrevious,
@@ -50,12 +62,13 @@ void Control_Navigator::handleLogOut() {
     // Implement logout logic here
 }
 
-
 Control_Navigator::~Control_Navigator() {
+    delete currentSession;
     delete viewWindow;
     delete loginController;
     delete profileController;
     delete dashboardController;
+    currentSession = nullptr;
     viewWindow = nullptr;
     loginController = nullptr;
     profileController = nullptr;

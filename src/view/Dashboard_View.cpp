@@ -108,9 +108,47 @@ bool Dashboard_View::eventFilter(QObject *watched, QEvent *event)
 
     return QWidget::eventFilter(watched, event);
 }
+<<<<<<< Updated upstream
 void Dashboard_View::on_btnLogout_clicked()
 {
     emit this->getController()->logoutSubmitted();
+=======
+
+void Dashboard_View::on_btnMenu_Overview_clicked() {
+    if (ui && ui->stackedWidget) ui->stackedWidget->setCurrentWidget(ui->pageOverview);
+}
+
+void Dashboard_View::on_btnMenu_HR_clicked() {
+    if (ui && ui->stackedWidget) ui->stackedWidget->setCurrentWidget(ui->pageHR);
+}
+
+void Dashboard_View::on_btnMenu_Timekeep_clicked() {
+    if (ui && ui->stackedWidget) ui->stackedWidget->setCurrentWidget(ui->pageTimekeep);
+}
+
+void Dashboard_View::on_btnMenu_Salary_clicked() {
+    if (ui && ui->stackedWidget) ui->stackedWidget->setCurrentWidget(ui->pageSalary);
+}
+
+void Dashboard_View::on_btnMenu_Report_clicked() {
+    if (ui && ui->stackedWidget) ui->stackedWidget->setCurrentWidget(ui->pageReport);
+}
+
+void Dashboard_View::on_btnMenu_Settings_clicked() {
+    if (ui && ui->stackedWidget) ui->stackedWidget->setCurrentWidget(ui->pageSettings);
+}
+
+void Dashboard_View::setController(Dashboard_Control *controller) {
+    this->controller = controller;
+}
+
+void Dashboard_View::on_btnLogout_clicked()
+{
+    if (controller) {
+        qDebug() << "emit logout";
+        emit controller->logoutSubmitted();
+    }
+>>>>>>> Stashed changes
 }
 
 
