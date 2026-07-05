@@ -6,6 +6,7 @@
 #include <QIcon>
 #include <QSize>
 #include <QPixmap>
+#include <QMessageBox>
 
 // ============================================================
 // Constructor / Destructor
@@ -15,7 +16,7 @@ EmployeesWidget::EmployeesWidget(QWidget *parent)
     : QWidget(parent)
 {
     setupUi();
-    populateTable();
+
     setupConnections();
 }
 
@@ -64,13 +65,6 @@ void EmployeesWidget::setupUi()
     userAvatar->setObjectName("userAvatar");
     userAvatar->setFixedSize(36, 36);
     userAvatar->setAlignment(Qt::AlignCenter);
-    userAvatar->setStyleSheet(
-        "background-color: #2563EB;"
-        "color: #FFFFFF;"
-        "border-radius: 18px;"
-        "font-size: 12px;"
-        "font-weight: bold;"
-    );
 
     // Name + role column
     QVBoxLayout *userInfoLayout = new QVBoxLayout();
@@ -109,18 +103,15 @@ void EmployeesWidget::setupUi()
         ":/images/dolar-svgrepo-com.svg", "#DBEAFE", "#2563EB",
         "Total Monthly Payroll", "$46.6K",
         "↑ +3.2% vs last month",
-        "+3.2%", "#16A34A"
-    );
+        "+3.2%", "#16A34A");
     QFrame *staffCard = createMetricCard(
         ":/images/people-svgrepo-com.svg", "#DCFCE7", "#16A34A",
         "Active Staff On-Shift", "5 / 7",
-        "Currently clocked in"
-    );
+        "Currently clocked in");
     QFrame *absenceCard = createMetricCard(
         ":/images/warning-circle-svgrepo-com.svg", "#FEF9C3", "#CA8A04",
         "Pending Absences", "2",
-        "1 absent · 1 pending approval"
-    );
+        "1 absent · 1 pending approval");
 
     metricsLayout->addWidget(payrollCard);
     metricsLayout->addWidget(staffCard);
@@ -253,36 +244,35 @@ void EmployeesWidget::setupTableHeader()
 // Populate Table — F&B simplified names, monthly salaries
 // ============================================================
 
-void EmployeesWidget::populateTable()
+// ============================================================
+// loadEmployees — slot called by Controller to update the table
+// ============================================================
+
+void EmployeesWidget::loadEmployees(const QList<User *> &employees)
 {
-    struct EmployeeRecord {
-        QString id, name, initials, avatarColor;
-        QString role, payType, monthlyRate, status;
-    };
+    QStringList avatarColors = {
+        "#3B82F6", "#10B981", "#F59E0B", "#EF4444",
+        "#8B5CF6", "#6366F1", "#14B8A6"};
 
-    QList<EmployeeRecord> data = {
-        {"EMP-1042", "Staff A",   "SA", "#3B82F6", "Staff",   "Hourly", "$2,280/mo", "Active"},
-        {"EMP-1043", "Staff B",   "SB", "#10B981", "Staff",   "Hourly", "$1,980/mo", "Active"},
-        {"EMP-1044", "Staff C",   "SC", "#F59E0B", "Staff",   "Hourly", "$2,100/mo", "Absent"},
-        {"EMP-1045", "Staff D",   "SD", "#EF4444", "Staff",   "Hourly", "$2,050/mo", "Active"},
-        {"EMP-1046", "Manager A", "MA", "#8B5CF6", "Manager", "Salary", "$4,200/mo", "Active"},
-        {"EMP-1047", "Manager B", "MB", "#6366F1", "Manager", "Salary", "$4,500/mo", "Pending"},
-        {"EMP-1048", "Admin",     "AD", "#14B8A6", "Admin",   "Salary", "$3,800/mo", "Active"},
-    };
+    employeesTable->clearContents();
+    employeesTable->setRowCount(employees.size());
 
-    employeesTable->setRowCount(data.size());
-
-    for (int row = 0; row < data.size(); ++row) {
-        const auto &emp = data[row];
+    for (int row = 0; row < employees.size(); ++row)
+    {
+        User *emp = employees[row];
         employeesTable->setRowHeight(row, 50);
 
-        // Col 0 — Employee ID
-        QTableWidgetItem *idItem = new QTableWidgetItem(emp.id);
+        QString colorHex = avatarColors[row % avatarColors.size()];
+        QString initials = emp->getName().left(2).toUpper();
+
+        // Col 0 — ID
+        QTableWidgetItem *idItem = new QTableWidgetItem(
+            QString("EMP-%1").arg(emp->getIdEmployee()));
         idItem->setForeground(QColor("#64748B"));
         idItem->setFont(QFont("Segoe UI", 9));
         idItem->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-        // Store the role in UserRole for filtering
-        idItem->setData(Qt::UserRole, emp.role);
+        idItem->setData(Qt::UserRole, emp->getRole());
+        idItem->setData(Qt::UserRole + 1, emp->getIdEmployee());
         employeesTable->setItem(row, 0, idItem);
 
         // Col 1 — Name + avatar
@@ -290,8 +280,8 @@ void EmployeesWidget::populateTable()
         QHBoxLayout *nameLayout = new QHBoxLayout(nameWidget);
         nameLayout->setContentsMargins(8, 4, 8, 4);
         nameLayout->setSpacing(10);
-        nameLayout->addWidget(createAvatar(emp.initials, emp.avatarColor));
-        QLabel *nameLabel = new QLabel(emp.name);
+        nameLayout->addWidget(createAvatar(initials, colorHex));
+        QLabel *nameLabel = new QLabel(emp->getName());
         nameLabel->setObjectName("empNameLabel");
         nameLabel->setFont(QFont("Segoe UI", 10, QFont::DemiBold));
         nameLayout->addWidget(nameLabel);
@@ -302,33 +292,36 @@ void EmployeesWidget::populateTable()
         QWidget *roleWidget = new QWidget();
         QHBoxLayout *roleLayout = new QHBoxLayout(roleWidget);
         roleLayout->setContentsMargins(8, 4, 8, 4);
-        roleLayout->addWidget(createRoleBadge(emp.role));
+        roleLayout->addWidget(createRoleBadge(emp->getRole()));
         roleLayout->addStretch();
         employeesTable->setCellWidget(row, 2, roleWidget);
 
         // Col 3 — Pay Type
-        QTableWidgetItem *payItem = new QTableWidgetItem(emp.payType);
+        QString payType = (emp->getRole() == "Staff") ? "Hourly" : "Salary";
+        QTableWidgetItem *payItem = new QTableWidgetItem(payType);
         payItem->setForeground(QColor("#374151"));
         payItem->setFont(QFont("Segoe UI", 9));
         payItem->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
         employeesTable->setItem(row, 3, payItem);
 
         // Col 4 — Monthly Rate
-        QTableWidgetItem *rateItem = new QTableWidgetItem(emp.monthlyRate);
+        QString rateStr = QString("$%1/mo")
+                              .arg(QString::number(emp->getSalary(), 'f', 0));
+        QTableWidgetItem *rateItem = new QTableWidgetItem(rateStr);
         rateItem->setForeground(QColor("#0F172A"));
         rateItem->setFont(QFont("Segoe UI", 9, QFont::DemiBold));
         rateItem->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
         employeesTable->setItem(row, 4, rateItem);
 
-        // Col 5 — Status badge
+        // Col 5 — Status
         QWidget *statusWidget = new QWidget();
         QHBoxLayout *statusLayout = new QHBoxLayout(statusWidget);
         statusLayout->setContentsMargins(8, 4, 8, 4);
-        statusLayout->addWidget(createStatusBadge(emp.status));
+        statusLayout->addWidget(createStatusBadge("Active"));
         statusLayout->addStretch();
         employeesTable->setCellWidget(row, 5, statusWidget);
 
-        // Col 6 — Actions
+        // Col 6 — Actions — only emits signal, does not call model
         QWidget *actionsWidget = new QWidget();
         QHBoxLayout *actionsLayout = new QHBoxLayout(actionsWidget);
         actionsLayout->setContentsMargins(6, 4, 6, 4);
@@ -337,9 +330,10 @@ void EmployeesWidget::populateTable()
         actionsLayout->addWidget(createActionButton(":/images/trash-bin-trash-svgrepo-com.svg", "Delete"));
         actionsLayout->addStretch();
         employeesTable->setCellWidget(row, 6, actionsWidget);
-
-
     }
+
+    logEvent("UI Data Load", QString("Loaded staff row %1: %2").arg(row + 1).arg(emp.name));
+}
 }
 
 // ============================================================
@@ -348,21 +342,16 @@ void EmployeesWidget::populateTable()
 
 void EmployeesWidget::setupConnections()
 {
-    connect(searchRoster, &QLineEdit::textChanged, this, &EmployeesWidget::filterEmployees);
-    connect(filterCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
-            this, &EmployeesWidget::applyRoleFilter);
     connect(addEmployeeBtn, &QPushButton::clicked, this, &EmployeesWidget::handleAddEmployee);
 
     // Profile block click — forward to Dashboard_View via signal
     // We install an event filter on the userCard child
-    QFrame *userCard = profileBlock->findChild<QFrame*>("userCard");
-    if (userCard) {
+    QFrame *userCard = profileBlock->findChild<QFrame *>("userCard");
+    if (userCard)
+    {
         userCard->installEventFilter(this);
     }
 }
-
-
-
 
 // ============================================================
 // Slots
@@ -370,31 +359,39 @@ void EmployeesWidget::setupConnections()
 
 void EmployeesWidget::filterEmployees(const QString &searchText)
 {
+    logEvent("UI Data Fetch", QString("Filtering staff by: '%1'").arg(searchText));
     const QString roleFilter = filterCombo->currentIndex() == 0
-                                ? QString()
-                                : filterCombo->currentText();
+                                   ? QString()
+                                   : filterCombo->currentText();
 
-    for (int row = 0; row < employeesTable->rowCount(); ++row) {
+    for (int row = 0; row < employeesTable->rowCount(); ++row)
+    {
         // Role filter
         QString rowRole;
         QTableWidgetItem *id0 = employeesTable->item(row, 0);
-        if (id0) rowRole = id0->data(Qt::UserRole).toString();
+        if (id0)
+            rowRole = id0->data(Qt::UserRole).toString();
 
         bool roleMatch = roleFilter.isEmpty() || rowRole == roleFilter;
 
         // Text filter — check item cells and name label
         bool textMatch = searchText.isEmpty();
-        if (!textMatch) {
-            for (int col = 0; col < employeesTable->columnCount(); ++col) {
+        if (!textMatch)
+        {
+            for (int col = 0; col < employeesTable->columnCount(); ++col)
+            {
                 QTableWidgetItem *item = employeesTable->item(row, col);
-                if (item && item->text().contains(searchText, Qt::CaseInsensitive)) {
+                if (item && item->text().contains(searchText, Qt::CaseInsensitive))
+                {
                     textMatch = true;
                     break;
                 }
                 QWidget *w = employeesTable->cellWidget(row, col);
-                if (w) {
-                    QLabel *lbl = w->findChild<QLabel*>("empNameLabel");
-                    if (lbl && lbl->text().contains(searchText, Qt::CaseInsensitive)) {
+                if (w)
+                {
+                    QLabel *lbl = w->findChild<QLabel *>("empNameLabel");
+                    if (lbl && lbl->text().contains(searchText, Qt::CaseInsensitive))
+                    {
                         textMatch = true;
                         break;
                     }
@@ -414,6 +411,9 @@ void EmployeesWidget::applyRoleFilter(int /*index*/)
 
 void EmployeesWidget::handleAddEmployee()
 {
+    // View only emits signal — Controller will show dialog and call model
+    logEvent("System Event", "Add Staff button clicked — emitting requestAddEmployee.");
+    emit requestAddEmployee();
 }
 
 // ============================================================
@@ -422,8 +422,9 @@ void EmployeesWidget::handleAddEmployee()
 
 bool EmployeesWidget::eventFilter(QObject *watched, QEvent *event)
 {
-    QFrame *userCard = profileBlock ? profileBlock->findChild<QFrame*>("userCard") : nullptr;
-    if (watched == userCard && event->type() == QEvent::MouseButtonRelease) {
+    QFrame *userCard = profileBlock ? profileBlock->findChild<QFrame *>("userCard") : nullptr;
+    if (watched == userCard && event->type() == QEvent::MouseButtonRelease)
+    {
         emit profileClicked();
         return true;
     }
@@ -434,30 +435,30 @@ bool EmployeesWidget::eventFilter(QObject *watched, QEvent *event)
 // Widget Factories
 // ============================================================
 
-QLabel* EmployeesWidget::createAvatar(const QString &initials, const QString &bgColor)
+QLabel *EmployeesWidget::createAvatar(const QString &initials, const QString &bgColor)
 {
     QLabel *avatar = new QLabel(initials);
     avatar->setObjectName("empAvatar");
     avatar->setFixedSize(32, 32);
     avatar->setAlignment(Qt::AlignCenter);
     avatar->setStyleSheet(QString(
-        "background-color: %1;"
-        "color: #FFFFFF;"
-        "border-radius: 16px;"
-        "font-size: 11px;"
-        "font-weight: bold;"
-    ).arg(bgColor));
+                              "background-color: %1;"
+                              "color: #FFFFFF;"
+                              "border-radius: 16px;"
+                              "font-size: 11px;"
+                              "font-weight: bold;")
+                              .arg(bgColor));
     return avatar;
 }
 
-QFrame* EmployeesWidget::createMetricCard(const QString &iconText,
-                                           const QString &iconBg,
-                                           const QString &iconColor,
-                                           const QString &title,
-                                           const QString &value,
-                                           const QString &subtitle,
-                                           const QString &badge,
-                                           const QString &badgeColor)
+QFrame *EmployeesWidget::createMetricCard(const QString &iconText,
+                                          const QString &iconBg,
+                                          const QString &iconColor,
+                                          const QString &title,
+                                          const QString &value,
+                                          const QString &subtitle,
+                                          const QString &badge,
+                                          const QString &badgeColor)
 {
     QFrame *card = new QFrame();
     card->setObjectName("metricCard");
@@ -469,21 +470,24 @@ QFrame* EmployeesWidget::createMetricCard(const QString &iconText,
     cardLayout->setSpacing(14);
 
     QLabel *iconLabel = new QLabel();
-    if (iconText.startsWith(":/images/")) {
+    if (iconText.startsWith(":/images/"))
+    {
         QPixmap pix(iconText);
         iconLabel->setPixmap(pix.scaled(24, 24, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    } else {
+    }
+    else
+    {
         iconLabel->setText(iconText);
     }
     iconLabel->setObjectName("metricIcon");
     iconLabel->setFixedSize(50, 50);
     iconLabel->setAlignment(Qt::AlignCenter);
     iconLabel->setStyleSheet(QString(
-        "background-color: %1;"
-        "color: %2;"
-        "border-radius: 25px;"
-        "font-size: 20px;"
-    ).arg(iconBg, iconColor));
+                                 "background-color: %1;"
+                                 "color: %2;"
+                                 "border-radius: 25px;"
+                                 "font-size: 20px;")
+                                 .arg(iconBg, iconColor));
 
     QVBoxLayout *textLayout = new QVBoxLayout();
     textLayout->setSpacing(3);
@@ -499,7 +503,8 @@ QFrame* EmployeesWidget::createMetricCard(const QString &iconText,
     QLabel *subtitleLabel = new QLabel(subtitle);
     subtitleLabel->setObjectName("metricSubtitle");
     subRow->addWidget(subtitleLabel);
-    if (!badge.isEmpty()) {
+    if (!badge.isEmpty())
+    {
         QLabel *badgeLabel = new QLabel(badge);
         badgeLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 10px;").arg(badgeColor));
         subRow->addWidget(badgeLabel);
@@ -517,7 +522,7 @@ QFrame* EmployeesWidget::createMetricCard(const QString &iconText,
     return card;
 }
 
-QLabel* EmployeesWidget::createStatusBadge(const QString &status)
+QLabel *EmployeesWidget::createStatusBadge(const QString &status)
 {
     QLabel *badge = new QLabel(status);
     badge->setAlignment(Qt::AlignCenter);
@@ -535,7 +540,7 @@ QLabel* EmployeesWidget::createStatusBadge(const QString &status)
     return badge;
 }
 
-QLabel* EmployeesWidget::createRoleBadge(const QString &role)
+QLabel *EmployeesWidget::createRoleBadge(const QString &role)
 {
     QLabel *badge = new QLabel(role);
     badge->setAlignment(Qt::AlignCenter);
@@ -553,14 +558,17 @@ QLabel* EmployeesWidget::createRoleBadge(const QString &role)
     return badge;
 }
 
-QPushButton* EmployeesWidget::createActionButton(const QString &text, const QString &tooltip)
+QPushButton *EmployeesWidget::createActionButton(const QString &text, const QString &tooltip)
 {
     QPushButton *btn = new QPushButton();
-    if (text.startsWith(":/images/")) {
+    if (text.startsWith(":/images/"))
+    {
         btn->setIcon(QIcon(text));
         btn->setIconSize(QSize(16, 16));
         btn->setFixedSize(28, 28);
-    } else {
+    }
+    else
+    {
         btn->setText(text);
     }
     btn->setObjectName("tableActionBtn");
@@ -568,4 +576,3 @@ QPushButton* EmployeesWidget::createActionButton(const QString &text, const QStr
     btn->setCursor(Qt::PointingHandCursor);
     return btn;
 }
-

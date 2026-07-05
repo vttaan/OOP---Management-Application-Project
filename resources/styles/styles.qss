@@ -1,4 +1,4 @@
-﻿
+
 Login_View {
     background-color: white;
 }
@@ -657,3 +657,11 @@ EmployeesWidget QScrollBar::handle:horizontal:hover {
 EmployeesWidget QScrollBar::add-line:horizontal,
 EmployeesWidget QScrollBar::sub-line:horizontal {
     width: 0px;
+}
+EmployeesWidget QLabel#userAvatar {
+    background-color: #2563EB;
+    color: #FFFFFF;
+    border-radius: 18px;
+    font-size: 12px;
+    font-weight: bold;
+}

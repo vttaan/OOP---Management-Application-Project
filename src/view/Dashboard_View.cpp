@@ -1,6 +1,7 @@
 #include "Dashboard_View.h"
 #include "ui_Dashboard_View.h"
 #include "control/Dashboard_Control.h"
+#include "control/Employee_Control.h"
 #include "employeecard.h"
 #include "employeeswidget.h"
 #include <QGridLayout>
@@ -73,6 +74,11 @@ Dashboard_View::Dashboard_View(Dashboard_Control *controller, QWidget *parent) :
     }
     EmployeesWidget *employeesWidget = new EmployeesWidget(this);
     hrLayout->addWidget(employeesWidget);
+
+    // Wire Employee_Control vào view — controller là parent nên tự cleanup
+    Employee_Control *empCtrl = new Employee_Control(employeesWidget);
+    empCtrl->setView(employeesWidget);
+    empCtrl->init(); // load data từ DB lần đầu
 }
 
 Dashboard_View::~Dashboard_View()

@@ -1,0 +1,142 @@
+
+#AddEmployee_Dialog, #EditEmployee_Dialog {
+    background-color: #FFFFFF;
+}
+
+#AddEmployee_Dialog QLabel#dlgTitle, #EditEmployee_Dialog QLabel#dlgTitle {
+    font-size: 16px;
+    font-weight: bold;
+    color: #0F172A;
+}
+
+#AddEmployee_Dialog QLabel#dlgSub, #EditEmployee_Dialog QLabel#dlgSub {
+    font-size: 11px;
+    color: #64748B;
+}
+
+#AddEmployee_Dialog QFrame#dlgDivider, #EditEmployee_Dialog QFrame#dlgDivider {
+    color: #E2E8F0;
+    max-height: 1px;
+}
+
+#AddEmployee_Dialog QLabel#formLabel, #EditEmployee_Dialog QLabel#formLabel {
+    font-size: 12px;
+    color: #374151;
+    font-weight: 600;
+}
+
+#AddEmployee_Dialog QLineEdit, #AddEmployee_Dialog QComboBox,
+#EditEmployee_Dialog QLineEdit, #EditEmployee_Dialog QComboBox {
+    border: 1px solid #CBD5E1;
+    border-radius: 6px;
+    padding: 0 10px;
+    font-size: 12px;
+    color: #1E293B;
+    background: #F8FAFC;
+    min-height: 32px;
+}
+
+#AddEmployee_Dialog QLineEdit:focus, #AddEmployee_Dialog QComboBox:focus,
+#EditEmployee_Dialog QLineEdit:focus, #EditEmployee_Dialog QComboBox:focus {
+    border-color: #2563EB;
+    background: #FFFFFF;
+}
+
+#AddEmployee_Dialog QComboBox::drop-down, #EditEmployee_Dialog QComboBox::drop-down {
+    border: none;
+}
+
+#AddEmployee_Dialog QLabel#lblAccount {
+    font-size: 11px;
+    color: #94A3B8;
+    margin-top: 4px;
+}
+
+#AddEmployee_Dialog QLabel#lblError, #EditEmployee_Dialog QLabel#lblError {
+    color: #DC2626;
+    font-size: 11px;
+    background: #FEE2E2;
+    border-radius: 5px;
+    padding: 6px 10px;
+}
+
+#AddEmployee_Dialog QPushButton#btnCancel, #EditEmployee_Dialog QPushButton#btnCancel {
+    border: 1px solid #CBD5E1;
+    border-radius: 7px;
+    padding: 0 20px;
+    font-size: 12px;
+    color: #374151;
+    background: #FFFFFF;
+    min-height: 36px;
+}
+
+#AddEmployee_Dialog QPushButton#btnCancel:hover, #EditEmployee_Dialog QPushButton#btnCancel:hover {
+    background: #F1F5F9;
+}
+
+#AddEmployee_Dialog QPushButton#btnConfirm, #EditEmployee_Dialog QPushButton#btnConfirm {
+    border: none;
+    border-radius: 7px;
+    padding: 0 20px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #FFFFFF;
+    min-height: 36px;
+}
+
+#AddEmployee_Dialog QPushButton#btnConfirm {
+    background: #2563EB;
+}
+
+#AddEmployee_Dialog QPushButton#btnConfirm:hover {
+    background: #1D4ED8;
+}
+
+#AddEmployee_Dialog QPushButton#btnConfirm:pressed {
+    background: #1E40AF;
+}
+
+#EditEmployee_Dialog QPushButton#btnConfirm {
+    background: #16A34A;
+}
+
+#EditEmployee_Dialog QPushButton#btnConfirm:hover {
+    background: #15803D;
+}
+
+#EditEmployee_Dialog QPushButton#btnConfirm:pressed {
+    background: #166534;
+}
+
+/* Avatar preview styling in dialogs */
+#AddEmployee_Dialog QLabel#lblAvatarPreview,
+#EditEmployee_Dialog QLabel#lblAvatarPreview {
+    border: 2px dashed #CBD5E1;
+    border-radius: 50px;
+    background-color: #F8FAFC;
+    color: #64748B;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+#AddEmployee_Dialog QPushButton#btnUpload,
+#EditEmployee_Dialog QPushButton#btnUpload {
+    border: 1px solid #CBD5E1;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    color: #374151;
+    background-color: #FFFFFF;
+    min-height: 28px;
+}
+
+#AddEmployee_Dialog QPushButton#btnUpload:hover,
+#EditEmployee_Dialog QPushButton#btnUpload:hover {
+    background-color: #F1F5F9;
+    border-color: #94A3B8;
+}
+
+#AddEmployee_Dialog QPushButton#btnUpload:pressed,
+#EditEmployee_Dialog QPushButton#btnUpload:pressed {
+    background-color: #E2E8F0;
+}

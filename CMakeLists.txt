@@ -50,8 +50,16 @@ set(PROJECT_SOURCES
     # file in Control
         # HEADER
         src/control/Login_Control.h
+        src/control/Profile_Control.h
+        src/control/Control_Navigator.h
+        src/control/Dashboard_Control.h
+        src/control/Employee_Control.h
         # CPP
         src/control/Login_Control.cpp
+        src/control/Profile_Control.cpp
+        src/control/Control_Navigator.cpp
+        src/control/Dashboard_Control.cpp
+        src/control/Employee_Control.cpp
 
     # file in View
         # HEADER
@@ -60,18 +68,25 @@ set(PROJECT_SOURCES
         src/view/View_Navigator.h
         src/view/Profile_View.h
         src/view/employeeswidget.h
+        src/view/employeecard.h
+        src/view/AddEmployee_Dialog.h
+        src/view/EditEmployee_Dialog.h
         # CPP
         src/view/Login_View.cpp
         src/view/Dashboard_View.cpp
         src/view/View_Navigator.cpp
         src/view/Profile_View.cpp
         src/view/employeeswidget.cpp
+        src/view/employeecard.cpp
+        src/view/AddEmployee_Dialog.cpp
+        src/view/EditEmployee_Dialog.cpp
         # UI
         src/view/Login_View.ui
         src/view/Dashboard_View.ui
         src/view/View_Navigator.ui
         src/view/Profile_View.ui
         src/view/employeeswidget.ui
+        src/view/employeecard.ui
 )
 
 qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
@@ -87,7 +102,7 @@ qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
     src/control/Dashboard_Control.h src/control/Dashboard_Control.cpp
     src/model/Employee_Model.cpp src/model/Employee_Model.h)
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core Qt6::Widgets Qt6::Sql)
-target_include_directories(${PROJECT_NAME} PRIVATE src)
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/database 
      DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
