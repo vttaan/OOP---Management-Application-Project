@@ -20,6 +20,6 @@ Dashboard_View* Dashboard_Control::getView()  {
 void Dashboard_Control::setView(Dashboard_View* view) {
     this->view = view;
     if (this->view) {
-        this->getView()->setController(this);
+        this->view->setController(this);
     }
 }

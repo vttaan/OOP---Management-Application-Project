@@ -3,7 +3,7 @@
 #include <QEvent>
 #include <QWidget>
 #include <QHBoxLayout>
-#include "control/Dashboard_Control.h"
+#include "control/Control_Navigator.h"
 
 class Dashboard_Control;
 
@@ -19,17 +19,19 @@ public:
     Dashboard_View(Dashboard_Control* controller = nullptr, QWidget *parent = nullptr);
     Dashboard_Control* getController() const;
     ~Dashboard_View();
-<<<<<<< Updated upstream
-=======
-    Dashboard_Control *getController() const;
-    void setController(Dashboard_Control *controller);
+    void setController(Dashboard_Control* controller);
 
->>>>>>> Stashed changes
 protected:
     bool eventFilter(QObject*watched,QEvent*event)override;
 
 private slots:
     void on_btnLogout_clicked();
+    void on_btnMenu_Overview_clicked();
+    void on_btnMenu_Timekeep_clicked();
+    void on_btnMenu_Salary_clicked();
+    void on_btnMenu_Report_clicked();
+    void on_btnMenu_Settings_clicked();
+    void on_btnMenu_HR_clicked();
 private:
     Ui::Dashboard_View *ui;
     Dashboard_Control* controller;
