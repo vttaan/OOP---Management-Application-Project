@@ -40,5 +40,4 @@ QString curGender = queryProfile.value("Gender").toString();
 User *curUser = UserFactory::createContainsUser(curRole, idEmployee, curAvatarPath, curIdIdentity, curName, curDob, curAddress,
                                                 curPhone, curGender);
 return curUser;
->>>>>>> Tin
 }

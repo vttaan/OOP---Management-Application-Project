@@ -2,16 +2,16 @@
 #include <qsqlquery.h>
 
 User *UserFactory::createContainsUser(QString r, short int idEmp, QString ava, QString idCit, QString n, QString d, QString add,
-                                      QString phone)
+                                      QString phone, QString gender)
 {
     if (r == "Manager")
-        return new Manager(r, idEmp, ava, idCit, n, d, add, phone);
+        return new Manager(r, idEmp, ava, idCit, n, d, add, phone, gender);
     else if (r == "Staff")
-        return new Staff(r, idEmp, ava, idCit, n, d, add, phone);
+        return new Staff(r, idEmp, ava, idCit, n, d, add, phone, gender);
     return nullptr;
 }
 
-User *UserFactory::createNewUser(QString r, short int idEmp, QString ava, QString idCit, QString n, QString d, QString add, QString phone)
+User *UserFactory::createNewUser(QString r, short int idEmp, QString ava, QString idCit, QString n, QString d, QString add, QString phone, QString gender)
 {
     QSqlQuery query;
     short int lastIdOfRole = 0;
@@ -27,9 +27,9 @@ User *UserFactory::createNewUser(QString r, short int idEmp, QString ava, QStrin
 
     short int idOfNewUser = lastIdOfRole + 1;
     if (r == "Manager")
-        return new Manager(r, idOfNewUser, ava, idCit, n, d, add, phone);
+        return new Manager(r, idOfNewUser, ava, idCit, n, d, add, phone, gender);
     else if (r == "Staff")
-        return new Staff(r, idOfNewUser, ava, idCit, n, d, add, phone);
+        return new Staff(r, idOfNewUser, ava, idCit, n, d, add, phone, gender);
 
     return nullptr;
 }
