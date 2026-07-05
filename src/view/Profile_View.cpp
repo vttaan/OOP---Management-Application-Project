@@ -44,7 +44,7 @@ void Profile_View::setupAvatar(const QString& imagePath)
     int size = 180;
     QPixmap scaled = avatarPixmap.scaled(size, size, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
 
-    // Apply soft rounded corners (12px border radius like the image)
+
     QPixmap rounded(size, size);
     rounded.fill(Qt::transparent);
 

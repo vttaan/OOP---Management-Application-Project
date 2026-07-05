@@ -19,7 +19,7 @@
 #include <QEvent>
 #include <QFile>
 #include <QTextStream>
-
+#include "model/Employee_Model.h"
 class EmployeesWidget : public QWidget
 {
     Q_OBJECT
@@ -27,19 +27,25 @@ public:
     explicit EmployeesWidget(QWidget *parent = nullptr);
     ~EmployeesWidget();
 
+
 signals:
     void profileClicked();
+    // Signals sent to the Controller
+    void requestAddEmployee();
+    void requestEditEmployee(int idEmployee);
+    void requestDeleteEmployee(int idEmployee);
 
+public slots:
+    // Called by the Controller to push data to the view
+    void loadEmployees(const QList<User*> &employees);
+    void showError(const QString &msg);
+    void showSuccess(const QString &msg);
+private slots:
+    void handleAddEmployee();
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
-
-private slots:
-    void filterEmployees(const QString &searchText);
-    void applyRoleFilter(int index);
-    void handleAddEmployee();
-
 private:
-    // --- Setup ---
+
     void setupUi();
     void setupTableHeader();
     void populateTable();
