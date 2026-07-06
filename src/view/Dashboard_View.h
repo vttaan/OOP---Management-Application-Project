@@ -4,6 +4,7 @@
 #include <QEvent>
 #include <QWidget>
 #include <QHBoxLayout>
+#include "control/Control_Navigator.h"
 
 class Dashboard_Control;
 
@@ -20,6 +21,7 @@ public:
     explicit Dashboard_View(Dashboard_Control *controller = nullptr, QWidget *parent = nullptr);
     ~Dashboard_View();
     Dashboard_Control *getController() const;
+    void setController(Dashboard_Control *controller);
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;

@@ -1,6 +1,9 @@
 #include "View_Navigator.h"
 #include "ui_View_Navigator.h"
 #include "control/Control_Navigator.h"
+#include "Login_View.h"
+#include "Dashboard_View.h"
+#include "Profile_View.h"
 #include <QStackedWidget>
 #include "view/Profile_View.h"
 
@@ -22,9 +25,9 @@ View_Navigator::View_Navigator(Control_Navigator* controller, QWidget *parent)
     }
 
     // Set the views on the controllers
-    controller->loginController->setView(loginPage);
-    controller->profileController->setView(profilePage);
-    controller->dashboardController->setView(dashboardPage);
+    // controller->loginController->setView(this->loginPage);
+    // controller->profileController->setView(this->profilePage);
+    // controller->dashboardController->setView(this->dashboardPage);
 
     // add pages
     // index note for each page

@@ -91,6 +91,11 @@ Dashboard_Control *Dashboard_View::getController() const
     return controller;
 }
 
+void Dashboard_View::setController(Dashboard_Control *controller)
+{
+    this->controller = controller;
+}
+
 bool Dashboard_View::eventFilter(QObject *watched, QEvent *event)
 {
     if (event->type() == QEvent::MouseButtonPress)

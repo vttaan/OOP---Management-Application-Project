@@ -35,6 +35,7 @@ public:
     void clearInputs();
     void clearPassword();
     Login_Control* getController() const;
+    void setController(Login_Control* controller);
     ~Login_View();
 signals:
     void loginSubmitted(const QString& username, const QString& password);

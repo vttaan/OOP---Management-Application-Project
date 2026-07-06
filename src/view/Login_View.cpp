@@ -1,6 +1,5 @@
 #include "Login_View.h"
 #include "ui_Login_View.h"
-#include "control/Login_Control.h"
 
 Login_View::Login_View(Login_Control* controller, QWidget *parent)
 	: QWidget(parent)
@@ -12,6 +11,7 @@ Login_View::Login_View(Login_Control* controller, QWidget *parent)
     ui->txtLoginUsername->setFocus();
     setupUI();
     initSignals();
+
     if (controller) {
         connect(controller, &Login_Control::loginSuccessful, this, &Login_View::loginSuccessful);
 
@@ -20,6 +20,13 @@ Login_View::Login_View(Login_Control* controller, QWidget *parent)
 
 Login_Control* Login_View::getController() const {
     return this->controller;
+}
+
+void Login_View::setController(Login_Control* controller) {
+    this->controller = controller;
+    if (this->controller) {
+        connect(this->controller, &Login_Control::loginSuccessful, this, &Login_View::loginSuccessful);
+    }
 }
 
 Login_View::~Login_View()
