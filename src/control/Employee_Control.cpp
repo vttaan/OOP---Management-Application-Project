@@ -20,8 +20,8 @@ void Employee_Control::setView(EmployeesWidget *view)
     connect(m_view, &EmployeesWidget::requestAddEmployee,
             this,   &Employee_Control::handleAddEmployee);
 
-    /*connect(m_view, &EmployeesWidget::requestEditEmployee,
-            this,   &Employee_Control::handleEditEmployee);*/
+    connect(m_view, &EmployeesWidget::requestEditEmployee,
+            this,   &Employee_Control::handleEditEmployee);
 
     connect(m_view, &EmployeesWidget::requestDeleteEmployee,
             this,   &Employee_Control::handleDeleteEmployee);
@@ -75,7 +75,7 @@ void Employee_Control::handleAddEmployee()
     else m_view->showError(QString("THÊM NHÂN VIÊN %1 THẤT BẠI").arg(dlg.getName()));
 }
 
-/*void Employee_Control::handleEditEmployee(int idEmployee)
+void Employee_Control::handleEditEmployee(int idEmployee)
 {
     if (!m_view) return;
 
@@ -113,7 +113,7 @@ void Employee_Control::handleAddEmployee()
     } else {
         m_view->showError("Failed to update employee.");
     }
-}*/
+}
 
 void Employee_Control::handleDeleteEmployee(int idEmployee)
 {

@@ -42,8 +42,6 @@ public:
                      const QString &phone, const QString &gender,
                      const QString &username, const QString &password);
 
-    bool updateEmployee(short idEmployee, const QString &role, const QString &avatarPath,
-                        const QString &citizenId, const QString &name, const QString &dob,
-                        const QString &address, const QString &phone, const QString &gender);
+    bool updateEmployee(User* emp);
     bool deleteEmployee(short idEmployee);
 };
