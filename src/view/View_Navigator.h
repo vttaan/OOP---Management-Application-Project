@@ -24,7 +24,7 @@ public:
     Login_View* loginPage = nullptr;
     Dashboard_View* dashboardPage = nullptr;
     Profile_View* profilePage = nullptr;
-
+    EmployeesWidget* employeePage = nullptr;
     Control_Navigator* getController();
     QWidget* getWindow();
     Ui::View_Navigator* getUI();

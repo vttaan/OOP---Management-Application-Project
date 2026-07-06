@@ -563,21 +563,18 @@ void EmployeesWidget::emitUpdateRequest()
 {
   QString searchText = searchRoster->text();
 
-  QStringList roles;
-  if (chkStaff->isChecked())
-    roles << "Staff";
-  if (chkManager->isChecked())
-    roles << "Manager";
-  if (chkAdmin->isChecked())
-    roles << "Admin";
+    QList<QString> contentFilter;
+    if (chkStaff->isChecked())   contentFilter << "Staff";
+    if (chkManager->isChecked()) contentFilter << "Manager";
+    if (chkAdmin->isChecked())   contentFilter << "Admin";
+    if (chkMale->isChecked())    contentFilter << "Nam" << "Male";
+    if (chkFemale->isChecked())  contentFilter << "Nữ" << "Female";
 
-  QStringList genders;
-  if (chkMale->isChecked())
-    genders << "Nam" << "Male";
-  if (chkFemale->isChecked())
-    genders << "Nữ" << "Female";
+    // change code, if have many field to sort
+    QList<QString> contentSort;
+    if (!m_sortField.isEmpty()) contentSort.append(m_sortField);
 
-  emit requestUpdate(searchText, roles, genders, m_sortField, m_sortDir);
+    emit requestUpdate(searchText, contentFilter, contentSort, m_sortDir);
 }
 
 void EmployeesWidget::toggleFilterDropdown()

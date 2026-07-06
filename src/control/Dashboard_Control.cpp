@@ -6,8 +6,8 @@ Dashboard_Control::Dashboard_Control(QObject *parent)
 
 }
 Dashboard_Control::~Dashboard_Control() {
-    if (view) delete view;
-    if (currentSession) delete currentSession;
+    // view is owned by View_Navigator, do not delete here
+    // currentSession is owned by Control_Navigator, do not delete here
 }
 void Dashboard_Control::init(){
     this->getView()->show();

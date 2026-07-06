@@ -10,7 +10,7 @@
 
 Employee_Model::Employee_Model() {}
 
-QList<User *> Employee_Model::getAllEmployees() {
+/*QList<User *> Employee_Model::getAllEmployees() {
   QList<User *> list;
 
   QSqlDatabase db = Database::getInstance()->getDbConnect();
@@ -25,7 +25,7 @@ QList<User *> Employee_Model::getAllEmployees() {
     QString dob = query.value("dob").toString();
     QString address = query.value("address").toString();
     QString avatar = query.value("avatarPath").toString();
-    QString citizenId = query.value("IdCitizenIndentity").toString();
+    QString citizenId = query.value("IdCitizenIdentity").toString();
     QString curGender = query.value("Gender").toString();
 
     User *emp = UserFactory::createContainsUser(
@@ -36,10 +36,31 @@ QList<User *> Employee_Model::getAllEmployees() {
     }
   }
   return list;
+}*/
+
+bool Employee_Model::addUserInList(User* emp) {
+    if(emp == nullptr) return false;
+    this->listEmployee.append(emp);
+    return true;
 }
 
-bool Employee_Model::addEmployee(User *emp, const QString &username,
-                                 const QString &password) {
+bool Employee_Model:: popUserInList(short idEmployee) {
+    if(this->listEmployee.size() < 1) return false;
+    for(int i = 0; i < this->listEmployee.size(); i++) {
+        if(this->listEmployee[i]->getIdEmployee() == idEmployee) {
+            delete this->listEmployee.takeAt(i);
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Employee_Model::addEmployee(const QString &role, const QString &avatarPath, const QString &citizenId,
+                                 const QString &name, const QString &dob, const QString &address,
+                                 const QString &phone, const QString &gender,
+                                 const QString &username, const QString &password) {
+  User* emp = UserFactory::createNewUser(role, avatarPath, citizenId, name, dob, address, phone, gender);
+  if(emp == nullptr) return false;
   QSqlDatabase db = Database::getInstance()->getDbConnect();
   db.transaction(); // start transaction before inserting
 
@@ -51,8 +72,8 @@ bool Employee_Model::addEmployee(User *emp, const QString &username,
   QSqlQuery qProfile(db);
   qProfile.prepare(
       "INSERT INTO PROFILES (idEmployee, role, name, phoneNum, dob, address, "
-      "avatarPath, IdCitizenIndentity) "
-      "VALUES (:id,:role,:name,:phone,:dob,:address,:avatar,:citizen)");
+      "avatarPath, IdCitizenIdentity, Gender) "
+      "VALUES (:id,:role,:name,:phone,:dob,:address,:avatar,:citizen, :Gender)");
   qProfile.bindValue(":id", emp->getIdEmployee());
   qProfile.bindValue(":role", emp->getRole());
   qProfile.bindValue(":name", emp->getName());
@@ -61,7 +82,7 @@ bool Employee_Model::addEmployee(User *emp, const QString &username,
   qProfile.bindValue(":address", emp->getAddress());
   qProfile.bindValue(":avatar", emp->getAvatarPath());
   qProfile.bindValue(":citizen", emp->getIdentityID());
-
+  qProfile.bindValue(":Gender", emp->getGender());
   if (!qProfile.exec()) {
     qDebug() << "Error adding profile" << qProfile.lastError().text();
     db.rollback();
@@ -83,11 +104,15 @@ bool Employee_Model::addEmployee(User *emp, const QString &username,
       return false;
     }
   }
-
+  if(!this->addUserInList(emp)) qDebug() << "ADD USER IN LIST FAILDE, POINTER USER IS NULL\n";
+  else qDebug() << "ADD USER IN LIST SUCCESS\n";  // add in list, uses for sort, search, filter.
   return db.commit();
 }
 
-bool Employee_Model::updateEmployee(User *emp) {
+
+// lack of data field, What is content updated?
+
+/*bool Employee_Model::updateEmployee(User *emp) {
   if (!emp)
     return false;
 
@@ -100,7 +125,7 @@ bool Employee_Model::updateEmployee(User *emp) {
   QSqlQuery query(db);
   query.prepare("UPDATE PROFILES SET role = :role, name = :name, phoneNum = "
                 ":phone, dob = :dob, "
-                "address = :address, avatarPath = :avatar, IdCitizenIndentity "
+                "address = :address, avatarPath = :avatar, IdCitizenIdentity "
                 "= :citizen WHERE idEmployee = :id");
   query.bindValue(":role", emp->getRole());
   query.bindValue(":name", emp->getName());
@@ -116,9 +141,9 @@ bool Employee_Model::updateEmployee(User *emp) {
     return false;
   }
   return true;
-}
+}*/
 
-bool Employee_Model::deleteEmployee(int idEmployee) {
+bool Employee_Model::deleteEmployee(short idEmployee) {
   QSqlDatabase db = Database::getInstance()->getDbConnect();
   db.transaction();
 
@@ -136,7 +161,7 @@ bool Employee_Model::deleteEmployee(int idEmployee) {
     db.rollback();
     return false;
   }
-
+  if(!this->popUserInList(idEmployee)) qDebug() << "POP USER IN LIST FAILDE, LIST IS EMPTY\n";
   return db.commit();
 }
 
@@ -180,12 +205,17 @@ QString Employee_Model::saveAvatarLocally(int empId,
 }
 
 void Employee_Model::loadData() {
+    if(this->listEmployee.empty() == false) return;
+    if(!this->listEmployee.empty()) {
+        qDeleteAll(listEmployee);
+        listEmployee.clear();
+    }
   QSqlDatabase openData = Database::getInstance()->getDbConnect();
-  QSqlQuery query(openData);
+  QSqlQuery query("SELECT * FROM PROFILES", openData);
   while (query.next()) {
     short curID = query.value("idEmployee").toInt();
     QString curRole = query.value("role").toString();
-    QString curIdIndentity = query.value("IdCitizenIndentity").toString();
+    QString curIdIndentity = query.value("IdCitizenIdentity").toString();
     QString curName = query.value("name").toString();
     QString curPhone = query.value("phoneNum").toString();
     QString curDob = query.value("dob").toString();
@@ -195,27 +225,69 @@ void Employee_Model::loadData() {
     User *nowEmployee = UserFactory::createContainsUser(
         curRole, curID, curAvatarPath, curIdIndentity, curName, curDob,
         curAddress, curPhone, curGender);
-    this->listEmployee.push_back(nowEmployee);
+    this->listEmployee.append(nowEmployee);
   }
 }
 
-QString Employee_Model::getPattern(short i) {
+
+QList<User*> Employee_Model::SearchSortFilter(QString contentSearch, short typeOrder, QList<QString> contentSort,
+                                               QList<QString> contentFilter) {
+    QList<User*> result = this->listEmployee;
+    // search
+    if(!contentSearch.isEmpty()) result = this->searchInEmployee(result, contentSearch);
+    // sort
+    if(!contentSort.isEmpty()) result = this->sortInEmployee(result, typeOrder, contentSort);
+    // filter
+    if(!contentFilter.isEmpty()) result = this->filterInEmployee(result, contentFilter);
+
+    return result;
+ }
+
+ //----------METHOD SUPPORT FOR SEACRH, FILTER, SORT--------------------------------
+
+ QString Employee_Model::removeAccent(const QString& input) {
+     QString res = "";
+     QMap<QString, QString> mapping =
+         {
+            {"à", "a"}, {"á", "a"}, {"ạ", "a"}, {"ả", "a"}, {"ã", "a"}, {"â", "a"}, {"ầ", "a"}, {"ấ", "a"}, {"ậ", "a"}, {"ẩ", "a"}, {"ẫ", "a"},
+            {"ă", "a"}, {"ằ", "a"}, {"ắ", "a"}, {"ặ", "a"}, {"ẳ", "a"}, {"ẵ", "a"},
+            {"è", "e"}, {"é", "e"}, {"ẹ", "e"}, {"ẻ", "e"}, {"ẽ", "e"}, {"ê", "e"}, {"ề", "e"}, {"ế", "e"}, {"ệ", "e"}, {"ể", "e"}, {"ễ", "e"},
+            {"ì", "i"}, {"í", "i"}, {"ị", "i"}, {"ỉ", "i"}, {"ĩ", "i"},
+            {"ò", "o"}, {"ó", "o"}, {"ọ", "o"}, {"ỏ", "o"}, {"õ", "o"}, {"ô", "o"}, {"ồ", "o"}, {"ố", "o"}, {"ộ", "o"}, {"ổ", "o"}, {"ỗ", "o"},
+            {"ơ", "o"}, {"ờ", "o"}, {"ớ", "o"}, {"ợ", "o"}, {"ở", "o"}, {"ỡ", "o"},
+            {"ù", "u"}, {"ú", "u"}, {"ụ", "u"}, {"ủ", "u"}, {"ũ", "u"}, {"ư", "u"}, {"ừ", "u"}, {"ứ", "u"}, {"ự", "u"}, {"ử", "u"}, {"ữ", "u"},
+            {"ỳ", "y"}, {"ý", "y"}, {"ỵ", "y"}, {"ỷ", "y"}, {"ỹ", "y"},
+            {"đ", "d"}
+     };
+
+     for(QChar c: input) {
+         if(mapping.count(c)) res += mapping[c];
+         else res += c;
+     }
+
+     return res;
+ }
+
+
+QString Employee_Model::getPattern(User* emp) {
   QString pattern = "";
-  QString id = QString::number(this->listEmployee[i]->getIdEmployee());
-  QString name = this->listEmployee[i]->getName();
-  QString role = this->listEmployee[i]->getRole();
-  QString idIn = this->listEmployee[i]->getIdentityID();
-  QString phone = this->listEmployee[i]->getPhoneNum();
-  QString dob = this->listEmployee[i]->getDOB();
-  QString address = this->listEmployee[i]->getAddress();
-  QString gender = this->listEmployee[i]->getGender();
+  QString id = QString::number(emp->getIdEmployee());
+  QString name = emp->getName();
+  QString role = emp->getRole();
+  QString idIn = emp->getIdentityID();
+  QString phone = emp->getPhoneNum();
+  QString dob = emp->getDOB();
+  QString address = emp->getAddress();
+  QString gender = emp->getGender();
   pattern = id + '|' + name + '|' + role + '|' + idIn + '|' + phone + '|' +
             dob + '|' + address + '|' + gender;
-  return pattern;
+  QString patternNew = pattern.toLower();
+  patternNew = this->removeAccent(patternNew);
+  return patternNew;
 }
 
 bool Employee_Model::cmpAscending(User *a, User *b,
-                                  vector<QString> contentSort) {
+                                  QList<QString> contentSort) {
   for (int i = 0; i < contentSort.size(); i++) {
     if (a->getAnyAttributes(contentSort[i]) !=
         b->getAnyAttributes(contentSort[i]))
@@ -225,7 +297,7 @@ bool Employee_Model::cmpAscending(User *a, User *b,
   return false;
 }
 bool Employee_Model::cmpDescending(User *a, User *b,
-                                   vector<QString> contentSort) {
+                                   QList<QString> contentSort) {
   for (int i = 0; i < contentSort.size(); i++) {
     if (a->getAnyAttributes(contentSort[i]) !=
         b->getAnyAttributes(contentSort[i]))
@@ -235,16 +307,16 @@ bool Employee_Model::cmpDescending(User *a, User *b,
   return false;
 }
 
-vector<User *> Employee_Model::sortInEmployee(QString typeOrder,
-                                              vector<QString> contentSort) {
-  vector<User *> listOfSorted = this->listEmployee;
-  if (typeOrder == "A-Z") {
-    sort(listOfSorted.begin(), listOfSorted.end(),
+QList<User *> Employee_Model::sortInEmployee(QList<User*> inputList, short typeOrder,
+                                              QList<QString> contentSort) {
+  QList<User *> listOfSorted = inputList;
+  if (typeOrder == 1) {
+    stable_sort(listOfSorted.begin(), listOfSorted.end(),
          [this, contentSort](User *a, User *b) {
            return this->cmpAscending(a, b, contentSort);
          });
   } else {
-    sort(listOfSorted.begin(), listOfSorted.end(),
+    stable_sort(listOfSorted.begin(), listOfSorted.end(),
          [this, contentSort](User *a, User *b) {
            return this->cmpDescending(a, b, contentSort);
          });
@@ -257,16 +329,15 @@ bool Employee_Model::rabinKarp(QString pattern, QString contentSearch) {
   int n = pattern.size(), m = contentSearch.size();
   if (m > n)
     return false;
-  int d = 256, q = 1e9 + 7, h = 1;
-  for (int i = 1; i <= m; i++)
-    h = (h * d) % q;
+  long long d = 256, q = 1e9 + 7, h = 1;
+  for (int i = 0; i < m - 1; i++) h = (h * d) % q;
 
   int valHashOfPattern = 0, valHashOfContent = 0;
   for (int i = 0; i < m; i++) {
     valHashOfContent = (d * valHashOfContent + contentSearch[i].unicode()) % q;
     valHashOfPattern = (d * valHashOfPattern + pattern[i].unicode()) % q;
   }
-  for (int i = m; i <= n; i++) {
+  for (int i = 0; i <= n - m; i++) {
     if (valHashOfContent == valHashOfPattern) {
       bool flag = true;
       for (int j = 0; j < m; j++) {
@@ -279,39 +350,37 @@ bool Employee_Model::rabinKarp(QString pattern, QString contentSearch) {
         return true;
     }
     if (i < n - m) {
-      valHashOfPattern =
-          (d * (valHashOfPattern - pattern[i - m].unicode() * h) +
-           pattern[i].unicode()) %
-          q;
-      if (valHashOfPattern < 0)
-        valHashOfPattern += q;
+      valHashOfPattern = (d * (valHashOfPattern - pattern[i].unicode() * h) + pattern[i + m].unicode()) %  q;
+      if (valHashOfPattern < 0) valHashOfPattern += q;
     }
   }
   return false;
 }
 
-vector<User *> Employee_Model::filterInEmployee(vector<QString> contentFilter) {
-  vector<User *> listOfFilter;
-  for (int i = 0; i < this->listEmployee.size(); i++) {
+QList<User *> Employee_Model::filterInEmployee(QList<User*> inputList, QList<QString> contentFilter) {
+  QList<User *> listOfFilter;
+  for (int i = 0; i < inputList.size(); i++) {
     int cnt = 0;
     for (const QString &s : contentFilter) {
-      if (this->listEmployee[i]->getRole() == s)
+      if (inputList[i]->getRole() == s)
         cnt++;
-      else if (this->listEmployee[i]->getGender() == s)
+      else if (inputList[i]->getGender() == s)
         cnt++;
     }
     if (cnt == contentFilter.size())
-      listOfFilter.push_back(this->listEmployee[i]);
+      listOfFilter.push_back(inputList[i]);
   }
   return listOfFilter;
 }
 
-vector<User *> Employee_Model::searchInEmployee(QString contentSearch) {
-  vector<User *> listOfEmployeeForSearch;
-  for (int i = 0; i < this->listEmployee.size(); i++) {
-    QString pattern = this->getPattern(i);
+QList<User *> Employee_Model::searchInEmployee(QList<User*> inputList, QString contentSearch) {
+  QList<User *> listOfEmployeeForSearch;
+  contentSearch = this->removeAccent(contentSearch);
+  contentSearch = contentSearch.toLower();
+  for (int i = 0; i < inputList.size(); i++) {
+    QString pattern = this->getPattern(inputList[i]);
     if (this->rabinKarp(pattern, contentSearch))
-      listOfEmployeeForSearch.push_back(this->listEmployee[i]);
+      listOfEmployeeForSearch.push_back(inputList[i]);
   }
   return listOfEmployeeForSearch;
 }

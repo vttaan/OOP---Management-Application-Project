@@ -22,6 +22,8 @@ public:
     ~Dashboard_View();
     Dashboard_Control *getController() const;
     void setController(Dashboard_Control *controller);
+    void embedHRPage(QWidget *hrWidget);
+    void showHRPage();
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;

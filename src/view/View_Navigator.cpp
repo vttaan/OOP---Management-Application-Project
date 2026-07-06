@@ -4,6 +4,7 @@
 #include "Login_View.h"
 #include "Dashboard_View.h"
 #include "Profile_View.h"
+#include "view/employeeswidget.h"
 #include <QStackedWidget>
 #include "view/Profile_View.h"
 
@@ -14,6 +15,7 @@ View_Navigator::View_Navigator(Control_Navigator* controller, QWidget *parent)
     , loginPage(new Login_View(controller->loginController))
     , dashboardPage(new Dashboard_View(controller->dashboardController))
     , profilePage(new Profile_View(controller->profileController))
+    , employeePage(new EmployeesWidget())
 {
     ui->setupUi(this);
 
@@ -24,10 +26,13 @@ View_Navigator::View_Navigator(Control_Navigator* controller, QWidget *parent)
         delete widget;
     }
 
+    dashboardPage->embedHRPage(employeePage);
+
     // Set the views on the controllers
-    // controller->loginController->setView(this->loginPage);
-    // controller->profileController->setView(this->profilePage);
-    // controller->dashboardController->setView(this->dashboardPage);
+    controller->loginController->setView(loginPage);
+    controller->profileController->setView(profilePage);
+    controller->dashboardController->setView(dashboardPage);
+    controller->employeeController->setView(employeePage);
 
     // add pages
     // index note for each page

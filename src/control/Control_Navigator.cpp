@@ -9,19 +9,19 @@
 Control_Navigator::Control_Navigator()
 {
     this->currentSession = new SessionManager();
-    this->viewWindow = new View_Navigator(this); // Initialize viewWindow FIRST!
 
     this->dashboardController = new Dashboard_Control(this);
     this->dashboardController->currentSession = this->currentSession;
-    this->dashboardController->setView(this->viewWindow->dashboardPage);
 
     this->loginController = new Login_Control(this);
     this->loginController->currentSession = this->currentSession;
-    this->loginController->setView(this->viewWindow->loginPage);
 
     this->profileController = new Profile_Control(this);
     this->profileController->currentSession = this->currentSession;
-    this->profileController->setView(this->viewWindow->profilePage);
+
+    this->employeeController = new Employee_Control(this);
+
+    this->viewWindow = new View_Navigator(this); // Initialize viewWindow AFTER controllers
 
     QObject::connect(this->loginController, &Login_Control::loginSuccessful,
                      this->viewWindow, [this]() {
@@ -46,6 +46,21 @@ Control_Navigator::Control_Navigator()
                      this->viewWindow, [this]() {
         this->switchTab(1); // Switch to Dashboard (index 1)
     });
+
+    QObject::connect(this->employeeController, &Employee_Control::profilePageClicked,
+                     this->viewWindow, [this]() {
+                         this->switchTab(2); // from Employee (index 3) switch to Profile (index 2)
+                     });
+    QObject::connect(this->employeeController, &Employee_Control::backToDashBoard,
+                     this->viewWindow, [this]() {
+                         this->switchTab(1); // from Employee (index 3) switch to Dashboard (index 1)
+                     });
+    QObject::connect(this->dashboardController, &Dashboard_Control::employeeClicked,
+                     this->viewWindow, [this]() {
+                        this->switchTab(1); // from Dashboard (index 1) switch to Employee (index 3)
+                        this->viewWindow->dashboardPage->showHRPage();
+                        this->employeeController->init();
+                     });
 }
 
 void Control_Navigator::switchTab(int index) {
@@ -68,9 +83,11 @@ Control_Navigator::~Control_Navigator() {
     delete loginController;
     delete profileController;
     delete dashboardController;
+    delete employeeController;
     currentSession = nullptr;
     viewWindow = nullptr;
     loginController = nullptr;
     profileController = nullptr;
     dashboardController = nullptr;
+    employeeController = nullptr;
 }

@@ -1,9 +1,9 @@
 #include "Dashboard_View.h"
 #include "ui_Dashboard_View.h"
 #include "control/Dashboard_Control.h"
-#include "control/Employee_Control.h"
+//#include "control/Employee_Control.h"
 #include "employeecard.h"
-#include "employeeswidget.h"
+//#include "employeeswidget.h"
 #include <QGridLayout>
 #include <QMouseEvent>
 
@@ -53,11 +53,11 @@ Dashboard_View::Dashboard_View(Dashboard_Control *controller, QWidget *parent) :
     ui->lblDropdown->installEventFilter(this);
 
     // profile avatar dropbox
-    QWidget *avatarBox = new QWidget(this);
-    avatarBox->setLayout(ui->horizontalLayout_UserInfo);
+    //QWidget *avatarBox = new QWidget(this);
+    //avatarBox->setLayout(ui->horizontalLayout_UserInfo);
 
     // Embed EmployeesWidget into the HR page layout
-    QLayout *hrLayout = ui->pageHR->layout();
+    /*QLayout *hrLayout = ui->pageHR->layout();
     if (hrLayout)
     {
         QLayoutItem *item;
@@ -75,10 +75,13 @@ Dashboard_View::Dashboard_View(Dashboard_Control *controller, QWidget *parent) :
     EmployeesWidget *employeesWidget = new EmployeesWidget(this);
     hrLayout->addWidget(employeesWidget);
 
-    // Wire Employee_Control vào view — controller là parent nên tự cleanup
+    // code temporary for debug
+    Employee_Model *empModel = new Employee_Model();
     Employee_Control *empCtrl = new Employee_Control(employeesWidget);
+
+    empCtrl->setModel(empModel);
     empCtrl->setView(employeesWidget);
-    empCtrl->init(); // load data từ DB lần đầu
+    empCtrl->init();*/
 }
 
 Dashboard_View::~Dashboard_View()
@@ -118,7 +121,7 @@ void Dashboard_View::on_btnMenu_Overview_clicked() {
 }
 
 void Dashboard_View::on_btnMenu_HR_clicked() {
-    if (ui && ui->stackedWidget) ui->stackedWidget->setCurrentWidget(ui->pageHR);
+    if(controller) emit controller->employeeClicked();
 }
 
 void Dashboard_View::on_btnMenu_Timekeep_clicked() {
@@ -141,4 +144,30 @@ void Dashboard_View::on_btnLogout_clicked()
 {
     if (controller)
         emit controller->logoutSubmitted();
+}
+
+
+void Dashboard_View::embedHRPage(QWidget *hrWidget)
+{
+    QLayout *hrLayout = ui->pageHR->layout();
+    if (hrLayout) {
+        QLayoutItem *item;
+        while ((item = hrLayout->takeAt(0)) != nullptr) {
+            if (item->widget()) delete item->widget();
+            delete item;
+        }
+    } else {
+        hrLayout = new QVBoxLayout(ui->pageHR);
+    }
+
+    if (hrWidget) {
+        hrLayout->addWidget(hrWidget);
+    }
+}
+
+void Dashboard_View::showHRPage()
+{
+    if (ui && ui->stackedWidget) {
+        ui->stackedWidget->setCurrentWidget(ui->pageHR);
+    }
 }
