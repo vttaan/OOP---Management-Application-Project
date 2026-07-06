@@ -1,8 +1,8 @@
 #include "main_view.h"
 #include "ui_main_view.h"
 #include "employeecard.h"
-#include <QGridLayout>
-#include <QMouseEvent>
+#include <QHBoxLayout>
+#include <QLabel>
 
 Main_View::Main_View(QWidget *parent) :
     QWidget(parent),
@@ -10,35 +10,11 @@ Main_View::Main_View(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    // 1. Tạo một Layout dạng Lưới (Grid) và gắn nó vào khu vực thanh cuộn
-    QGridLayout* gridLayout = new QGridLayout(ui->scrollAreaWidgetContents);
-    gridLayout->setSpacing(20); // Khoảng cách giữa các thẻ
+    gridLayoutEmployees = new QGridLayout(ui->scrollAreaWidgetContents);
+    gridLayoutEmployees->setSpacing(20);
+    currentRow = 0;
+    currentCol = 0;
 
-    QStringList avatars = {":/images/image1.jpg", ":/images/image2.jpg", ":/images/image3.jpg",
-                           ":/images/image4.jpg", ":/images/image5.jpg", ":/images/image6.jpg", ":/images/image7.jpg"};
-
-    QStringList names = {"Nhân viên A", "Nhân viên B", "Nhân viên C", "Nhân viên D", "Nhân viên E", "Quản lý 1", "Quản lý 2"};
-    QStringList roles = {"Nhân viên", "Nhân viên", "Nhân viên", "Nhân viên", "Nhân viên", "Quản lý", "Quản lý"};
-    QStringList emails = {"a@congty.com", "b@congty.com", "c@congty.com", "d@congty.com", "e@congty.com", "ql1@congty.com", "ql2@congty.com"};
-    QStringList phones = {"0901 111 111", "0902 222 222", "0903 333 333", "0904 444 444", "0905 555 555", "0906 666 666", "0907 777 777"};
-
-    int row = 0;
-    int col = 0;
-    int maxColumns = 4;
-
-    for(int i = 0; i < 7; i++) {
-        EmployeeCard* card = new EmployeeCard(this);
-
-        card->setData(avatars[i], names[i], roles[i], "✉️ " + emails[i], "📞 " + phones[i]);
-
-        gridLayout->addWidget(card, row, col);
-
-        col++;
-        if (col >= maxColumns) {
-            col = 0;
-            row++;
-        }
-    }
     connect(ui->btnMenu_Overview, &QPushButton::clicked, this, &Main_View::menuOverviewClicked);
     connect(ui->btnMenu_HR, &QPushButton::clicked, this, &Main_View::menuHRClicked);
     connect(ui->btnMenu_Timekeep, &QPushButton::clicked, this, &Main_View::menuTimekeepClicked);
@@ -65,6 +41,27 @@ Main_View::~Main_View()
 void Main_View::switchPage(int pageIndex)
 {
     ui->stackedWidget->setCurrentIndex(pageIndex);
+
+    QString defaultStyle = "QPushButton { text-align: left; padding-left: 20px; font-size: 15px; font-weight: 500; color: #637381; border: none; border-radius: 8px; height: 45px; margin: 5px 15px; } "
+                           "QPushButton:hover { background-color: #f4f6f8; color: #212b36; }";
+
+    QString activeStyle = "QPushButton { text-align: left; padding-left: 20px; font-size: 15px; font-weight: bold; color: #1a73e8; background-color: #e8f0fe; border: none; border-radius: 8px; height: 45px; margin: 5px 15px; }";
+
+    ui->btnMenu_Overview->setStyleSheet(defaultStyle);
+    ui->btnMenu_HR->setStyleSheet(defaultStyle);
+    ui->btnMenu_Timekeep->setStyleSheet(defaultStyle);
+    ui->btnMenu_Salary->setStyleSheet(defaultStyle);
+    ui->btnMenu_Report->setStyleSheet(defaultStyle);
+    ui->btnMenu_Settings->setStyleSheet(defaultStyle);
+
+    switch(pageIndex) {
+    case 0: ui->btnMenu_Overview->setStyleSheet(activeStyle); break;
+    case 1: ui->btnMenu_HR->setStyleSheet(activeStyle); break;
+    case 2: ui->btnMenu_Timekeep->setStyleSheet(activeStyle); break;
+    case 3: ui->btnMenu_Salary->setStyleSheet(activeStyle); break;
+    case 4: ui->btnMenu_Report->setStyleSheet(activeStyle); break;
+    case 5: ui->btnMenu_Settings->setStyleSheet(activeStyle); break;
+    }
 }
 
 bool Main_View::eventFilter(QObject *watched, QEvent *event)
@@ -74,7 +71,91 @@ bool Main_View::eventFilter(QObject *watched, QEvent *event)
             watched == ui->lblUserRole || watched == ui->lblDropdown) {
 
             emit profileClicked();
+            return true;
         }
     }
     return QWidget::eventFilter(watched, event);
+}
+
+void Main_View::clearEmployeeCards()
+{
+    QLayoutItem *child;
+    while ((child = gridLayoutEmployees->takeAt(0)) != nullptr) {
+        delete child->widget();
+        delete child;
+    }
+    currentRow = 0;
+    currentCol = 0;
+}
+
+void Main_View::addEmployeeCard(const QString& avatarPath, const QString& name, const QString& role, const QString& email, const QString& phone)
+{
+    EmployeeCard* card = new EmployeeCard(this);
+    card->setData(avatarPath, name, role, email, phone);
+
+    gridLayoutEmployees->addWidget(card, currentRow, currentCol);
+    currentCol++;
+
+    if (currentCol >= 3) {
+        currentCol = 0;
+        currentRow++;
+    }
+}
+
+
+void Main_View::clearSidePanels()
+{
+    ui->listNextShift->clear();
+    ui->listOffEmployees->clear();
+}
+
+void Main_View::addNextShiftItem(const QString& name, const QString& timeInfo, const QString& colorHex)
+{
+    QListWidgetItem* item = new QListWidgetItem(ui->listNextShift);
+
+    QWidget* rowWidget = new QWidget();
+    rowWidget->setStyleSheet("background: transparent;");
+
+    QHBoxLayout* layout = new QHBoxLayout(rowWidget);
+    layout->setContentsMargins(10, 5, 10, 5);
+    layout->setSpacing(12);
+    QLabel* dot = new QLabel();
+    dot->setFixedSize(20, 20);
+    dot->setStyleSheet(QString("QLabel { background-color: %1; border-radius: 10px; border: 1px solid %1; }").arg(colorHex));
+
+    QLabel* lblInfo = new QLabel(QString("%1, (%2)").arg(name, timeInfo));
+    lblInfo->setStyleSheet("QLabel { font-size: 14px; color: black; font-weight: 500; background: transparent; border: none; }");
+
+    layout->addWidget(dot);
+    layout->addWidget(lblInfo);
+    layout->addStretch();
+
+    item->setSizeHint(QSize(0, 45));
+    ui->listNextShift->setItemWidget(item, rowWidget);
+}
+
+void Main_View::addOffEmployeeItem(const QString& name, const QString& reason, const QString& colorHex)
+{
+    QListWidgetItem* item = new QListWidgetItem(ui->listOffEmployees);
+
+    QWidget* rowWidget = new QWidget();
+    rowWidget->setStyleSheet("background: transparent;");
+
+    QHBoxLayout* layout = new QHBoxLayout(rowWidget);
+    layout->setContentsMargins(10, 5, 10, 5);
+    layout->setSpacing(12);
+
+    QLabel* dot = new QLabel();
+    dot->setFixedSize(20, 20);
+    dot->setStyleSheet(QString("QLabel { background-color: %1; border-radius: 10px; border: 1px solid %1; }").arg(colorHex));
+
+    QLabel* lblInfo = new QLabel(QString("%1, (%2)").arg(name, reason));
+    lblInfo->setStyleSheet("QLabel { font-size: 14px; color: black; font-weight: 500; background: transparent; border: none; }");
+
+    layout->addWidget(dot);
+    layout->addWidget(lblInfo);
+    layout->addStretch();
+
+    item->setSizeHint(QSize(0, 45));
+    ui->listOffEmployees->setItemWidget(item, rowWidget);
 }
