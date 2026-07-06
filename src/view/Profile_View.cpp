@@ -74,7 +74,7 @@ void Profile_View::loadUserData(SessionManager* currentSession) {
     ui->lblVal_Id->setText(QString::number(this->getController()->getUser()->getIdEmployee()));
     ui->lblVal_DoB->setText(this->getController()->getUser()->getDOB());
     ui->lblVal_Address->setText(this->getController()->getUser()->getAddress());
-    ui->lblVal_CitizenID->setText(this->getController()->getUser()->getIndentityID());
+    ui->lblVal_CitizenID->setText(this->getController()->getUser()->getIdentityID());
     ui->lblVal_Phone->setText(this->getController()->getUser()->getPhoneNum());
     setupAvatar(this->getController()->getUser()->getAvatarPath());
     //ui->lblVal_Email->setText(this->getController()->getUser()->get...());
@@ -161,7 +161,7 @@ void Profile_View::on_btnEditInfo_clicked()
     if (this->getController()->getUser()) {
         editProfileWidget->setInitialData(this->getController()->getUser()->getName(), this->getController()->getUser()->getDOB(),
                                           this->getController()->getUser()->getAddress(), this->getController()->getUser()->getPhoneNum(),
-                                          this->getController()->getUser()->getIndentityID(), this->getController()->getUser()->getAvatarPath());
+                                          this->getController()->getUser()->getIdentityID(), this->getController()->getUser()->getAvatarPath());
     }
     editProfileWidget->slideIn();
 }
