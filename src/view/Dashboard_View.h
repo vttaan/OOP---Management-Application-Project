@@ -20,6 +20,8 @@ public:
     explicit Dashboard_View(Dashboard_Control *controller = nullptr, QWidget *parent = nullptr);
     ~Dashboard_View();
     Dashboard_Control *getController() const;
+    void embedHRPage(QWidget *hrWidget);
+    void showHRPage();
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;

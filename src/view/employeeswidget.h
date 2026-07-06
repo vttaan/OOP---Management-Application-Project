@@ -22,11 +22,12 @@ class EmployeesWidget : public QWidget
     Q_OBJECT
 public:
     explicit EmployeesWidget(QWidget *parent = nullptr);
+    //EmployeesWidget();
     ~EmployeesWidget();
 
 signals:
     void profileClicked();
-
+    void backToDashboard();
     // Signals sent to the Controller — CRUD
     void requestAddEmployee();
     void requestEditEmployee(int idEmployee);

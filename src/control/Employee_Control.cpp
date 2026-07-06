@@ -6,10 +6,10 @@
 
 
 Employee_Control::Employee_Control(QObject *parent)
-    : QObject(parent), m_view(nullptr), m_model(nullptr)
+    : QObject(parent), m_view(nullptr), m_model(new Employee_Model())
 {}
 
-Employee_Control::~Employee_Control() {}
+Employee_Control::~Employee_Control() {delete m_model;}
 
 
 void Employee_Control::setView(EmployeesWidget *view)
@@ -29,6 +29,11 @@ void Employee_Control::setView(EmployeesWidget *view)
     connect(m_view, &EmployeesWidget::requestUpdate,
             this, &Employee_Control::handleUpdate);
 
+    connect(m_view, &EmployeesWidget::profileClicked,
+            this, &Employee_Control::profilePageClicked);
+
+        connect(m_view, &EmployeesWidget::backToDashboard,
+            this, &Employee_Control::backToDashBoard);
 }
 
 void Employee_Control::setModel(Employee_Model* emp) {

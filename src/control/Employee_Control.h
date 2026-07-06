@@ -15,13 +15,16 @@ class Employee_Control : public QObject {
 
 public:
     explicit Employee_Control(QObject *parent = nullptr);
+    //Employee_Control();
     ~Employee_Control();
 
     void setView(EmployeesWidget *view);
     void setModel(Employee_Model* emp);
     EmployeesWidget *getView() const;
     void init();
-
+signals:
+    void profilePageClicked();
+    void backToDashBoard();
 private slots:
 
     void handleLoadEmployees();

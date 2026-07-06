@@ -25,6 +25,7 @@ public:
 signals:
     void logoutSubmitted() const;
     void profilePageClicked() const;
+    void employeeClicked();
     // void DashboardSuccessful(User* currentUser);
 private slots:
     // void handleDashboardSubmission(const QString& username, const QString& password);

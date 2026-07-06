@@ -7,12 +7,13 @@ Control_Navigator::Control_Navigator()
     this->dashboardController = new Dashboard_Control();
     this->loginController = new Login_Control();
     this->profileController = new Profile_Control();
-
+    this->employeeController = new Employee_Control();
     this->viewWindow = new View_Navigator(this);
 
     this->loginController->setParent(this->viewWindow);
     this->profileController->setParent(this->viewWindow);
     this->dashboardController->setParent(this->viewWindow);
+    this->employeeController->setParent(this->viewWindow);
 
     QObject::connect(this->loginController, &Login_Control::loginSuccessful,
                      this->viewWindow, [this]() {
@@ -34,6 +35,21 @@ Control_Navigator::Control_Navigator()
                      this->viewWindow, [this]() {
         this->switchTab(1); // Switch to Dashboard (index 1)
     });
+
+    QObject::connect(this->employeeController, &Employee_Control::profilePageClicked,
+                     this->viewWindow, [this]() {
+                         this->switchTab(2); // from Employee (index 3) switch to Profile (index 2)
+                     });
+    QObject::connect(this->employeeController, &Employee_Control::backToDashBoard,
+                     this->viewWindow, [this]() {
+                         this->switchTab(1); // from Employee (index 3) switch to Dashboard (index 1)
+                     });
+    QObject::connect(this->dashboardController, &Dashboard_Control::employeeClicked,
+                     this->viewWindow, [this]() {
+                        this->switchTab(1); // from Dashboard (index 1) switch to Employee (index 3)
+                        this->viewWindow->dashboardPage->showHRPage();
+                        this->employeeController->init();
+                     });
 }
 
 void Control_Navigator::switchTab(int index) {

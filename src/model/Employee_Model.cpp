@@ -104,7 +104,8 @@ bool Employee_Model::addEmployee(const QString &role, const QString &avatarPath,
       return false;
     }
   }
-  if(!this->addUserInList(emp)) qDebug() << "ADD USER IN LIST FAILDE, POINTER USER IS NULL\n"; // add in list, uses for sort, search, filter.
+  if(!this->addUserInList(emp)) qDebug() << "ADD USER IN LIST FAILDE, POINTER USER IS NULL\n";
+  else qDebug() << "ADD USER IN LIST SUCCESS\n";  // add in list, uses for sort, search, filter.
   return db.commit();
 }
 
@@ -204,6 +205,7 @@ QString Employee_Model::saveAvatarLocally(int empId,
 }
 
 void Employee_Model::loadData() {
+    if(this->listEmployee.empty() == false) return;
     if(!this->listEmployee.empty()) {
         qDeleteAll(listEmployee);
         listEmployee.clear();
@@ -279,9 +281,9 @@ QString Employee_Model::getPattern(User* emp) {
   QString gender = emp->getGender();
   pattern = id + '|' + name + '|' + role + '|' + idIn + '|' + phone + '|' +
             dob + '|' + address + '|' + gender;
-  pattern = pattern.toLower();
-  pattern = this->removeAccent(pattern);
-  return pattern;
+  QString patternNew = pattern.toLower();
+  patternNew = this->removeAccent(patternNew);
+  return patternNew;
 }
 
 bool Employee_Model::cmpAscending(User *a, User *b,
@@ -374,6 +376,7 @@ QList<User *> Employee_Model::filterInEmployee(QList<User*> inputList, QList<QSt
 QList<User *> Employee_Model::searchInEmployee(QList<User*> inputList, QString contentSearch) {
   QList<User *> listOfEmployeeForSearch;
   contentSearch = this->removeAccent(contentSearch);
+  contentSearch = contentSearch.toLower();
   for (int i = 0; i < inputList.size(); i++) {
     QString pattern = this->getPattern(inputList[i]);
     if (this->rabinKarp(pattern, contentSearch))
