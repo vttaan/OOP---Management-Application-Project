@@ -110,9 +110,9 @@ bool Employee_Model::addEmployee(const QString &role, const QString &avatarPath,
 }
 
 
-// lack of data field, What is content updated?
 
-/*bool Employee_Model::updateEmployee(User *emp) {
+
+bool Employee_Model::updateEmployee(User *emp) {
   if (!emp)
     return false;
 
@@ -141,7 +141,7 @@ bool Employee_Model::addEmployee(const QString &role, const QString &avatarPath,
     return false;
   }
   return true;
-}*/
+}
 
 bool Employee_Model::deleteEmployee(short idEmployee) {
   QSqlDatabase db = Database::getInstance()->getDbConnect();

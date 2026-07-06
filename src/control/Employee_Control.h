@@ -29,7 +29,7 @@ private slots:
 
     void handleLoadEmployees();
     void handleAddEmployee();
-    //void handleEditEmployee(int idEmployee);
+    void handleEditEmployee(int idEmployee);
     void handleDeleteEmployee(int idEmployee);
 
     void handleUpdate(const QString &searchText,
