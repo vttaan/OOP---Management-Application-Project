@@ -3,6 +3,7 @@
 #include "Login_Control.h"
 #include "Profile_Control.h"
 #include "Dashboard_Control.h"
+#include "Employee_Control.h"
 //#include "view/View_Navigator.h"
 
 class View_Navigator;
@@ -13,7 +14,7 @@ public:
     Login_Control* loginController = nullptr;
     Profile_Control* profileController = nullptr;
     Dashboard_Control* dashboardController = nullptr;
-
+    Employee_Control * employeeController = nullptr;
     View_Navigator* viewWindow = nullptr;
 
     Control_Navigator();

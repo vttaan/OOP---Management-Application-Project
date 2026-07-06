@@ -53,8 +53,8 @@ Dashboard_View::Dashboard_View(Dashboard_Control *controller, QWidget *parent) :
     ui->lblDropdown->installEventFilter(this);
 
     // profile avatar dropbox
-    QWidget *avatarBox = new QWidget(this);
-    avatarBox->setLayout(ui->horizontalLayout_UserInfo);
+    //QWidget *avatarBox = new QWidget(this);
+    //avatarBox->setLayout(ui->horizontalLayout_UserInfo);
 
     // Embed EmployeesWidget into the HR page layout
     QLayout *hrLayout = ui->pageHR->layout();
@@ -75,10 +75,13 @@ Dashboard_View::Dashboard_View(Dashboard_Control *controller, QWidget *parent) :
     EmployeesWidget *employeesWidget = new EmployeesWidget(this);
     hrLayout->addWidget(employeesWidget);
 
-    // Wire Employee_Control vào view — controller là parent nên tự cleanup
+    // code temporary for debug
+    Employee_Model *empModel = new Employee_Model();
     Employee_Control *empCtrl = new Employee_Control(employeesWidget);
+
+    empCtrl->setModel(empModel);
     empCtrl->setView(employeesWidget);
-    empCtrl->init(); // load data từ DB lần đầu
+    empCtrl->init();
 }
 
 Dashboard_View::~Dashboard_View()

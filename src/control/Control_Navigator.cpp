@@ -56,8 +56,10 @@ Control_Navigator::~Control_Navigator() {
     delete loginController;
     delete profileController;
     delete dashboardController;
+    delete employeeController;
     viewWindow = nullptr;
     loginController = nullptr;
     profileController = nullptr;
     dashboardController = nullptr;
+    employeeController = nullptr;
 }

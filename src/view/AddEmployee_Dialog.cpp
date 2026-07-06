@@ -241,7 +241,7 @@ QString AddEmployee_Dialog::getName()       const { return inpName->text().trimm
 QString AddEmployee_Dialog::getRole()       const
 {
     QString vn = cmbRole->currentText();
-    if (vn == "Quản lý") return "Manager";
+    if (vn == "Quản lý") return "Manage";
     return "Staff";
 }
 

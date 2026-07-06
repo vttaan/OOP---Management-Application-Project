@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
     qDebug() << "Can not load QSS File!";
   }
 
-  Control_Navigator *appWindow = new Control_Navigator;
+  Control_Navigator *appWindow = new Control_Navigator();
   if (appWindow && appWindow->viewWindow)
     appWindow->viewWindow->show();
 

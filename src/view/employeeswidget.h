@@ -36,9 +36,8 @@ signals:
     // The Controller receives it, applies filter→search→sort pipeline on its
     // m_employees, then calls loadEmployees() with the result.
     void requestUpdate(const QString &searchText,
-                       const QStringList &roles,
-                       const QStringList &genders,
-                       const QString &sortField,
+                       const QList<QString> &contentFilter,
+                       const QList<QString> &contentSort,
                        int sortDir); // 0=none, 1=asc, -1=desc
 
 public slots:
