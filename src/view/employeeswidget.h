@@ -44,6 +44,9 @@ signals:
 public slots:
     // Called by the Controller to push data to the view
     void loadEmployees(const QList<User *> &employees);
+    // Called once by the Controller with the FULL (unfiltered) list
+    // so that metric cards can show accurate totals.
+    void setFullEmployeeList(const QList<User *> &allEmployees);
     void showError(const QString &msg);
     void showSuccess(const QString &msg);
 
@@ -55,8 +58,8 @@ private slots:
     void toggleFilterDropdown();
     // Sort dropdown
     void toggleSortDropdown();
-    void onSortFieldSelected(const QString &field);
-    void cycleSortDirection();
+    // Updates metric card values from m_allEmployees
+    void updateMetricCards();
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
@@ -93,12 +96,21 @@ private:
 
     // --- Roster Card ---
     QFrame       *rosterCard;
+    QLabel       *rosterSubtitle;   // kept as member for dynamic updates
     QLineEdit    *searchRoster;
     QPushButton  *filterBtn;
     QPushButton  *sortBtn;
     QPushButton  *addEmployeeBtn;
     QTableWidget *employeesTable;
     QLabel       *footerLabel;
+
+    // --- Metric Cards (kept for dynamic value updates) ---
+    QFrame *m_payrollCard  = nullptr;
+    QFrame *m_staffCard    = nullptr;
+    QFrame *m_absenceCard  = nullptr;
+
+    // Full unfiltered employee list (for metric card totals)
+    QList<User *> m_allEmployees;
 
     // --- Filter Dropdown (floating overlay, child of EmployeesWidget) ---
     QFrame    *filterDropdown;
@@ -111,8 +123,6 @@ private:
 
     // --- Sort Dropdown (floating overlay, child of EmployeesWidget) ---
     QFrame    *sortDropdown;
-    QFrame    *sortTagBar;   // tag chip row shown below roster header
-    QLabel    *sortTagLabel; // clickable tag label
     bool       m_sortOpen  = false;
     QString    m_sortField;  // "" | "id" | "name"
     int        m_sortDir   = 0; // 0=none, 1=asc, -1=desc

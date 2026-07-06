@@ -536,6 +536,76 @@ EmployeesWidget #addEmployeeBtn:pressed {
     background-color: #1E40AF;
 }
 
+/* Filter / Sort icon buttons — light theme */
+EmployeesWidget #filterBtn,
+EmployeesWidget #sortBtn {
+    background-color: #F1F5F9;
+    border: 1px solid #CBD5E1;
+    border-radius: 8px;
+    color: #374151;
+    padding: 0px;
+}
+EmployeesWidget #filterBtn:hover,
+EmployeesWidget #sortBtn:hover {
+    background-color: #E2E8F0;
+    border-color: #93C5FD;
+}
+EmployeesWidget #filterBtn:pressed,
+EmployeesWidget #sortBtn:pressed {
+    background-color: #CBD5E1;
+}
+
+/* Filter / Sort floating dropdowns — light theme */
+EmployeesWidget #filterDropdown,
+EmployeesWidget #sortDropdown {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    color: #1E293B;
+}
+EmployeesWidget #filterDropdown QCheckBox,
+EmployeesWidget #sortDropdown QCheckBox {
+    color: #374151;
+    font-size: 12px;
+    spacing: 6px;
+}
+EmployeesWidget #filterDropdown QCheckBox::indicator,
+EmployeesWidget #sortDropdown QCheckBox::indicator {
+    width: 14px;
+    height: 14px;
+    border: 1px solid #CBD5E1;
+    border-radius: 3px;
+    background: #F8FAFC;
+}
+EmployeesWidget #filterDropdown QCheckBox::indicator:checked,
+EmployeesWidget #sortDropdown QCheckBox::indicator:checked {
+    background: #2563EB;
+    border-color: #3B82F6;
+}
+EmployeesWidget #filterSectionLabel {
+    color: #94A3B8;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+EmployeesWidget #filterSeparator {
+    color: #E2E8F0;
+    max-height: 1px;
+}
+EmployeesWidget #sortDropdownItem {
+    color: #374151;
+    font-size: 12px;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    text-align: left;
+    padding: 5px 10px;
+}
+EmployeesWidget #sortDropdownItem:hover {
+    background-color: #F1F5F9;
+    color: #2563EB;
+}
+
 
 /* ── 5. STAFF TABLE ─────────────────────────────────────── */
 

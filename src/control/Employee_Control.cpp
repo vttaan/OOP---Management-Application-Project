@@ -51,8 +51,11 @@ void Employee_Control::handleLoadEmployees()
     m_employees = m_model.getAllEmployees();
     // Also sync model's internal listEmployee for its algorithm methods
     m_model.loadData();
-    if (m_view)
+    if (m_view) {
+        // Push the full list first so metric cards show correct totals
+        m_view->setFullEmployeeList(m_employees);
         m_view->loadEmployees(m_employees);
+    }
 }
 
 void Employee_Control::handleAddEmployee()
@@ -198,6 +201,7 @@ void Employee_Control::handleUpdate(const QString &searchText,
         });
     }
 
+    m_view->setFullEmployeeList(m_employees); // totals always from full cache
     m_view->loadEmployees(result);
 }
 
