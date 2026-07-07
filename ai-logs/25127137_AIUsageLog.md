@@ -2,8 +2,8 @@
 
 ## Session Overview
 
-**Date:** 2026-07-02 to 2026-07-03  
-**Task:** Implementation of Profile View, View/Control Navigator architectures, circular dependency resolution, and UI integration.
+**Date:** 2026-07-02 to 2026-07-07  
+**Task:** Implementation of Profile View, Edit Profile popup widget, SessionManager global sharing, and avatar persistence bugfixes.
 
 ---
 
@@ -113,3 +113,82 @@ Guided the student in building a custom profile widget in Qt C++, outlining the 
 | `src/view/View_Navigator.h` | Updated — declared setPageIndex |
 | `src/view/View_Navigator.cpp` | Updated — set views on controllers, implemented setPageIndex, cleaned up connections |
 | `src/main.cpp` | Updated — updated main entry point to show viewWindow |
+
+---
+
+## Session 6 — Profile Pop-up, Session Manager, and Git Resolution (~15:49, July 5 to ~00:16, July 6)
+
+### Changes Made
+
+#### ###1 — Profile Edit Pop-up Widget
+- `src/view/EditProfile_Widget.h/.cpp` [NEW]: Created the `EditProfile_Widget` class as a sliding/pop-up pane for modifying profile information.
+- `src/model/Profile_Model.h/.cpp` [NEW]: Created `Profile_Model` class to handle profile update database queries.
+- `src/control/Profile_Control.h/.cpp`: Added `handleProfileUpdate` to bind `EditProfile_Widget` changes to the `Profile_Model` database action.
+- `src/view/Profile_View.ui`: Removed vertical stretch on `cardGeneralLayout` to prevent layout shrinking and button clipping, ensuring `btnEditInfo` displays properly.
+- `resources/styles/styles.qss`: Added custom stylesheet styling for `btnEditInfo` and fixed scrollbar closing brace syntax error.
+
+#### ###2 — Custom Password Line Edit
+- `src/view/EditPassword_Widget.h/.cpp`: Developed `password_LineEdit` as a public inheritor of `QLineEdit` to support visibility toggle icons. Fixed undefined reference error by defining the constructor and initializing the `toggleIcon`.
+
+#### ###3 — SessionManager Integration
+- `src/utils/SessionManage.h/.cpp`: Implemented global session memory. Fixed memory leak by deleting `currentUser` on `clearInfo()`.
+- `src/control/Control_Navigator.cpp`: Switched to a shared global `SessionManager` pointer to avoid localized `User*` variables. Fixed a segmentation fault by initializing `viewWindow` before referencing it and resolved a memory leak in the destructor by deleting `currentSession`.
+- `src/control/Login_Control.cpp`: Passed the global `currentSession` pointer to share memory upon successful login.
+
+#### ###4 — Qt MOC and Signal Connection Fixes
+- `src/control/Dashboard_Control.h`: Removed `const` qualifiers from Qt signals to resolve moc compiler and linking issues.
+- `src/view/Dashboard_View.h/.cpp`, `src/view/Profile_View.h/.cpp`, `src/view/Login_View.h/.cpp`: Added and implemented `setController` methods to establish proper bindings between controllers and views.
+- `src/control/Dashboard_Control.cpp`, `src/control/Profile_Control.cpp`, `src/control/Login_Control.cpp`: Bound controllers to views inside their respective `setView` methods to resolve stack crash at `logoutSubmitted` signal.
+
+#### ###5 — CMake Build & Git Conflict Resolution
+- `CMakeLists.txt`: Cleaned up git conflict markers, removed obsolete `employeeswidget` sources, and registered `Profile_Model` and `EditProfile_Widget` files.
+- `resources/styles/styles.qss`, `src/view/Dashboard_View.cpp`, `src/control/Login_Control.cpp`: Manually resolved all git conflicts after executing a `git stash`.
+
+### Files Modified
+| File | Action |
+|---|---|
+| `src/model/Profile_Model.h` | [NEW] Created Profile_Model header |
+| `src/model/Profile_Model.cpp` | [NEW] Created Profile_Model source file |
+| `src/view/EditProfile_Widget.h` | [NEW] Created EditProfile_Widget header |
+| `src/view/EditProfile_Widget.cpp` | [NEW] Created EditProfile_Widget source file |
+| `src/control/Profile_Control.h` | Updated — added update handler |
+| `src/control/Profile_Control.cpp` | Updated — implemented profile update bindings |
+| `src/view/Profile_View.ui` | Updated — resolved stretch clipping bug |
+| `resources/styles/styles.qss` | Updated — added popup button styling and resolved git conflict |
+| `src/view/EditPassword_Widget.h` | Updated — defined missing constructors and icon initialization |
+| `src/utils/SessionManage.cpp` | Updated — resolved currentUser memory leak |
+| `src/control/Control_Navigator.cpp` | Updated — integrated SessionManager, fixed segfault and memory leak |
+| `src/control/Dashboard_Control.h` | Updated — removed const qualifiers from signals |
+| `src/control/Dashboard_Control.cpp` | Updated — bound controller to view in setView |
+| `src/view/Dashboard_View.h` | Updated — added setController declaration |
+| `src/view/Dashboard_View.cpp` | Updated — implemented setController and resolved git conflict |
+| `src/view/Profile_View.h` | Updated — added setController declaration |
+| `src/view/Profile_View.cpp` | Updated — implemented setController |
+| `src/view/Login_View.h` | Updated — added setController declaration |
+| `src/view/Login_View.cpp` | Updated — implemented setController |
+| `src/control/Login_Control.cpp` | Updated — bound controller to view and resolved git conflicts |
+| `CMakeLists.txt` | Updated — registered new files and resolved git conflicts |
+
+---
+
+## Session 7 — Avatar Update Bugfixes (~09:23 to ~09:29, July 7)
+
+### Changes Made
+
+#### ###1 — Avatar Database Persistence Fix
+- `src/model/Profile_Model.cpp`: Updated the profile SQL query to include and bind `avatarPath` parameter so that avatar changes are saved.
+- `src/control/Profile_Control.cpp`: Updated `avatarPath` assignments to use the local avatar file name returned by `saveAvatarLocally` rather than the absolute path.
+
+#### ###2 — parameter count mismatch SQL Error
+- `src/model/Profile_Model.cpp`: Resolved query execution error by fixing a spelling typo in citizen identity ID column name (`IdCitizenIdentity`).
+
+#### ###3 — Avatar Selection Logic Simplification
+- `src/view/EditProfile_Widget.cpp`: Simplified `onChangeAvatarClicked` to store the selected absolute path locally during interaction, postponing the file copy step until the save profile action is confirmed to prevent premature file copying.
+
+### Files Modified
+| File | Action |
+|---|---|
+| `src/model/Profile_Model.cpp` | Updated — added avatarPath to query, fixed column spelling typo |
+| `src/control/Profile_Control.cpp` | Updated — updated avatarPath parameter binding |
+| `src/view/EditProfile_Widget.cpp` | Updated — postponed avatar copying to prevent premature state changes |
+

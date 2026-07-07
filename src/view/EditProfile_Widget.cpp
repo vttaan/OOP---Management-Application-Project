@@ -109,11 +109,13 @@ void EditProfile_Widget::setInitialData(const QString& name, const QString& dob,
     currentAvatarPath = avatarPath;
     
     // Load avatar preview
-    QDir appDir(QCoreApplication::applicationDirPath());
-    QString folderPath = appDir.filePath("avatars");
+    QDir appDir(QCoreApplication::applicationDirPath()); // debug
+    appDir.cdUp(); // build
+    appDir.cdUp(); // MAP
+    QString folderPath = appDir.filePath("resources");
     
-    QPixmap pixmap(folderPath + "/" + avatarPath);
-    if(avatarPath.isEmpty() || !QFileInfo::exists(folderPath + "/" + avatarPath) || pixmap.isNull()) {
+    QPixmap pixmap(folderPath + "/avatars/" + avatarPath);
+    if(avatarPath.isEmpty() || !QFileInfo::exists(folderPath + "/avatars/" + avatarPath) || pixmap.isNull()) {
         pixmap.load(":/images/avatarSample.png");
     }
     

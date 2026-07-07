@@ -84,15 +84,15 @@ void Profile_View::loadUserData(SessionManager* currentSession) {
 void Profile_View::setupAvatar(const QString& imagePath)
 {
     QDir appDir(QCoreApplication::applicationDirPath()); // ......./Debug
-    // appDir.cdUp(); // ..../MAP/build
-    // appDir.cdUp(); // ..../MAP
+    appDir.cdUp(); // ..../MAP/build
+    appDir.cdUp(); // ..../MAP
     QString folderPath = appDir.filePath("resources"); // .../MAP/resources
     qDebug() << folderPath;
 
-    QPixmap avatarPixmap(appDir.filePath("avatars") + "/" + imagePath);
-    if(!imagePath.isEmpty() && QFileInfo::exists(appDir.filePath("avatars") + "/" + imagePath)) { // image exists
+    QPixmap avatarPixmap(folderPath + "/avatars/" + imagePath);
+    if(!imagePath.isEmpty() && QFileInfo::exists(folderPath + "/avatars/" + imagePath)) { // image exists
         //qDebug() << "found";
-        avatarPixmap.load(appDir.filePath("avatars") + "/" + imagePath);
+        avatarPixmap.load(folderPath + "/avatars/" + imagePath);
     }
 
     if(avatarPixmap.isNull()) {

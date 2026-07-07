@@ -177,9 +177,11 @@ QString Employee_Model::saveAvatarLocally(int empId,
   QFileInfo sourceInfo(sourcePath);
   if (!sourceInfo.exists())
     return "";
-
+  QDir appDir = QCoreApplication::applicationDirPath(); // debug folder
+  appDir.cdUp(); // build folder
+  appDir.cdUp(); // MAP folder
   // Create "avatars" directory in application directory if not exists
-  QString targetDir = QCoreApplication::applicationDirPath() + "/avatars";
+  QString targetDir = appDir.filePath("resources") + "/avatars"; // avatars folder in resouces folder
   QDir dir(targetDir);
   if (!dir.exists()) {
     dir.mkpath(".");
