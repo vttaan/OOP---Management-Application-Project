@@ -44,10 +44,12 @@ set(PROJECT_SOURCES
         src/model/Login_Model.h
         src/model/Change_password.h
         src/model/Employee_Model.h
+        src/model/Profile_Model.h
         # CPP
         src/model/Login_Model.cpp
         src/model/Change_password.cpp
         src/model/Employee_Model.cpp
+        src/model/Profile_Model.cpp
 
     # file in Control
         # HEADER
@@ -70,18 +72,24 @@ set(PROJECT_SOURCES
         src/view/View_Navigator.h
         src/view/Profile_View.h
         src/view/employeeswidget.h
+        src/view/EditProfile_Widget.h
+        src/view/EditPassword_Widget.h
         src/view/employeecard.h
         src/view/AddEmployee_Dialog.h
         src/view/EditEmployee_Dialog.h
+        src/view/main_view.h
         # CPP
         src/view/Login_View.cpp
         src/view/Dashboard_View.cpp
         src/view/View_Navigator.cpp
         src/view/Profile_View.cpp
         src/view/employeeswidget.cpp
+        src/view/EditProfile_Widget.cpp
+        src/view/EditPassword_Widget.cpp
         src/view/employeecard.cpp
         src/view/AddEmployee_Dialog.cpp
         src/view/EditEmployee_Dialog.cpp
+        src/view/main_view.cpp
         # UI
         src/view/Login_View.ui
         src/view/Dashboard_View.ui
@@ -89,6 +97,7 @@ set(PROJECT_SOURCES
         src/view/Profile_View.ui
         src/view/employeeswidget.ui
         src/view/employeecard.ui
+        src/view/main_view.ui
 )
 
 qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
@@ -99,7 +108,6 @@ qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
     src/view/View_Navigator.h src/view/View_Navigator.cpp src/view/View_Navigator.ui
     src/view/employeeswidget.h
     src/control/Profile_Control.h src/control/Profile_Control.cpp
-    src/control/Profile_Control.cpp
     src/control/Control_Navigator.h src/control/Control_Navigator.cpp
     src/control/Dashboard_Control.h src/control/Dashboard_Control.cpp
     src/model/Employee_Model.cpp src/model/Employee_Model.h)

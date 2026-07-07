@@ -1,5 +1,6 @@
 #pragma once
 #include "model/Login_Model.h"
+#include "utils/SessionManage.h"
 #include <QObject>
 #include <QMessageBox>
 #include <QDebug>
@@ -11,14 +12,14 @@ class Login_Control : public QObject {
 
 private:
     Login_View* view;
-    User* currentUser;
+
 
 public:
+    SessionManager* currentSession;
     Login_Control(QObject *parent = nullptr);
     ~Login_Control();
     Login_View* getView();
     void setView(Login_View* view);
-    User* getUser();
     void init();
 signals:
     void loginSuccessful(User* currentUser);

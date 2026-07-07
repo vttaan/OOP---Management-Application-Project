@@ -55,8 +55,10 @@ void Employee_Control::init()
 void Employee_Control::handleLoadEmployees()
 {
     m_model->loadData();
-    if (m_view)
+
+    if (m_view) {
         m_view->loadEmployees(m_model->getListEmployee());
+    }
 }
 
 void Employee_Control::handleAddEmployee()
@@ -147,7 +149,6 @@ void Employee_Control::handleUpdate(const QString &searchText,
 {
     if (!m_view || !m_model) return;
     QList<User*> result = m_model->SearchSortFilter(searchText, sortDir, contentSort, contentFilter);
-
     m_view->loadEmployees(result);
 }
 

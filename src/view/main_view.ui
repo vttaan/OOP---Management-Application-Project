@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Main_View</class>
+ <widget class="QWidget" name="Main_View">
+  <property name="geometry"><rect><x>0</x><y>0</y><width>1280</width><height>800</height></rect></property>
+  <property name="windowTitle"><string>Dashboard - Quản lý nhân sự</string></property>
+  <property name="styleSheet">
+   <string notr="true">
+/* --- NỀN TỔNG THỂ --- */
+QWidget#Main_View { background-color: #f8f9fa; }
+QFrame#frmSidebar { background-color: #ffffff; border-right: 1px solid #eef0f4; }
+
+/* Các nút menu trong Sidebar */
+QPushButton.MenuButton { text-align: left; padding-left: 20px; font-size: 15px; font-weight: 500; color: #637381; border: none; border-radius: 8px; height: 45px; margin: 5px 15px; }
+QPushButton.MenuButton:hover { background-color: #f4f6f8; color: #212b36; }
+QPushButton#btnMenu_Overview { background-color: #e8f0fe; color: #1a73e8; font-weight: bold; }
+
+/* Text chung */
+QLabel#lblPageTitle { font-size: 24px; font-weight: bold; color: #212b36; }
+QLabel#lblPageSubtitle { font-size: 14px; color: #637381; }
+QFrame.StatCard { background-color: #ffffff; border: 1px solid #eef0f4; border-radius: 12px; }
+QScrollArea#scrollAreaEmployees { background-color: transparent; border: none; }
+QWidget#scrollAreaWidgetContents { background-color: transparent; }
+
+/* STYLE CHO BẢNG BÊN PHẢI */
+QListWidget { background-color: transparent; border: none; outline: none; }
+QListWidget::item { padding: 10px; border-bottom: 1px solid #eef0f4; }
+   </string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout_Main">
+   <property name="spacing"><number>0</number></property>
+   <property name="leftMargin"><number>0</number></property>
+   <property name="topMargin"><number>0</number></property>
+   <property name="rightMargin"><number>0</number></property>
+   <property name="bottomMargin"><number>0</number></property>
+   <item>
+    <widget class="QFrame" name="frmSidebar">
+     <property name="minimumSize"><size><width>260</width><height>0</height></size></property>
+     <property name="maximumSize"><size><width>260</width><height>16777215</height></size></property>
+     <layout class="QVBoxLayout" name="verticalLayout_Sidebar">
+      <item><widget class="QLabel" name="lblLogo"><property name="font"><font><pointsize>12</pointsize><bold>true</bold></font></property><property name="styleSheet"><string notr="true">color: #212b36;</string></property><property name="text"><string>🏢 Hệ thống quản lý
+nhân sự</string></property><property name="alignment"><set>Qt::AlignmentFlag::AlignCenter</set></property><property name="margin"><number>20</number></property></widget></item>
+      <item><widget class="QPushButton" name="btnMenu_Overview"><property name="text"><string>🏠  Tổng quan</string></property><property name="class" stdset="0"><string>MenuButton</string></property></widget></item>
+      <item><widget class="QPushButton" name="btnMenu_HR"><property name="text"><string>👥  Nhân sự</string></property><property name="class" stdset="0"><string>MenuButton</string></property></widget></item>
+      <item><widget class="QPushButton" name="btnMenu_Timekeep"><property name="text"><string>🕒  Chấm công</string></property><property name="class" stdset="0"><string>MenuButton</string></property></widget></item>
+      <item><widget class="QPushButton" name="btnMenu_Salary"><property name="text"><string>💲  Lương</string></property><property name="class" stdset="0"><string>MenuButton</string></property></widget></item>
+      <item><widget class="QPushButton" name="btnMenu_Report"><property name="text"><string>📊  Báo cáo</string></property><property name="class" stdset="0"><string>MenuButton</string></property></widget></item>
+      <item><widget class="QPushButton" name="btnMenu_Settings"><property name="text"><string>⚙️  Cài đặt</string></property><property name="class" stdset="0"><string>MenuButton</string></property></widget></item>
+      <item><spacer name="verticalSpacer_Sidebar"><property name="orientation"><enum>Qt::Orientation::Vertical</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
+      <item><widget class="QPushButton" name="btnLogout"><property name="text"><string>🚪  Đăng xuất</string></property><property name="class" stdset="0"><string>MenuButton</string></property></widget></item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+
+    <widget class="QStackedWidget" name="stackedWidget">
+     <widget class="QWidget" name="pageOverview">
+      <layout class="QVBoxLayout" name="verticalLayout_Content">
+       <property name="spacing"><number>30</number></property>
+       <property name="leftMargin"><number>40</number></property>
+       <property name="topMargin"><number>40</number></property>
+       <property name="rightMargin"><number>40</number></property>
+       <property name="bottomMargin"><number>40</number></property>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_Header">
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_Title">
+           <item><widget class="QLabel" name="lblPageTitle"><property name="text"><string>Tổng quan</string></property></widget></item>
+           <item><widget class="QLabel" name="lblPageSubtitle"><property name="text"><string>Xin chào, Quản trị viên</string></property></widget></item>
+          </layout>
+         </item>
+         <item><spacer name="horizontalSpacer_Header"><property name="orientation"><enum>Qt::Orientation::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property></spacer></item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_UserInfo">
+           <property name="spacing"><number>12</number></property>
+           <item><widget class="QLabel" name="lblAvatar"><property name="minimumSize"><size><width>40</width><height>40</height></size></property><property name="maximumSize"><size><width>40</width><height>40</height></size></property><property name="styleSheet"><string notr="true">background-color: #d2e3fc; border-radius: 20px;</string></property><property name="text"><string>👨‍💼</string></property><property name="alignment"><set>Qt::AlignmentFlag::AlignCenter</set></property></widget></item>
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_UserDetails">
+             <property name="spacing"><number>2</number></property>
+             <item><widget class="QLabel" name="lblUserName"><property name="font"><font><pointsize>10</pointsize><bold>true</bold></font></property><property name="styleSheet"><string notr="true">color: #212b36;</string></property><property name="text"><string>Quản trị viên</string></property></widget></item>
+             <item><widget class="QLabel" name="lblUserRole"><property name="font"><font><pointsize>8</pointsize></font></property><property name="styleSheet"><string notr="true">color: #637381;</string></property><property name="text"><string>Quản trị hệ thống</string></property></widget></item>
+            </layout>
+           </item>
+           <item><widget class="QLabel" name="lblDropdown"><property name="styleSheet"><string notr="true">color: #637381;</string></property><property name="text"><string>⌄</string></property></widget></item>
+          </layout>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_Stats">
+         <property name="spacing"><number>20</number></property>
+         <item>
+          <widget class="QFrame" name="statCard1"><property name="minimumSize"><size><width>0</width><height>100</height></size></property>
+           <layout class="QHBoxLayout" name="hLayout_card1">
+            <item><widget class="QLabel" name="icon1"><property name="minimumSize"><size><width>56</width><height>56</height></size></property><property name="maximumSize"><size><width>56</width><height>56</height></size></property><property name="styleSheet"><string notr="true">background-color: #e8f0fe; color: #1a73e8; border-radius: 28px; font-size: 24px;</string></property><property name="text"><string>👥</string></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item>
+            <item>
+             <layout class="QVBoxLayout" name="vLayout_card1">
+              <item><widget class="QLabel" name="lblTitle1"><property name="styleSheet"><string notr="true">color: #637381; font-weight: bold; border: none;</string></property><property name="text"><string>Tổng nhân sự</string></property></widget></item>
+              <item><widget class="QLabel" name="lblNum1"><property name="font"><font><pointsize>20</pointsize><bold>true</bold></font></property><property name="styleSheet"><string notr="true">color: #212b36; border: none;</string></property><property name="text"><string>7</string></property></widget></item>
+              <item><widget class="QLabel" name="lblSub1"><property name="styleSheet"><string notr="true">color: #919eab; font-size: 11px; border: none;</string></property><property name="text"><string>Nhân viên trong công ty</string></property></widget></item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QFrame" name="statCard2">
+           <layout class="QHBoxLayout" name="hLayout_card2">
+            <item><widget class="QLabel" name="icon2"><property name="minimumSize"><size><width>56</width><height>56</height></size></property><property name="maximumSize"><size><width>56</width><height>56</height></size></property><property name="styleSheet"><string notr="true">background-color: #e6f4ea; color: #1e8e3e; border-radius: 28px; font-size: 24px;</string></property><property name="text"><string>👤</string></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item>
+            <item>
+             <layout class="QVBoxLayout" name="vLayout_card2">
+              <item><widget class="QLabel" name="lblTitle2"><property name="styleSheet"><string notr="true">color: #637381; font-weight: bold; border: none;</string></property><property name="text"><string>Nhân viên</string></property></widget></item>
+              <item><widget class="QLabel" name="lblNum2"><property name="font"><font><pointsize>20</pointsize><bold>true</bold></font></property><property name="styleSheet"><string notr="true">color: #212b36; border: none;</string></property><property name="text"><string>5</string></property></widget></item>
+              <item><widget class="QLabel" name="lblSub2"><property name="styleSheet"><string notr="true">color: #919eab; font-size: 11px; border: none;</string></property><property name="text"><string>Nhân viên</string></property></widget></item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QFrame" name="statCard3">
+           <layout class="QHBoxLayout" name="hLayout_card3">
+            <item><widget class="QLabel" name="icon3"><property name="minimumSize"><size><width>56</width><height>56</height></size></property><property name="maximumSize"><size><width>56</width><height>56</height></size></property><property name="styleSheet"><string notr="true">background-color: #f3e8fd; color: #9333ea; border-radius: 28px; font-size: 24px;</string></property><property name="text"><string>👑</string></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item>
+            <item>
+             <layout class="QVBoxLayout" name="vLayout_card3">
+              <item><widget class="QLabel" name="lblTitle3"><property name="styleSheet"><string notr="true">color: #637381; font-weight: bold; border: none;</string></property><property name="text"><string>Quản lý</string></property></widget></item>
+              <item><widget class="QLabel" name="lblNum3"><property name="font"><font><pointsize>20</pointsize><bold>true</bold></font></property><property name="styleSheet"><string notr="true">color: #212b36; border: none;</string></property><property name="text"><string>2</string></property></widget></item>
+              <item><widget class="QLabel" name="lblSub3"><property name="styleSheet"><string notr="true">color: #919eab; font-size: 11px; border: none;</string></property><property name="text"><string>Quản lý</string></property></widget></item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QFrame" name="statCard4">
+           <layout class="QHBoxLayout" name="hLayout_card4">
+            <item><widget class="QLabel" name="icon4"><property name="minimumSize"><size><width>56</width><height>56</height></size></property><property name="maximumSize"><size><width>56</width><height>56</height></size></property><property name="styleSheet"><string notr="true">background-color: #fef1e6; color: #ea580c; border-radius: 28px; font-size: 24px;</string></property><property name="text"><string>📅</string></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item>
+            <item>
+             <layout class="QVBoxLayout" name="vLayout_card4">
+              <item><widget class="QLabel" name="lblTitle4"><property name="styleSheet"><string notr="true">color: #637381; font-weight: bold; border: none;</string></property><property name="text"><string>Đi làm hôm nay</string></property></widget></item>
+              <item><widget class="QLabel" name="lblNum4"><property name="font"><font><pointsize>20</pointsize><bold>true</bold></font></property><property name="styleSheet"><string notr="true">color: #212b36; border: none;</string></property><property name="text"><string>7</string></property></widget></item>
+              <item><widget class="QLabel" name="lblSub4"><property name="styleSheet"><string notr="true">color: #919eab; font-size: 11px; border: none;</string></property><property name="text"><string>100% nhân sự đi làm</string></property></widget></item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </item>
+
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_MainContent" stretch="7,3">
+         <property name="spacing"><number>20</number></property>
+
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_LeftList">
+           <property name="spacing"><number>10</number></property>
+           <item>
+            <widget class="QLabel" name="lblListTitle">
+             <property name="font"><font><pointsize>12</pointsize><bold>true</bold></font></property>
+             <property name="styleSheet"><string notr="true">color: #212b36;</string></property>
+             <property name="text"><string>Danh sách nhân sự</string></property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QScrollArea" name="scrollAreaEmployees">
+             <property name="widgetResizable"><bool>true</bool></property>
+             <widget class="QWidget" name="scrollAreaWidgetContents"/>
+            </widget>
+           </item>
+          </layout>
+         </item>
+
+         <item>
+          <widget class="QFrame" name="frameRightPanel">
+           <property name="styleSheet"><string notr="true">background-color: #ffffff; border: 1px solid #eef0f4; border-radius: 12px;</string></property>
+           <layout class="QVBoxLayout" name="verticalLayout_RightPanel">
+            <property name="spacing"><number>10</number></property>
+            <property name="leftMargin"><number>10</number></property>
+            <property name="topMargin"><number>10</number></property>
+            <property name="rightMargin"><number>10</number></property>
+            <property name="bottomMargin"><number>10</number></property>
+
+            <item>
+             <widget class="QLabel" name="lblNextShift">
+              <property name="text"><string>CA LÀM TIẾP THEO</string></property>
+              <property name="alignment"><set>Qt::AlignCenter</set></property>
+              <property name="styleSheet"><string notr="true">color: black; font-weight: bold; font-size: 14px; background: transparent; border: none;</string></property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QListWidget" name="listNextShift">
+               </widget>
+            </item>
+
+            <item>
+             <widget class="QLabel" name="lblOffEmployees">
+              <property name="text"><string>NHÂN VIÊN NGHỈ</string></property>
+              <property name="alignment"><set>Qt::AlignCenter</set></property>
+              <property name="styleSheet"><string notr="true">color: black; font-weight: bold; font-size: 14px; background: transparent; border: none;</string></property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QListWidget" name="listOffEmployees">
+                </widget>
+            </item>
+
+           </layout>
+          </widget>
+         </item>
+
+        </layout>
+       </item>
+
+      </layout>
+     </widget>
+
+     <widget class="QWidget" name="pageHR"><layout class="QVBoxLayout"><item><widget class="QLabel" name="lblHRPlaceholder"><property name="font"><font><pointsize>16</pointsize><bold>true</bold></font></property><property name="text"><string>Trang Nhân sự</string></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item></layout></widget>
+     <widget class="QWidget" name="pageTimekeep"><layout class="QVBoxLayout"><item><widget class="QLabel" name="lblTimekeepPlaceholder"><property name="font"><font><pointsize>16</pointsize><bold>true</bold></font></property><property name="text"><string>Trang Chấm công</string></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item></layout></widget>
+     <widget class="QWidget" name="pageSalary"><layout class="QVBoxLayout"><item><widget class="QLabel" name="lblSalaryPlaceholder"><property name="font"><font><pointsize>16</pointsize><bold>true</bold></font></property><property name="text"><string>Trang Tính lương</string></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item></layout></widget>
+     <widget class="QWidget" name="pageReport"><layout class="QVBoxLayout"><item><widget class="QLabel" name="lblReportPlaceholder"><property name="font"><font><pointsize>16</pointsize><bold>true</bold></font></property><property name="text"><string>Trang Báo cáo</string></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item></layout></widget>
+     <widget class="QWidget" name="pageSettings"><layout class="QVBoxLayout"><item><widget class="QLabel" name="lblSettingsPlaceholder"><property name="font"><font><pointsize>16</pointsize><bold>true</bold></font></property><property name="text"><string>Trang Cài đặt</string></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item></layout></widget>
+     <widget class="QWidget" name="pageProfile"><layout class="QVBoxLayout"><item><widget class="QLabel" name="lblProfilePlaceholder"><property name="font"><font><pointsize>16</pointsize><bold>true</bold></font></property><property name="text"><string>Trang Hồ sơ cá nhân</string></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item></layout></widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

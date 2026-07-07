@@ -1,25 +1,22 @@
-#include "Login_Control.h"
+//#include "Control_Navigator.h"
 #include "view/Login_View.h"
+#include "Login_Control.h"
 
 Login_Control::Login_Control(QObject *parent)
-    : QObject(parent), view(new Login_View(this)), currentUser(nullptr)
+    : QObject(parent), view(nullptr), currentSession(nullptr)
 {
-    bool ok = connect(view, &Login_View::loginSubmitted, this, &Login_Control::handleLoginSubmission);
-    Q_ASSERT(ok);
 }
 
 Login_Control::~Login_Control()
 {
-    if (view)
-        delete view;
-    if (currentUser)
-        delete currentUser;
+    // view is owned by View_Navigator, do not delete here
+    // currentSession is owned by Control_Navigator, do not delete here
 }
 
 void Login_Control::init()
 {
     if (view)
-        view->show();
+        view->clearInputs();
 }
 
 Login_View *Login_Control::getView()
@@ -32,6 +29,7 @@ void Login_Control::setView(Login_View *view)
     this->view = view;
     if (this->view)
     {
+        this->view->setController(this);
         QObject::connect(this->view, &Login_View::loginSubmitted, this, &Login_Control::handleLoginSubmission);
     }
 }
@@ -39,21 +37,17 @@ void Login_Control::setView(Login_View *view)
 void Login_Control::handleLoginSubmission(const QString &username, const QString &password)
 {
     Login_Model model;
-    User *user = model.verifyLogin(username.trimmed(), password.trimmed());
-
-    if (user != nullptr)
+    User *newUser = model.verifyLogin(username, password);
+    if (newUser != nullptr)
     {
-        currentUser = user;
-        emit loginSuccessful(this->currentUser);
+        this->currentSession->saveCurrentInfo(newUser);
+        emit loginSuccessful(this->currentSession->getCurrentUser());
 
-        if (view)
-            view->hide();
-
-        if (currentUser->getRole() == "Manager")
+        if (this->currentSession->getCurrentUser()->getRole() == "Manager")
         {
             qDebug() << "Manager logged in - Mo giao dien Quan ly";
         }
-        else if (currentUser->getRole() == "Staff")
+        else if (this->currentSession->getCurrentUser()->getRole() == "Staff")
         {
             qDebug() << "Staff logged in - Mo giao dien Nhan vien";
         }
@@ -66,4 +60,4 @@ void Login_Control::handleLoginSubmission(const QString &username, const QString
     }
 }
 
-User *Login_Control::getUser() { return currentUser; }
+//User *Login_Control::getUser() { return this->currentSession->getCurrentUser(); }
