@@ -385,14 +385,11 @@ void EmployeesWidget::loadEmployees(const QList<User *> &employees)
   // The controller already applied filter→search→sort before calling us;
   // just render what we received.
   renderTable(employees);
-}
-
-void EmployeesWidget::setFullEmployeeList(const QList<User *> &allEmployees)
-{
-  // Store the full unfiltered list for metric card computation
-  m_allEmployees = allEmployees;
+  m_allEmployees = employees;
   updateMetricCards();
 }
+
+
 
 void EmployeesWidget::updateMetricCards()
 {

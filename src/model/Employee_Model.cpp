@@ -38,14 +38,18 @@ bool Employee_Model::addEmployee(const QString &role, const QString &avatarPath,
                                  const QString &username, const QString &password)
 {
   User *emp = UserFactory::createNewUser(role, avatarPath, citizenId, name, dob, address, phone, gender);
-  if (emp == nullptr)
-    return false;
+    if (emp == nullptr) {
+      qDebug() << "Create fail\n";
+        return false;
+    }
+    //return false;
   QSqlDatabase db = Database::getInstance()->getDbConnect();
   db.transaction(); // start transaction before inserting
 
   // Copy avatar to local folder and update user object
   QString localAva =
       saveAvatarLocally(emp->getIdEmployee(), emp->getAvatarPath());
+  qDebug() << emp->getIdEmployee() << '\n';
   emp->setAva(localAva);
 
   QSqlQuery qProfile(db);
@@ -392,8 +396,10 @@ QList<User *> Employee_Model::filterInEmployee(QList<User *> inputList, QList<QS
 QList<User *> Employee_Model::searchInEmployee(QList<User *> inputList, QString contentSearch)
 {
   QList<User *> listOfEmployeeForSearch;
-  contentSearch = this->removeAccent(contentSearch);
+
   contentSearch = contentSearch.toLower();
+  contentSearch = this->removeAccent(contentSearch);
+
   for (int i = 0; i < inputList.size(); i++)
   {
     QString pattern = this->getPattern(inputList[i]);

@@ -40,5 +40,5 @@ private slots:
 private:
     EmployeesWidget  *m_view;
     Employee_Model   *m_model;
-    QList<User *>     m_employees; // full unfiltered cache for metric cards
+    //QList<User *>     m_employees; // full unfiltered cache for metric cards
 };
