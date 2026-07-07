@@ -562,10 +562,10 @@ void EmployeesWidget::emitUpdateRequest()
 
     QList<QString> contentFilter;
     if (chkStaff->isChecked())   contentFilter << "Staff";
-    if (chkManager->isChecked()) contentFilter << "Manager";
+    if (chkManager->isChecked()) contentFilter << "Manage";
     if (chkAdmin->isChecked())   contentFilter << "Admin";
-    if (chkMale->isChecked())    contentFilter << "Nam" << "Male";
-    if (chkFemale->isChecked())  contentFilter << "Nữ" << "Female";
+    if (chkMale->isChecked())    contentFilter << "Nam";
+    if (chkFemale->isChecked())  contentFilter << "Nữ";
 
     // change code, if have many field to sort
     QList<QString> contentSort;
@@ -770,7 +770,7 @@ QLabel *EmployeesWidget::createRoleBadge(const QString &role)
 {
   // Display Vietnamese label but use the English role string for logic checks
   QString displayRole;
-  if (role == "Manager")
+  if (role == "Manage")
     displayRole = "Quản lý";
   else if (role == "Admin")
     displayRole = "Quản trị viên";
