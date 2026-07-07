@@ -3,7 +3,8 @@
 #include <QString>
 #include <QSqlQuery>
 #include <QSqlError>
-
+#include <QCoreApplication>
+#include <QDir>
 class Database {
 private:
 	static Database* instance;
