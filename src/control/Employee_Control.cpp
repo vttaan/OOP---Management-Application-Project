@@ -140,7 +140,7 @@ void Employee_Control::handleDeleteEmployee(int idEmployee)
 }
 
 // ============================================================
-// Combined filter → search → sort pipeline (Rabin-Karp + stable_sort)
+// Combined filter → search → sort pipeline
 // ============================================================
 
 void Employee_Control::handleUpdate(const QString &searchText,
