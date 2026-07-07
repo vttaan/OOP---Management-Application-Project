@@ -28,7 +28,6 @@ public:
         qDeleteAll(listEmployee);
         listEmployee.clear();
     }
-    //QList<User *> getAllEmployees(); //HAVE LISTEMPLOYEE, NOT CREATE NEW LIST, JUST GETS DATA LIST.
     QList<User *> getListEmployee() { return this->listEmployee; }
     bool addUserInList(User* emp);
     bool popUserInList(short idEmployee);
@@ -42,8 +41,8 @@ public:
                      const QString &phone, const QString &gender,
                      const QString &username, const QString &password);
 
-    bool updateEmployee(short idEmployee, const QString &role, const QString &avatarPath,
+    bool updateEmployee(/*short idEmployee, const QString &role, const QString &avatarPath,
                         const QString &citizenId, const QString &name, const QString &dob,
-                        const QString &address, const QString &phone, const QString &gender);
+                        const QString &address, const QString &phone, const QString &gender*/ User* emp);
     bool deleteEmployee(short idEmployee);
 };

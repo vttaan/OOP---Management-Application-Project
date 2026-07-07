@@ -10,33 +10,7 @@
 
 Employee_Model::Employee_Model() {}
 
-/*QList<User *> Employee_Model::getAllEmployees() {
-  QList<User *> list;
 
-  QSqlDatabase db = Database::getInstance()->getDbConnect();
-  QSqlQuery query("SELECT * FROM PROFILES",
-                  db); // Fixed: QSqlQuery (was QSqlDatabase)
-
-  while (query.next()) {
-    short int id = query.value("idEmployee").toInt();
-    QString role = query.value("role").toString();
-    QString name = query.value("name").toString();
-    QString phone = query.value("phoneNum").toString();
-    QString dob = query.value("dob").toString();
-    QString address = query.value("address").toString();
-    QString avatar = query.value("avatarPath").toString();
-    QString citizenId = query.value("IdCitizenIdentity").toString();
-    QString curGender = query.value("Gender").toString();
-
-    User *emp = UserFactory::createContainsUser(
-        role, id, avatar, citizenId, name, dob, address, phone,
-        curGender); // Fixed: citizenID → citizenId
-    if (emp) {
-      list.append(emp);
-    }
-  }
-  return list;
-}*/
 
 bool Employee_Model::addUserInList(User* emp) {
     if(emp == nullptr) return false;
@@ -110,9 +84,7 @@ bool Employee_Model::addEmployee(const QString &role, const QString &avatarPath,
 }
 
 
-// lack of data field, What is content updated?
-
-/*bool Employee_Model::updateEmployee(User *emp) {
+bool Employee_Model::updateEmployee(User *emp) {
   if (!emp)
     return false;
 
@@ -141,7 +113,7 @@ bool Employee_Model::addEmployee(const QString &role, const QString &avatarPath,
     return false;
   }
   return true;
-}*/
+}
 
 bool Employee_Model::deleteEmployee(short idEmployee) {
   QSqlDatabase db = Database::getInstance()->getDbConnect();

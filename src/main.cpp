@@ -26,5 +26,8 @@ int main(int argc, char *argv[])
   if (appWindow && appWindow->viewWindow)
     appWindow->viewWindow->show();
 
-  return app.exec();
+    int res = app.exec();
+
+    Database::getInstance()->closeConnect();
+    return res;
 }
