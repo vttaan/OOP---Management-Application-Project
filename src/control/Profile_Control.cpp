@@ -73,7 +73,8 @@ bool Profile_Control::checkIfMatchOldPassword(const QString& password) {
 
 void Profile_Control::loadUserData() { this->getView()->loadUserData(this->currentSession); }
 
-QString Profile_Control::saveAvatarLocally(int empId, const QString &sourcePath) {
+QString Profile_Control::saveAvatarLocally(int empId,
+                                          const QString &sourcePath) {
     if (sourcePath.isEmpty())
         return "";
 
@@ -84,9 +85,11 @@ QString Profile_Control::saveAvatarLocally(int empId, const QString &sourcePath)
     QFileInfo sourceInfo(sourcePath);
     if (!sourceInfo.exists())
         return "";
-
+    QDir appDir = QCoreApplication::applicationDirPath(); // debug folder
+    appDir.cdUp(); // build folder
+    appDir.cdUp(); // MAP folder
     // Create "avatars" directory in application directory if not exists
-    QString targetDir = QCoreApplication::applicationDirPath() + "/avatars";
+    QString targetDir = appDir.filePath("resources") + "/avatars"; // avatars folder in resouces folder
     QDir dir(targetDir);
     if (!dir.exists()) {
         dir.mkpath(".");
