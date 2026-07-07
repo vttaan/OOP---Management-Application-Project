@@ -77,6 +77,7 @@ set(PROJECT_SOURCES
         src/view/employeecard.h
         src/view/AddEmployee_Dialog.h
         src/view/EditEmployee_Dialog.h
+        src/view/main_view.h
         # CPP
         src/view/Login_View.cpp
         src/view/Dashboard_View.cpp
@@ -88,6 +89,7 @@ set(PROJECT_SOURCES
         src/view/employeecard.cpp
         src/view/AddEmployee_Dialog.cpp
         src/view/EditEmployee_Dialog.cpp
+        src/view/main_view.cpp
         # UI
         src/view/Login_View.ui
         src/view/Dashboard_View.ui
@@ -95,6 +97,7 @@ set(PROJECT_SOURCES
         src/view/Profile_View.ui
         src/view/employeeswidget.ui
         src/view/employeecard.ui
+        src/view/main_view.ui
 )
 
 qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
