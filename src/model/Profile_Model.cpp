@@ -6,7 +6,7 @@ bool Profile_Model::updateProfile(short int idEmployee, const QString& name, con
     QSqlDatabase openData = Database::getInstance()->getDbConnect();
     QSqlQuery query(openData);
     
-    query.prepare("UPDATE PROFILES SET name = :name, dob = :dob, address = :address, phoneNum = :phoneNum, IdCitizenIndentity = :citizenId, avatarPath = :avatarPath WHERE idEmployee = :id");
+    query.prepare("UPDATE PROFILES SET name = :name, dob = :dob, address = :address, phoneNum = :phoneNum, IdCitizenIdentity = :citizenId, avatarPath = :avatarPath WHERE idEmployee = :id");
     query.bindValue(":name", name);
     query.bindValue(":dob", dob);
     query.bindValue(":address", address);

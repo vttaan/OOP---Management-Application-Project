@@ -68,7 +68,7 @@ Profile_View::~Profile_View()
 
 void Profile_View::loadUserData(SessionManager* currentSession) {
 
-    
+    qDebug() << this->getController()->getUser()->getName();
     ui->lblProfileName->setText(this->getController()->getUser()->getName());
     ui->lblProfileRole->setText(this->getController()->getUser()->getRole());
     ui->lblVal_Id->setText(QString::number(this->getController()->getUser()->getIdEmployee()));
@@ -84,15 +84,15 @@ void Profile_View::loadUserData(SessionManager* currentSession) {
 void Profile_View::setupAvatar(const QString& imagePath)
 {
     QDir appDir(QCoreApplication::applicationDirPath()); // ......./Debug
-    appDir.cdUp(); // ..../MAP/build
-    appDir.cdUp(); // ..../MAP
+    // appDir.cdUp(); // ..../MAP/build
+    // appDir.cdUp(); // ..../MAP
     QString folderPath = appDir.filePath("resources"); // .../MAP/resources
     qDebug() << folderPath;
 
-    QPixmap avatarPixmap(folderPath + "/" + imagePath);
-    if(!imagePath.isEmpty() && QFileInfo::exists(imagePath)) { // image exists
+    QPixmap avatarPixmap(appDir.filePath("avatars") + "/" + imagePath);
+    if(!imagePath.isEmpty() && QFileInfo::exists(appDir.filePath("avatars") + "/" + imagePath)) { // image exists
         //qDebug() << "found";
-        avatarPixmap.load(imagePath);
+        avatarPixmap.load(appDir.filePath("avatars") + "/" + imagePath);
     }
 
     if(avatarPixmap.isNull()) {
@@ -159,6 +159,7 @@ void Profile_View::on_btnEditInfo_clicked()
 {
     // Populate the edit panel with the current user's data and show it
     if (this->getController()->getUser()) {
+        qDebug() << this->getController()->getUser()->getAvatarPath();
         editProfileWidget->setInitialData(this->getController()->getUser()->getName(), this->getController()->getUser()->getDOB(),
                                           this->getController()->getUser()->getAddress(), this->getController()->getUser()->getPhoneNum(),
                                           this->getController()->getUser()->getIdentityID(), this->getController()->getUser()->getAvatarPath());

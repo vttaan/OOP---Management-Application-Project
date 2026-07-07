@@ -80,7 +80,7 @@ bool Employee_Model::addEmployee(const QString &role, const QString &avatarPath,
   qProfile.bindValue(":phone", emp->getPhoneNum());
   qProfile.bindValue(":dob", emp->getDOB());
   qProfile.bindValue(":address", emp->getAddress());
-  qProfile.bindValue(":avatar", emp->getAvatarPath());
+  qProfile.bindValue(":avatar", localAva);
   qProfile.bindValue(":citizen", emp->getIdentityID());
   qProfile.bindValue(":Gender", emp->getGender());
   if (!qProfile.exec()) {
@@ -104,7 +104,7 @@ bool Employee_Model::addEmployee(const QString &role, const QString &avatarPath,
       return false;
     }
   }
-  if(!this->addUserInList(emp)) qDebug() << "ADD USER IN LIST FAILDE, POINTER USER IS NULL\n";
+  if(!this->addUserInList(emp)) qDebug() << "ADD USER IN LIST FAILED, POINTER USER IS NULL\n";
   else qDebug() << "ADD USER IN LIST SUCCESS\n";  // add in list, uses for sort, search, filter.
   return db.commit();
 }
@@ -198,7 +198,7 @@ QString Employee_Model::saveAvatarLocally(int empId,
   }
 
   if (QFile::copy(sourcePath, targetPath)) {
-    return targetPath;
+    return QString("avatar_%1.%2").arg(empId).arg(ext);
   }
 
   return sourcePath;

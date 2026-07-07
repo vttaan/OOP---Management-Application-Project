@@ -110,9 +110,7 @@ void EditProfile_Widget::setInitialData(const QString& name, const QString& dob,
     
     // Load avatar preview
     QDir appDir(QCoreApplication::applicationDirPath());
-    appDir.cdUp();
-    appDir.cdUp();
-    QString folderPath = appDir.filePath("resources");
+    QString folderPath = appDir.filePath("avatars");
     
     QPixmap pixmap(folderPath + "/" + avatarPath);
     if(avatarPath.isEmpty() || !QFileInfo::exists(folderPath + "/" + avatarPath) || pixmap.isNull()) {
@@ -195,33 +193,10 @@ void EditProfile_Widget::onCancelClicked() {
 void EditProfile_Widget::onChangeAvatarClicked() {
     QString filePath = QFileDialog::getOpenFileName(this, "Chọn ảnh đại diện", "", "Images (*.png *.xpm *.jpg *.jpeg)");
     if (!filePath.isEmpty()) {
-        QFileInfo fileInfo(filePath);
-        QString fileName = fileInfo.fileName();
-        
-        QDir appDir(QCoreApplication::applicationDirPath());
-        appDir.cdUp();
-        appDir.cdUp();
-        QString destFolder = appDir.filePath("resources/images");
-        
-        QDir dir(destFolder);
-        if (!dir.exists()) {
-            dir.mkpath(".");
-        }
-        
-        QString destPath = destFolder + "/" + fileName;
-        
-        // Copy file if it's not already in the target directory
-        if (filePath != destPath) {
-            if (QFile::exists(destPath)) {
-                QFile::remove(destPath); // Remove existing file with the same name
-            }
-            QFile::copy(filePath, destPath);
-        }
-        
-        currentAvatarPath = "images/" + fileName;
+        currentAvatarPath = filePath;
         
         // Update preview
-        QPixmap pixmap(destPath);
+        QPixmap pixmap(filePath);
         if (!pixmap.isNull()) {
             QPixmap scaled = pixmap.scaled(100, 100, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
             lblAvatarPreview->setPixmap(scaled);

@@ -27,6 +27,9 @@ Control_Navigator::Control_Navigator()
     QObject::connect(this->loginController, &Login_Control::loginSuccessful,
                      this->viewWindow, [this]() {
         this->switchTab(1); // Switch to Dashboard (index 1)
+        this->profileController->currentSession = this->currentSession;
+        this->profileController->loadUserData();
+        //qDebug() << "current user: " << this->currentSession->getCurrentUser()->getName();
         // the whole app's session is updated
     });
 
@@ -40,6 +43,8 @@ Control_Navigator::Control_Navigator()
     QObject::connect(this->dashboardController, &Dashboard_Control::profilePageClicked,
                      this->viewWindow, [this]() {
         this->switchTab(2); // Switch to Profile (index 2)
+        //this->profileController->hand
+        //qDebug() << this->profileController->currentSession->getCurrentUser()->getName();
         // no need to load user data for profile since its session already pointed to the whole app's session
     });
 
@@ -51,6 +56,7 @@ Control_Navigator::Control_Navigator()
     QObject::connect(this->employeeController, &Employee_Control::profilePageClicked,
                      this->viewWindow, [this]() {
                          this->switchTab(2); // from Employee (index 3) switch to Profile (index 2)
+                        //qDebug() << this->profileController->currentSession->getCurrentUser()->getName();
                      });
     QObject::connect(this->employeeController, &Employee_Control::backToDashBoard,
                      this->viewWindow, [this]() {

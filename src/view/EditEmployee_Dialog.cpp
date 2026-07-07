@@ -62,7 +62,7 @@ void EditEmployee_Dialog::setupUi(User *emp)
 
     inpName      = makeInput("vd: Nguyễn Văn A",          emp ? emp->getName()        : "");
     inpPhone     = makeInput("vd: 0901234567",             emp ? emp->getPhoneNum()    : "");
-    inpDob       = makeInput("YYYY-MM-DD",                 emp ? emp->getDOB()         : "");
+    inpDob       = makeInput("DD-MM-YYYY",                 emp ? emp->getDOB()         : "");
     inpAddress   = makeInput("vd: 123 Lê Lợi, TP.HCM",   emp ? emp->getAddress()     : "");
     inpCitizenId = makeInput("vd: 012345678901",           emp ? emp->getIdentityID() : "");
 
