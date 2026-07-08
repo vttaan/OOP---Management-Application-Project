@@ -8,7 +8,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON) 
 set(CMAKE_AUTOUIC ON)
 
-# set(CMAKE_PREFIX_PATH "C:/Qt/6.11.1/mingw_64")
+#set(CMAKE_PREFIX_PATH "C:/Qt/6.11.1/mingw_64")
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Sql)
 
 
@@ -78,6 +78,7 @@ set(PROJECT_SOURCES
         src/view/AddEmployee_Dialog.h
         src/view/EditEmployee_Dialog.h
         src/view/main_view.h
+        src/view/Schedule_View.h
         # CPP
         src/view/Login_View.cpp
         src/view/Dashboard_View.cpp
@@ -90,6 +91,7 @@ set(PROJECT_SOURCES
         src/view/AddEmployee_Dialog.cpp
         src/view/EditEmployee_Dialog.cpp
         src/view/main_view.cpp
+        src/view/Schedule_View.cpp
         # UI
         src/view/Login_View.ui
         src/view/Dashboard_View.ui
@@ -98,6 +100,7 @@ set(PROJECT_SOURCES
         src/view/employeeswidget.ui
         src/view/employeecard.ui
         src/view/main_view.ui
+        src/view/Schedule_View.ui
 )
 
 qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
@@ -110,7 +113,8 @@ qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
     src/control/Profile_Control.h src/control/Profile_Control.cpp
     src/control/Control_Navigator.h src/control/Control_Navigator.cpp
     src/control/Dashboard_Control.h src/control/Dashboard_Control.cpp
-    src/model/Employee_Model.cpp src/model/Employee_Model.h)
+    src/model/Employee_Model.cpp src/model/Employee_Model.h
+    src/view/Schedule_View.h src/view/Schedule_View.cpp src/view/Schedule_View.ui)
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core Qt6::Widgets Qt6::Sql)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
