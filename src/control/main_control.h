@@ -11,11 +11,10 @@ public:
     explicit Main_Control(QObject *parent = nullptr);
     ~Main_Control();
 
-    void init(); // Hàm dùng để hiển thị giao diện
-
+    void init();
 private:
     Main_View* view;
-
+    bool isSidebarExpanded = true;
 private slots:
     void handleOverviewClicked();
     void handleHRClicked();
@@ -24,6 +23,7 @@ private slots:
     void handleReportClicked();
     void handleSettingsClicked();
     void handleProfileClicked();
+    void handleToggleSidebar();
 };
 
 #endif

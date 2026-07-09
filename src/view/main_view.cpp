@@ -21,7 +21,7 @@ Main_View::Main_View(QWidget *parent) :
     connect(ui->btnMenu_Salary, &QPushButton::clicked, this, &Main_View::menuSalaryClicked);
     connect(ui->btnMenu_Report, &QPushButton::clicked, this, &Main_View::menuReportClicked);
     connect(ui->btnMenu_Settings, &QPushButton::clicked, this, &Main_View::menuSettingsClicked);
-
+    connect(ui->btnToggleSidebar, &QPushButton::clicked, this, &Main_View::toggleSidebarClicked);
     ui->lblAvatar->setCursor(Qt::PointingHandCursor);
     ui->lblUserName->setCursor(Qt::PointingHandCursor);
     ui->lblUserRole->setCursor(Qt::PointingHandCursor);
@@ -53,7 +53,6 @@ void Main_View::switchPage(int pageIndex)
     ui->btnMenu_Salary->setStyleSheet(defaultStyle);
     ui->btnMenu_Report->setStyleSheet(defaultStyle);
     ui->btnMenu_Settings->setStyleSheet(defaultStyle);
-
     switch(pageIndex) {
     case 0: ui->btnMenu_Overview->setStyleSheet(activeStyle); break;
     case 1: ui->btnMenu_HR->setStyleSheet(activeStyle); break;
@@ -158,4 +157,8 @@ void Main_View::addOffEmployeeItem(const QString& name, const QString& reason, c
 
     item->setSizeHint(QSize(0, 45));
     ui->listOffEmployees->setItemWidget(item, rowWidget);
+}
+QWidget* Main_View::getSidebar()
+{
+    return ui->frmSidebar;
 }

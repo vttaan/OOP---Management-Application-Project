@@ -1,5 +1,7 @@
 #include "main_control.h"
 #include <QDebug>
+#include <QPropertyAnimation>
+#include <QParallelAnimationGroup>
 
 Main_Control::Main_Control(QObject *parent) : QObject(parent), view(new Main_View())
 {
@@ -10,6 +12,7 @@ Main_Control::Main_Control(QObject *parent) : QObject(parent), view(new Main_Vie
     connect(view, &Main_View::menuReportClicked, this, &Main_Control::handleReportClicked);
     connect(view, &Main_View::menuSettingsClicked, this, &Main_Control::handleSettingsClicked);
     connect(view, &Main_View::profileClicked, this, &Main_Control::handleProfileClicked);
+    connect(view, &Main_View::toggleSidebarClicked, this, &Main_Control::handleToggleSidebar);
 }
 
 Main_Control::~Main_Control()
@@ -74,4 +77,30 @@ void Main_Control::handleSettingsClicked() {
 void Main_Control::handleProfileClicked() {
     qDebug() << "Mo trang Quan Tri Vien";
     view->switchPage(6);
+}
+void Main_Control::handleToggleSidebar()
+{
+    QWidget* sidebar = view->getSidebar();
+
+    QParallelAnimationGroup *group = new QParallelAnimationGroup(this);
+    QPropertyAnimation *animMin = new QPropertyAnimation(sidebar, "minimumWidth");
+    QPropertyAnimation *animMax = new QPropertyAnimation(sidebar, "maximumWidth");
+
+    animMin->setDuration(300);
+    animMax->setDuration(300);
+
+    if (isSidebarExpanded) {
+        animMin->setStartValue(260); animMin->setEndValue(0);
+        animMax->setStartValue(260); animMax->setEndValue(0);
+    } else {
+        animMin->setStartValue(0); animMin->setEndValue(260);
+        animMax->setStartValue(0); animMax->setEndValue(260);
+    }
+
+    group->addAnimation(animMin);
+    group->addAnimation(animMax);
+
+    group->start(QAbstractAnimation::DeleteWhenStopped);
+
+    isSidebarExpanded = !isSidebarExpanded;
 }
