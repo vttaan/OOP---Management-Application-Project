@@ -1,6 +1,8 @@
 <RCC>
     <qresource prefix="/">
         <file>styles/styles.qss</file>
+	<file>styles/Employee_View_styles.qss</file>
+
         <file>images/login_bg.jpg</file>
         <file>images/eyeClosed.svg</file>
         <file>images/eyeOpen.svg</file>
@@ -12,5 +14,17 @@
         <file>images/image6.jpg</file>
         <file>images/image7.jpg</file>
         <file>images/image1.jpg</file>
+        <file>images/homeIcon.png</file>
+        <file>images/avatarSample.png</file>
+        <file>images/trash-bin-trash-svgrepo-com.svg</file>
+        <file>images/edit-svgrepo-com.svg</file>
+        <file>images/people-svgrepo-com.svg</file>
+        <file>images/warning-circle-svgrepo-com.svg</file>
+        <file>images/dolar-svgrepo-com.svg</file>
+        <file>images/sort-vertical-svgrepo-com.svg</file>
+        <file>images/filter.svg</file>
+        <file>images/filter-slash.svg</file>
+        <file>images/sort-from-bottom-to-top.svg</file>
+        <file>images/sort-from-top-to-bottom.svg</file>
     </qresource>
 </RCC>

@@ -1,0 +1,15 @@
+# Chặn các thư mục build tự động của Qt Creator / CMake
+build*/
+*.user
+
+# Chặn các file Qt tự sinh (Meta-Object Compiler, UI Headers)
+moc_*.cpp
+ui_*.h
+qrc_*.cpp
+*.o
+*.obj
+
+# Chặn file database local 
+*.db
+*.sqlite
+*.sqlite3

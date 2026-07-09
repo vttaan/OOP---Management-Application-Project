@@ -5,6 +5,6 @@ private:
 	double fixSalary;
 	short int dayWork;
 public:
-	Manager(QString r, short int idEmp, QString ava, QString idCit, QString n, QString d, QString add, QString phone);
+    Manager(QString r, short int idEmp, QString ava, QString idCit, QString n, QString d, QString add, QString phone, QString gender);
 	double getSalary() const override;
 };

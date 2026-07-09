@@ -12,18 +12,21 @@ protected:
 	QString dob;
 	QString address;
 	QString phoneNum;
+    QString gender;
 public:
-	User(QString r, short int idEmp, QString ava, QString idCit, QString n, QString d, QString add, QString phone);
+    User(QString r, short int idEmp, QString ava, QString idCit, QString n, QString d, QString add, QString phone ,QString gender);
 	virtual ~User() = default;
 	virtual double getSalary() const = 0;
 	QString getRole() const;
 	short int getIdEmployee() const;
-	QString getIndentityID() const;
+    QString getIdentityID() const;
 	QString getName() const;
 	QString getDOB() const;
 	QString getAddress() const;
 	QString getAvatarPath() const;
 	QString getPhoneNum() const;
+    QString getGender() const;
+    QString getAnyAttributes(QString content) const;
 	void setRole(QString r);
 	void setIdEmployee(short int id);
 	void setAva(QString a);

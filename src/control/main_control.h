@@ -1,8 +1,11 @@
 #ifndef MAIN_CONTROL_H
 #define MAIN_CONTROL_H
 
+
+
 #include <QObject>
-#include "view/main_view.h"
+
+class Main_View;
 
 class Main_Control : public QObject
 {
@@ -12,18 +15,9 @@ public:
     ~Main_Control();
 
     void init();
+
 private:
-    Main_View* view;
-    bool isSidebarExpanded = true;
-private slots:
-    void handleOverviewClicked();
-    void handleHRClicked();
-    void handleTimekeepClicked();
-    void handleSalaryClicked();
-    void handleReportClicked();
-    void handleSettingsClicked();
-    void handleProfileClicked();
-    void handleToggleSidebar();
+    Main_View* view = nullptr;
 };
 
-#endif
+#endif // MAIN_CONTROL_H

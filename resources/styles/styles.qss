@@ -142,4 +142,540 @@ QPushButton#btnLogin:pressed {
     border: 1px solid rgba(120, 190, 255, 60%);
 }
 
+/* --- Profile View Base Layout --- */
+#profileScrollArea {
+    background-color: #f7f9fc;
+    border: none;
+}
 
+#profileContentWidget {
+    background-color: #f7f9fc;
+}
+
+/* --- Card Styling --- */
+QFrame#cardGeneral, QFrame#cardDetailed {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+/* --- Headers & Banners --- */
+/* Blue Banner (Thông tin chung) */
+QFrame#bannerGeneral {
+    background-color: #003c71; /* Deep Blue */
+    border-top-left-radius: 7px;
+    border-top-right-radius: 7px;
+    border-bottom-left-radius: 0px;
+    border-bottom-right-radius: 0px;
+    min-height: 50px;
+    max-height: 50px;
+}
+
+QLabel#lblTitleGeneral {
+    color: #ffffff;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 20px;
+    font-weight: bold;
+    padding-left: 15px;
+}
+
+/* Slanted Orange Banner (Thông tin chi tiết) */
+QFrame#bannerDetailed {
+    /* Creates a slanted diagonal separator at 30% width using a sharp gradient transition */
+    background: qlineargradient(
+        x1:0, y1:0, x2:1, y2:0,
+        stop:0 #e07a12,
+        stop:0.40 #e07a12,
+        stop:0.45 transparent,
+        stop:1.0 transparent
+    );
+    border: none;
+    min-height: 50px;
+    max-height: 50px;
+}
+
+QLabel#lblTitleDetailed {
+    color: #ffffff;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 20px;
+    font-weight: bold;
+    padding-left: 15px;
+}
+
+/* --- Profile Left Column --- */
+QLabel#lblAvatar {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background-color: #f1f5f9;
+}
+
+QLabel#lblProfileName {
+    color: #1e293b;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+QLabel#lblProfileRole {
+    color: #64748b;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+}
+
+/* --- Info Details Labels --- */
+/* Small header text */
+QLabel[class="lblFieldTitle"] {
+    color: #94a3b8;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+/* Value text */
+QLabel[class="lblFieldValue"] {
+    color: #0f172a;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+/* --- Profile & Password Edit Info Button --- */
+QPushButton#btnEditInfo {
+    background-color: #003c71; /* Deep Blue matching General Banner */
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 16px;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    min-height: 32px;
+}
+
+QPushButton#btnEditInfo:hover {
+    background-color: #002b52;
+}
+
+QPushButton#btnEditInfo:pressed {
+    background-color: #001f3d;
+}
+
+
+QPushButton#btnEditPassword {
+    background-color: #003c71; /* Deep Blue matching General Banner */
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 16px;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    min-height: 32px;
+}
+
+QPushButton#btnEditPassword:hover {
+    background-color: #002b52;
+}
+
+QPushButton#btnEditPassword:pressed {
+    background-color: #001f3d;
+}
+
+
+/* ╔══════════════════════════════════════════════════════════╗ */
+/* ║          EmployeesWidget  —  F&B Dashboard Theme         ║ */
+/* ║  Sections:                                               ║ */
+/* ║    1. Root Widget                                        ║ */
+/* ║    2. Profile Block (top-right user card)                ║ */
+/* ║    3. Metric Summary Cards                               ║ */
+/* ║    4. Roster Card (header, search, filter, add-btn)      ║ */
+/* ║    5. Staff Table                                        ║ */
+/* ║    6. Table Footer                                       ║ */
+/* ║    7. Shared Scrollbars                                  ║ */
+/* ╚══════════════════════════════════════════════════════════╝ */
+
+
+/* ── 1. ROOT WIDGET ─────────────────────────────────────── */
+
+EmployeesWidget {
+    background-color: #F8FAFC;
+    color: #0F172A;
+    font-family: "Segoe UI", "Inter", Arial, sans-serif;
+}
+
+
+/* ── 2. PROFILE BLOCK ───────────────────────────────────── */
+
+EmployeesWidget #profileBlock {
+    background-color: transparent;
+    min-height: 52px;
+    max-height: 52px;
+}
+
+EmployeesWidget #lblPageTitle {
+    color: #0F172A;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+/* Clickable user identity card */
+EmployeesWidget #userCard {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+}
+EmployeesWidget #userCard:hover {
+    background-color: #F1F5F9;
+    border-color: #BFDBFE;
+}
+
+/*
+ * NOTE: userAvatar background-color is set inline in C++ because
+ * it carries the accent blue colour (#2563EB) which is not a
+ * named-object property.
+ */
+
+EmployeesWidget #userName {
+    color: #1E293B;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+EmployeesWidget #userRole {
+    color: #64748B;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+EmployeesWidget #userCaret {
+    color: #94A3B8;
+    font-size: 16px;
+    font-weight: bold;
+    background-color: transparent;
+}
+
+
+/* ── 3. METRIC SUMMARY CARDS ────────────────────────────── */
+
+EmployeesWidget #metricCard {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+}
+EmployeesWidget #metricCard:hover {
+    border-color: #BFDBFE;
+    background-color: #F8FBFF;
+}
+
+EmployeesWidget #metricTitle {
+    color: #64748B;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+}
+
+EmployeesWidget #metricValue {
+    color: #0F172A;
+    font-size: 26px;
+    font-weight: 700;
+}
+
+EmployeesWidget #metricSubtitle {
+    color: #94A3B8;
+    font-size: 11px;
+}
+
+/*
+ * NOTE: metricIcon background-color / border-radius are set inline
+ * in C++ because each card requires a different colour token.
+ */
+
+
+/* ── 4. ROSTER CARD ─────────────────────────────────────── */
+
+EmployeesWidget #rosterCard {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+}
+
+EmployeesWidget #rosterHeader {
+    background-color: transparent;
+}
+
+EmployeesWidget #rosterTitle {
+    color: #0F172A;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+EmployeesWidget #rosterSubtitle {
+    color: #94A3B8;
+    font-size: 11px;
+}
+
+EmployeesWidget #tableDivider {
+    color: #E2E8F0;
+    max-height: 1px;
+}
+
+/* Search bar inside roster header */
+EmployeesWidget #searchRoster {
+    background-color: #F8FAFC;
+    color: #374151;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    padding: 3px 12px;
+    font-size: 12px;
+}
+EmployeesWidget #searchRoster:focus {
+    border: 1px solid #93C5FD;
+    background-color: #FFFFFF;
+}
+
+/* Sort / Filter combo box */
+EmployeesWidget #filterCombo {
+    background-color: #F8FAFC;
+    color: #374151;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    padding: 3px 8px;
+    font-size: 12px;
+    min-width: 100px;
+}
+EmployeesWidget #filterCombo:hover {
+    border-color: #93C5FD;
+    background-color: #F1F5F9;
+}
+EmployeesWidget #filterCombo::drop-down {
+    border: none;
+    width: 20px;
+}
+EmployeesWidget #filterCombo QAbstractItemView {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 6px;
+    selection-background-color: #EFF6FF;
+    selection-color: #1E40AF;
+    outline: none;
+}
+
+/* Add Staff primary button */
+EmployeesWidget #addEmployeeBtn {
+    background-color: #2563EB;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 8px;
+    padding: 0px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    min-width: 100px;
+}
+EmployeesWidget #addEmployeeBtn:hover {
+    background-color: #1D4ED8;
+}
+EmployeesWidget #addEmployeeBtn:pressed {
+    background-color: #1E40AF;
+}
+
+/* Filter / Sort icon buttons — light theme */
+EmployeesWidget #filterBtn,
+EmployeesWidget #sortBtn {
+    background-color: #F1F5F9;
+    border: 1px solid #CBD5E1;
+    border-radius: 8px;
+    color: #374151;
+    padding: 0px;
+}
+EmployeesWidget #filterBtn:hover,
+EmployeesWidget #sortBtn:hover {
+    background-color: #E2E8F0;
+    border-color: #93C5FD;
+}
+EmployeesWidget #filterBtn:pressed,
+EmployeesWidget #sortBtn:pressed {
+    background-color: #CBD5E1;
+}
+
+/* Filter / Sort floating dropdowns — light theme */
+EmployeesWidget #filterDropdown,
+EmployeesWidget #sortDropdown {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    color: #1E293B;
+}
+EmployeesWidget #filterDropdown QCheckBox,
+EmployeesWidget #sortDropdown QCheckBox {
+    color: #374151;
+    font-size: 12px;
+    spacing: 6px;
+}
+EmployeesWidget #filterDropdown QCheckBox::indicator,
+EmployeesWidget #sortDropdown QCheckBox::indicator {
+    width: 14px;
+    height: 14px;
+    border: 1px solid #CBD5E1;
+    border-radius: 3px;
+    background: #F8FAFC;
+}
+EmployeesWidget #filterDropdown QCheckBox::indicator:checked,
+EmployeesWidget #sortDropdown QCheckBox::indicator:checked {
+    background: #2563EB;
+    border-color: #3B82F6;
+}
+EmployeesWidget #filterSectionLabel {
+    color: #94A3B8;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+EmployeesWidget #filterSeparator {
+    color: #E2E8F0;
+    max-height: 1px;
+}
+EmployeesWidget #sortDropdownItem {
+    color: #374151;
+    font-size: 12px;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    text-align: left;
+    padding: 5px 10px;
+}
+EmployeesWidget #sortDropdownItem:hover {
+    background-color: #F1F5F9;
+    color: #2563EB;
+}
+
+
+/* ── 5. STAFF TABLE ─────────────────────────────────────── */
+
+EmployeesWidget #employeesTable {
+    background-color: #FFFFFF;
+    alternate-background-color: #F8FAFC;
+    color: #0F172A;
+    border: none;
+    gridline-color: transparent;
+    selection-background-color: #EFF6FF;
+    selection-color: #1E40AF;
+    outline: none;
+}
+
+EmployeesWidget #employeesTable::item {
+    padding: 5px 8px;
+    border-bottom: 1px solid #F1F5F9;
+}
+EmployeesWidget #employeesTable::item:hover {
+    background-color: #F0F9FF;
+}
+EmployeesWidget #employeesTable::item:selected {
+    background-color: #EFF6FF;
+    color: #1E40AF;
+}
+
+EmployeesWidget QHeaderView {
+    background-color: transparent;
+}
+EmployeesWidget QHeaderView::section {
+    background-color: #F8FAFC;
+    color: #64748B;
+    padding: 9px 8px;
+    border: none;
+    border-bottom: 2px solid #E2E8F0;
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+}
+
+EmployeesWidget #empNameLabel {
+    color: #1E293B;
+    font-size: 12px;
+    font-weight: 600;
+    background-color: transparent;
+}
+
+/*
+ * NOTE: empAvatar, role badges, status badges use inline styles
+ * in C++ because each instance requires a unique colour.
+ */
+
+/* Edit / Delete icon buttons */
+EmployeesWidget #tableActionBtn {
+    background-color: transparent;
+    border: 1px solid #E2E8F0;
+    border-radius: 6px;
+    font-size: 13px;
+}
+EmployeesWidget #tableActionBtn:hover {
+    background-color: #F1F5F9;
+    border-color: #CBD5E1;
+}
+EmployeesWidget #tableActionBtn:pressed {
+    background-color: #E2E8F0;
+}
+
+
+/* ── 6. TABLE FOOTER ────────────────────────────────────── */
+
+EmployeesWidget #tableFooterFrame {
+    background-color: #F8FAFC;
+    border-top: 1px solid #E2E8F0;
+    border-bottom-left-radius: 14px;
+    border-bottom-right-radius: 14px;
+}
+
+EmployeesWidget #footerLabel {
+    color: #94A3B8;
+    font-size: 11px;
+}
+
+
+/* ── 7. SCROLLBARS ──────────────────────────────────────── */
+
+EmployeesWidget QScrollBar:vertical {
+    border: none;
+    background-color: #F8FAFC;
+    width: 7px;
+    margin: 0px;
+}
+EmployeesWidget QScrollBar::handle:vertical {
+    background-color: #CBD5E1;
+    min-height: 24px;
+    border-radius: 3px;
+}
+EmployeesWidget QScrollBar::handle:vertical:hover {
+    background-color: #94A3B8;
+}
+EmployeesWidget QScrollBar::add-line:vertical,
+EmployeesWidget QScrollBar::sub-line:vertical {
+    height: 0px;
+}
+
+EmployeesWidget QScrollBar:horizontal {
+    border: none;
+    background-color: #F8FAFC;
+    height: 7px;
+    margin: 0px;
+}
+EmployeesWidget QScrollBar::handle:horizontal {
+    background-color: #CBD5E1;
+    min-width: 24px;
+    border-radius: 3px;
+}
+EmployeesWidget QScrollBar::handle:horizontal:hover {
+    background-color: #94A3B8;
+}
+EmployeesWidget QScrollBar::add-line:horizontal,
+EmployeesWidget QScrollBar::sub-line:horizontal {
+    width: 0px;
+}
+
+EmployeesWidget QLabel#userAvatar {
+    background-color: #2563EB;
+    color: #FFFFFF;
+    border-radius: 18px;
+    font-size: 12px;
+    font-weight: bold;
+}

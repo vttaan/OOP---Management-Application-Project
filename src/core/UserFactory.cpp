@@ -2,34 +2,37 @@
 #include <qsqlquery.h>
 
 User *UserFactory::createContainsUser(QString r, short int idEmp, QString ava, QString idCit, QString n, QString d, QString add,
-                                      QString phone)
+                                      QString phone, QString gender)
 {
-    if (r == "Manager")
-        return new Manager(r, idEmp, ava, idCit, n, d, add, phone);
+    if (r == "Manage")
+        return new Manager(r, idEmp, ava, idCit, n, d, add, phone, gender);
     else if (r == "Staff")
-        return new Staff(r, idEmp, ava, idCit, n, d, add, phone);
+        return new Staff(r, idEmp, ava, idCit, n, d, add, phone, gender);
     return nullptr;
 }
 
-User *UserFactory::createNewUser(QString r, short int idEmp, QString ava, QString idCit, QString n, QString d, QString add, QString phone)
+User *UserFactory::createNewUser(QString r, QString ava, QString idCit, QString n, QString d, QString add, QString phone, QString gender)
 {
+    // Get the MAX idEmployee in the table to create a unique new ID
     QSqlQuery query;
-    short int lastIdOfRole = 0;
-    query.prepare("SECLECT MAX(IdEmployee) AS MaxID FROM PROFILES WHERE role = : u");
+    short int newId = 1;
+    query.prepare("SELECT MAX(idEmployee) AS MaxID FROM PROFILES WHERE role = :u");
     query.bindValue(":u", r);
-    if (query.exec())
+    if (query.exec() && query.next())
     {
-        if (query.next())
-            lastIdOfRole = query.value("MaxID").toInt();
+        QVariant v = query.value("MaxID");
+        if (!v.isNull())
+            newId = static_cast<short int>(v.toInt() + 1);
     }
     else
-        qDebug() << "ERROR IN QUERY\n";
+    {
+        // qDebug() << "createNewUser: could not fetch MAX id —" << query.lastError().text();
+    }
 
-    short int idOfNewUser = lastIdOfRole + 1;
-    if (r == "Manager")
-        return new Manager(r, idOfNewUser, ava, idCit, n, d, add, phone);
+    if (r == "Manage")
+        return new Manager(r, newId, ava, idCit, n, d, add, phone, gender);
     else if (r == "Staff")
-        return new Staff(r, idOfNewUser, ava, idCit, n, d, add, phone);
+        return new Staff(r, newId, ava, idCit, n, d, add, phone, gender);
 
     return nullptr;
 }
