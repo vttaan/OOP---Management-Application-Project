@@ -15,7 +15,7 @@ class Main_View : public QWidget
 public:
     explicit Main_View(QWidget *parent = nullptr);
     ~Main_View();
-
+    QWidget* getSidebar();
     void switchPage(int pageIndex);
 
     void clearEmployeeCards();
@@ -35,7 +35,7 @@ signals:
     void menuReportClicked();
     void menuSettingsClicked();
     void profileClicked();
-
+    void toggleSidebarClicked();
 private:
     Ui::Main_View *ui;
 
