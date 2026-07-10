@@ -3,7 +3,8 @@
 #define SHIFT_H
 
 using namespace std;
-class Shift {
+class Shift
+{
 private:
     QDate date;
     short int EmployeeID;
@@ -15,6 +16,12 @@ public:
     void setDayOfWeek();
     void setTime(QTime start, QTime end);
     QTime getTotalHourWork();
+    QDate getDate() const;
+    short int getEmployeeID() const;
+    QTime getStartTime() const;
+    QTime getEndTime() const;
+    short int getStatus() const;
+    
     void setID(short int id);
 };
 #endif // SHIFT_H

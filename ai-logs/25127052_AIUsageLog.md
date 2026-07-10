@@ -253,3 +253,29 @@ Registered 4 new SVG files: `filter.svg`, `filter-slash.svg`, `sort-from-bottom-
 | `src/**/*.cpp`, `src/**/*.h` | Removed individual `<...>` includes and added `#include "global.h"` |
 | `CMakeLists.txt` | Added `target_precompile_headers` |
 | `ai-logs/25127052_AIUsageLog.md` | Updated this log with the current date and time |
+
+---
+
+## Session 9 — Schedule Control Implementation & Precompiled Header Tweaks (2026-07-10 ~ 15:20)
+
+### Task 1: Schedule Control and Model Refactoring
+**Details:** The team provided a basic `shift.cpp` in `core` and a `shift_model.cpp` in `model`, as well as a UML diagram for `Schedule_Control`. I analyzed these files and created a plan to implement the control layer.
+- `Shift_Model` was renamed to `Schedule_Model` to better reflect its function managing collections of shifts.
+- Fixed a bug in `checkOverlapping` (which originally queried the wrong table) by rewriting it to check overlaps against an in-memory `QList<Shift>` managed by the controller.
+- Created `Schedule_Control.h/.cpp` with a `load()` function to fetch shifts directly from the database and populate the model.
+- Added necessary getter methods to the core `Shift` class.
+- Forward declared `Schedule_View` and initialized it to `nullptr` to unblock UI development.
+- Removed outdated `Shift_Model` files and updated `CMakeLists.txt` to include the new ones.
+
+### Task 2: Standardizing Includes
+**Details:** To align the newly created/modified schedule files with the global header architecture implemented in Session 8, standard Qt includes were replaced with the global precompiled header.
+- Replaced `<QDate>`, `<QList>`, `<QSqlQuery>`, etc., with `#include "global.h"` in `Schedule_Control.h/.cpp`, `Schedule_Model.h/.cpp`, and `Shift.h/.cpp`.
+
+### Files Modified
+| File | Action |
+|---|---|
+| `src/model/Schedule_Model.h/.cpp` | Renamed from `Shift_Model`; implemented overlap check using in-memory list; used `global.h` |
+| `src/core/Shift.h/.cpp` | Added getters for properties; used `global.h` |
+| `src/control/Schedule_Control.h/.cpp` | Created with `load()` logic fetching from SQLite DB; used `global.h` |
+| `CMakeLists.txt` | Swapped `Shift_Model` out for `Schedule_Model` and added `Schedule_Control` |
+| `ai-logs/25127052_AIUsageLog.md` | Updated this log with the current date and time |
