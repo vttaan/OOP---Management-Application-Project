@@ -43,7 +43,7 @@ void Login_Control::handleLoginSubmission(const QString &username, const QString
         this->currentSession->saveCurrentInfo(newUser);
         emit loginSuccessful(this->currentSession->getCurrentUser());
 
-        if (this->currentSession->getCurrentUser()->getRole() == "Manager")
+        if (this->currentSession->getCurrentUser()->getRole() == "Manage")
         {
             qDebug() << "Manager logged in - Mo giao dien Quan ly";
         }

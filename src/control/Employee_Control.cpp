@@ -55,10 +55,9 @@ void Employee_Control::init()
 void Employee_Control::handleLoadEmployees()
 {
     m_model->loadData();
-    m_employees = m_model->getListEmployee();
     if (m_view) {
-        m_view->setFullEmployeeList(m_employees);
-        m_view->loadEmployees(m_employees);
+        //m_view->c(m_model->getListEmployee());
+          m_view->loadEmployees(m_model->getListEmployee());
     }
 }
 
@@ -140,7 +139,7 @@ void Employee_Control::handleDeleteEmployee(int idEmployee)
 }
 
 // ============================================================
-// Combined filter → search → sort pipeline (Rabin-Karp + stable_sort)
+// Combined filter → search → sort pipeline
 // ============================================================
 
 void Employee_Control::handleUpdate(const QString &searchText,
@@ -151,7 +150,6 @@ void Employee_Control::handleUpdate(const QString &searchText,
     if (!m_view || !m_model) return;
     QList<User*> result = m_model->SearchSortFilter(searchText, sortDir, contentSort, contentFilter);
 
-    m_view->setFullEmployeeList(m_employees); // totals always from full cache
     m_view->loadEmployees(result);
 }
 

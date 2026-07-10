@@ -46,7 +46,7 @@ public slots:
     void loadEmployees(const QList<User *> &employees);
     // Called once by the Controller with the FULL (unfiltered) list
     // so that metric cards can show accurate totals.
-    void setFullEmployeeList(const QList<User *> &allEmployees);
+
     void showError(const QString &msg);
     void showSuccess(const QString &msg);
 

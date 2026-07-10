@@ -45,7 +45,6 @@ View_Navigator::View_Navigator(Control_Navigator* controller, QWidget *parent)
     // Navigation is managed directly by Control_Navigator now.
 
 
-
 }
 
 QWidget* View_Navigator::getWindow() { return currentWindow; }

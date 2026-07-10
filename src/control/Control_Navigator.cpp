@@ -55,16 +55,16 @@ Control_Navigator::Control_Navigator()
 
     QObject::connect(this->employeeController, &Employee_Control::profilePageClicked,
                      this->viewWindow, [this]() {
-                         this->switchTab(2); // from Employee (index 3) switch to Profile (index 2)
+                         this->switchTab(2); // from Employee  switch to Profile (index 2)
                         //qDebug() << this->profileController->currentSession->getCurrentUser()->getName();
                      });
     QObject::connect(this->employeeController, &Employee_Control::backToDashBoard,
                      this->viewWindow, [this]() {
-                         this->switchTab(1); // from Employee (index 3) switch to Dashboard (index 1)
+                         this->switchTab(1); // from Employee switch to Dashboard (index 1)
                      });
     QObject::connect(this->dashboardController, &Dashboard_Control::employeeClicked,
                      this->viewWindow, [this]() {
-                        this->switchTab(1); // from Dashboard (index 1) switch to Employee (index 3)
+                        this->switchTab(1); // from Dashboard (index 1) switch to Employee
                         this->viewWindow->dashboardPage->showHRPage();
                         this->employeeController->init();
                      });
