@@ -1,4 +1,3 @@
-#include "global.h"
 #include "Login_View.h"
 #include "ui_Login_View.h"
 
@@ -35,6 +34,7 @@ Login_View::~Login_View()
 	delete ui;
 }
 
+
 void Login_View::clearInputs() {
     ui->txtLoginUsername->clear();
     ui->txtLoginPassword->clear();
@@ -58,6 +58,7 @@ void Login_View::setupUI(){
 void Login_View::initSignals(){
     connect(hidePassword,&QAction::triggered,this,&Login_View::togglePassword);
 }
+
 
 void Login_View::togglePassword()
 {
@@ -98,6 +99,7 @@ void Login_View::paintEvent(QPaintEvent *event)
     painter.setRenderHint(QPainter::SmoothPixmapTransform);
 
     QRect rightRect = ui->frmLoginRight->geometry();
+
 
     QPixmap scaled = bgPixmap.scaled(
         rightRect.size(),

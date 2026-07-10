@@ -1,6 +1,9 @@
-#include "global.h"
 #ifndef MAIN_CONTROL_H
 #define MAIN_CONTROL_H
+
+
+
+#include <QObject>
 
 class Main_View;
 

@@ -233,23 +233,3 @@ Registered 4 new SVG files: `filter.svg`, `filter-slash.svg`, `sort-from-bottom-
 | `src/view/EditEmployee_Dialog.cpp` | Full Vietnamese, role mapping fix |
 | `ai-logs/25127052_AIUsageLog.md` | Updated this log |
 
----
-
-## Session 8 — Include Refactoring and Precompiled Headers (~08:30)
-
-### Task 1: Create global precompiled header
-**Details:** To optimize compilation time and clean up the codebase, all standard library and Qt library include statements were removed from individual files and consolidated into a single precompiled header.
-
-**Fix:**
-- Created `src/global.h` containing all necessary `<...>` include statements (e.g., `<QString>`, `<QWidget>`, `<QMessageBox>`, etc.).
-- Wrote and executed a script to traverse all `.cpp` and `.h` files in the `src/` directory.
-- The script removed all `#include <...>` lines and injected `#include "global.h"` at the top of each file (after `#pragma once` for headers).
-- Updated `CMakeLists.txt` to declare `src/global.h` as a precompiled header using `target_precompile_headers`.
-
-### Files Modified
-| File | Action |
-|---|---|
-| `src/global.h` | Created with all standard and Qt includes |
-| `src/**/*.cpp`, `src/**/*.h` | Removed individual `<...>` includes and added `#include "global.h"` |
-| `CMakeLists.txt` | Added `target_precompile_headers` |
-| `ai-logs/25127052_AIUsageLog.md` | Updated this log |

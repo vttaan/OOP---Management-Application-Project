@@ -1,6 +1,6 @@
-#include "global.h"
 #include "model/Profile_Model.h"
 #include "utils/Database.h"
+#include <QDebug>
 
 bool Profile_Model::updateProfile(short int idEmployee, const QString& name, const QString& dob, const QString& address, const QString& phoneNum, const QString& citizenId, const QString& avatarPath) {
     QSqlDatabase openData = Database::getInstance()->getDbConnect();
@@ -23,6 +23,7 @@ bool Profile_Model::updateProfile(short int idEmployee, const QString& name, con
     qDebug() << "UPDATE PROFILE SUCCESSFUL";
     return true;
 }
+
 
 // AI MERGE CODE THI DOI FUNCTION NAY LAY FUNCTION PASSWORD MODEL CUA HUNG MEL BEL
 bool Profile_Model::updatePassword(short int idEmployee, const QString& password) {

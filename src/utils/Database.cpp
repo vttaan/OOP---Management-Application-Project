@@ -1,5 +1,5 @@
-#include "global.h"
 #include "utils/Database.h"
+#include <QDebug>
 
 Database* Database::instance = nullptr;
 

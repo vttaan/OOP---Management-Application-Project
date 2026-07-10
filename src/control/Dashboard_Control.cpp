@@ -1,4 +1,3 @@
-#include "global.h"
 #include "Dashboard_Control.h"
 #include "view/Dashboard_View.h"
 

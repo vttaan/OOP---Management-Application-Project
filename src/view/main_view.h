@@ -1,7 +1,9 @@
-#include "global.h"
 #ifndef MAIN_VIEW_H
 #define MAIN_VIEW_H
 
+#include <QWidget>
+#include <QEvent>
+#include <QGridLayout>
 namespace Ui {
 class Main_View;
 }

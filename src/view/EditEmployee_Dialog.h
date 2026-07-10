@@ -1,6 +1,12 @@
 #pragma once
-
-#include "global.h"
+#include <QDialog>
+#include <QLineEdit>
+#include <QComboBox>
+#include <QLabel>
+#include <QPushButton>
+#include <QFormLayout>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
 #include "core/User.h"
 
 class EditEmployee_Dialog : public QDialog {

@@ -1,5 +1,5 @@
-#include "global.h"
 #include "utils/Security.h"
+
 
 QString Security::hashPassword(const QString& password) {
 	QByteArray passToHashPass = password.toUtf8();

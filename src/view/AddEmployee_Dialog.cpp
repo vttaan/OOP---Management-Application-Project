@@ -1,5 +1,10 @@
-#include "global.h"
 #include "AddEmployee_Dialog.h"
+#include <QMessageBox>
+#include <QFileDialog>
+#include <QPixmap>
+#include <QPainter>
+#include <QPainterPath>
+#include <QFile>
 
 AddEmployee_Dialog::AddEmployee_Dialog(QWidget *parent)
     : QDialog(parent)
@@ -10,6 +15,7 @@ AddEmployee_Dialog::AddEmployee_Dialog(QWidget *parent)
     m_avatarPath = "";
     setupUi();
 }
+
 
 // ============================================================
 // UI Setup

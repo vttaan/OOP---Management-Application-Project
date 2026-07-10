@@ -1,4 +1,3 @@
-#include "global.h"
 #include "Control_Navigator.h"
 #include "Login_Control.h"
 #include "Dashboard_Control.h"
@@ -6,6 +5,7 @@
 #include "view/View_Navigator.h"
 #include "view/Dashboard_View.h"
 #include "utils/SessionManage.h"
+
 
 Control_Navigator::Control_Navigator()
 {

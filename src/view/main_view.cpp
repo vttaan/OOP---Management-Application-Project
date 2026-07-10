@@ -1,7 +1,8 @@
-#include "global.h"
 #include "main_view.h"
 #include "ui_main_view.h"
 #include "employeecard.h"
+#include <QHBoxLayout>
+#include <QLabel>
 
 Main_View::Main_View(QWidget *parent) :
     QWidget(parent),
@@ -99,6 +100,7 @@ void Main_View::addEmployeeCard(const QString& avatarPath, const QString& name, 
         currentRow++;
     }
 }
+
 
 void Main_View::clearSidePanels()
 {

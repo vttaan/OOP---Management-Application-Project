@@ -1,5 +1,4 @@
-#pragma once
-#include "global.h"
+#pragma once
 #include "core/User.h"
 class Manager : public User {
 private:

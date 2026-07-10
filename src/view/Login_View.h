@@ -1,15 +1,22 @@
-#include "global.h"
 #ifndef LOGINVIEW_H
 #define LOGINVIEW_H
 
+
 //#include "ui_Login_View.h"
 #include "control/Login_Control.h"
+#include <QWidget>
+#include <QMessageBox>
+#include <QPainter>
+#include <QPixmap>
+#include <QCoreApplication>
 
 class Login_Control;
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Login_View; }
 QT_END_NAMESPACE
+
+
 
 class Login_View : public QWidget
 {

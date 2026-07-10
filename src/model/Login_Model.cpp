@@ -1,4 +1,3 @@
-#include "global.h"
 #include "model/Login_Model.h"
 #include "utils/Database.h"
 #include "core/UserFactory.h"

@@ -1,5 +1,4 @@
-#pragma once
-#include "global.h"
+#pragma once
 #include "core/User.h"
 
 class Staff: public User {

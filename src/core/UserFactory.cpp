@@ -1,5 +1,5 @@
-#include "global.h"
 #include "core/UserFactory.h"
+#include <qsqlquery.h>
 
 User *UserFactory::createContainsUser(QString r, short int idEmp, QString ava, QString idCit, QString n, QString d, QString add,
                                       QString phone, QString gender)

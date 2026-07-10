@@ -1,6 +1,11 @@
-#include "global.h"
 #include "Profile_View.h"
 #include "ui_Profile_View.h"
+#include <QPainter>
+#include <QPainterPath>
+#include <QFileInfo>
+#include <QDir>
+#include <QResizeEvent>
+#include <QMessageBox>
 
 Profile_View::Profile_View(Profile_Control* controller, QWidget *parent)
     : QWidget(parent)
@@ -11,6 +16,7 @@ Profile_View::Profile_View(Profile_Control* controller, QWidget *parent)
     ui->backButton->setIcon(QIcon(":/images/homeIcon.png"));
     // Provide a default placeholder avatar if none is set yet
     setupAvatar(""); // default avt
+    
 
     // Connect to editprofile_widget & editpassword_widget out here in profile_view bc those two don't have control file.
     // Create edit profile sliding widget
@@ -59,6 +65,7 @@ Profile_View::~Profile_View()
     delete ui;
 }
 
+
 void Profile_View::loadUserData(SessionManager* currentSession) {
 
     qDebug() << this->getController()->getUser()->getName();
@@ -96,6 +103,7 @@ void Profile_View::setupAvatar(const QString& imagePath)
     // Target avatar dimensions (180x180 px matching UI file limits)
     int size = 180;
     QPixmap scaled = avatarPixmap.scaled(size, size, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+
 
     QPixmap rounded(size, size);
     rounded.fill(Qt::transparent);
@@ -146,6 +154,7 @@ void Profile_View::on_backButton_clicked()
     emit this->getController()->backToPrevious();
 }
 
+
 void Profile_View::on_btnEditInfo_clicked()
 {
     // Populate the edit panel with the current user's data and show it
@@ -164,6 +173,7 @@ void Profile_View::resizeEvent(QResizeEvent *event) {
         editProfileWidget->setGeometry(this->rect());
     }
 }
+
 
 void Profile_View::on_btnEditPassword_clicked()
 {

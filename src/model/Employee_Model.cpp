@@ -1,7 +1,11 @@
-#include "global.h"
 #include "model/Employee_Model.h"
 #include "utils/Database.h"
 #include "utils/Security.h"
+#include <QCoreApplication>
+#include <QDebug>
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
 
 Employee_Model::Employee_Model() {}
 

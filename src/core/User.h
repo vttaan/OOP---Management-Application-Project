@@ -1,6 +1,7 @@
 #pragma once
+#include <QString>
 
-#include "global.h"
+
 class User {
 protected:
 	QString role;

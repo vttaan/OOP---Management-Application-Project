@@ -1,6 +1,5 @@
 #pragma once
-
-#include "global.h"
+#include <QString>
 #include "utils/Database.h"
 
 enum class PasswordChangeResult {

@@ -1,6 +1,14 @@
-#include "global.h"
 #ifndef EDITPASSWORD_WIDGET_H
 #define EDITPASSWORD_WIDGET_H
+
+#include <QWidget>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QLabel>
+#include <QPropertyAnimation>
+#include <QVBoxLayout>
+#include <QMouseEvent>
+#include <QPainter>
 
 // Class inherits from Qlineedit specifies for password w/ functions like toggle hide/show, setup
 class password_LineEdit : public QLineEdit
@@ -56,6 +64,7 @@ private slots:
 private:
     QWidget *panelWidget;
     QPropertyAnimation *animation;
+
 
     QLabel *lblAvatarPreview;
     QString currentAvatarPath;

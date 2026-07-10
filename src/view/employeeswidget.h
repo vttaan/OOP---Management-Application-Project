@@ -1,7 +1,20 @@
-#include "global.h"
 #ifndef EMPLOYEESWIDGET_H
 #define EMPLOYEESWIDGET_H
 
+#include <QWidget>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QCheckBox>
+#include <QTableWidget>
+#include <QTableWidgetItem>
+#include <QHeaderView>
+#include <QFrame>
+#include <QSizePolicy>
+#include <QFont>
+#include <QEvent>
 #include "model/Employee_Model.h"
 
 class EmployeesWidget : public QWidget

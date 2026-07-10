@@ -1,10 +1,10 @@
-#include "global.h"
 #ifndef VIEW_NAVIGATOR_H
 #define VIEW_NAVIGATOR_H
 // #include "Login_View.h"
 // #include "Profile_View.h"
 // #include "Dashboard_View.h"
 #include "control/Control_Navigator.h"
+#include <QMainWindow>
 
 namespace Ui {
 class View_Navigator;

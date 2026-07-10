@@ -1,9 +1,9 @@
-#pragma once
-#include "global.h"
+#pragma once
 #include "core/User.h"
 #include "utils/Database.h"
 #include "core/UserFactory.h"
-
+#include <algorithm>
+#include <QMap>
 using namespace std;
 
 class Employee_Model

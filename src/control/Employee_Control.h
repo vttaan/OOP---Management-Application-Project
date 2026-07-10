@@ -1,10 +1,12 @@
 #pragma once
-
-#include "global.h"
+#include <QObject>
+#include <QMessageBox>
+#include <QDebug>
 #include "model/Employee_Model.h"
 #include "core/UserFactory.h"
 #include "view/AddEmployee_Dialog.h"
 #include "view/EditEmployee_Dialog.h"
+
 
 class EmployeesWidget;
 

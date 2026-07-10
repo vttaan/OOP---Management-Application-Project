@@ -1,5 +1,12 @@
-#include "global.h"
 #include "employeeswidget.h"
+#include <QApplication>
+#include <QColor>
+#include <QDebug>
+#include <QIcon>
+#include <QMessageBox>
+#include <QMouseEvent>
+#include <QPixmap>
+#include <QSize>
 
 // ============================================================
 // Constructor / Destructor
@@ -381,6 +388,8 @@ void EmployeesWidget::loadEmployees(const QList<User *> &employees)
   m_allEmployees = employees;
   updateMetricCards();
 }
+
+
 
 void EmployeesWidget::updateMetricCards()
 {

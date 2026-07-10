@@ -1,6 +1,5 @@
 #pragma once
-
-#include "global.h"
+#include <QString>
 #include "core/User.h"
 class Login_Model {
 public:
