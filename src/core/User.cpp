@@ -1,3 +1,4 @@
+#include "global.h"
 #include "User.h"
 
 User::User(QString r, short int idEmp, QString ava,

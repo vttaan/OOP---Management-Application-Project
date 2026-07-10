@@ -1,3 +1,4 @@
+#include "global.h"
 #include "main_control.h"
 
 Main_Control::Main_Control(QObject *parent) : QObject(parent)

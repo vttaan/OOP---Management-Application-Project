@@ -1,4 +1,5 @@
-#pragma once
+#pragma once
+#include "global.h"
 #include "core/Manager.h"
 #include "core/Staff.h"
 class UserFactory

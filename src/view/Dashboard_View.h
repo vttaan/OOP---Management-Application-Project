@@ -1,9 +1,7 @@
+#include "global.h"
 #ifndef DASHBOARD_VIEW_H
 #define DASHBOARD_VIEW_H
 
-#include <QEvent>
-#include <QWidget>
-#include <QHBoxLayout>
 #include "control/Control_Navigator.h"
 
 class Dashboard_Control;

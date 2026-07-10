@@ -1,3 +1,4 @@
+#include "global.h"
 #include "core/Staff.h"
 
 Staff::Staff(QString r, short int idEmp, QString ava, QString idCit, QString n,

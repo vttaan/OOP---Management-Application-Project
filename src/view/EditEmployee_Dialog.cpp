@@ -1,8 +1,5 @@
+#include "global.h"
 #include "EditEmployee_Dialog.h"
-#include <QFileDialog>
-#include <QPixmap>
-#include <QPainter>
-#include <QPainterPath>
 
 EditEmployee_Dialog::EditEmployee_Dialog(User *emp, QWidget *parent)
     : QDialog(parent)
@@ -13,8 +10,6 @@ EditEmployee_Dialog::EditEmployee_Dialog(User *emp, QWidget *parent)
     setModal(true);
     setupUi(emp);
 }
-
-
 
 void EditEmployee_Dialog::setupUi(User *emp)
 {
@@ -59,7 +54,6 @@ void EditEmployee_Dialog::setupUi(User *emp)
         return lbl;
     };
 
-
     inpName      = makeInput("vd: Nguyễn Văn A",          emp ? emp->getName()        : "");
     inpPhone     = makeInput("vd: 0901234567",             emp ? emp->getPhoneNum()    : "");
     inpDob       = makeInput("DD-MM-YYYY",                 emp ? emp->getDOB()         : "");
@@ -70,7 +64,6 @@ void EditEmployee_Dialog::setupUi(User *emp)
     cmbRole->addItem("Nhân viên");
     cmbRole->addItem("Quản lý");
     cmbRole->setMinimumHeight(32);
-
 
     if (emp) {
         // Map English role to Vietnamese display text
@@ -209,7 +202,6 @@ void EditEmployee_Dialog::onConfirm()
 {
     if (validate()) accept();
 }
-
 
 // Getters
 QString EditEmployee_Dialog::getName()      const { return inpName->text().trimmed(); }

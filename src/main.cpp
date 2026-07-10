@@ -1,7 +1,5 @@
-#include <QApplication>
-#include <QFile>
-#include <QTextStream>
-#include <QDebug>
+#include "global.h"
+
 #include "control/Control_Navigator.h"
 #include "view/View_Navigator.h"
 

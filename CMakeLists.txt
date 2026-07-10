@@ -113,6 +113,7 @@ qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
     src/model/Employee_Model.cpp src/model/Employee_Model.h)
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core Qt6::Widgets Qt6::Sql)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_precompile_headers(${PROJECT_NAME} PRIVATE src/global.h)
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/database 
      DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

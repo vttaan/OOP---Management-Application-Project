@@ -1,11 +1,5 @@
+#include "global.h"
 #include "EditPassword_Widget.h"
-#include <QFormLayout>
-#include <QFileDialog>
-#include <QDir>
-#include <QFileInfo>
-#include <QCoreApplication>
-#include <QDebug>
-#include <QGraphicsDropShadowEffect>
 
 EditPassword_Widget::EditPassword_Widget(QWidget *parent) : QWidget(parent), isPanelOpen(false) {
     // This widget acts as the semi-transparent backdrop.

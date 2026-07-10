@@ -1,9 +1,6 @@
+#include "global.h"
 #include "Profile_Control.h"
 #include "view/Profile_View.h"
-#include <QFile>
-#include <QFileInfo>
-#include <QDir>
-
 
 Profile_Control::Profile_Control(QObject *parent)
     :QObject(parent), view(nullptr), currentSession(nullptr){
@@ -27,7 +24,6 @@ void Profile_Control::setView(Profile_View* view) {
 }
 
 User* Profile_Control::getUser() { return this->currentSession->getCurrentUser(); }
-
 
 bool Profile_Control::handleProfileUpdate(const QString& name, const QString& dob, const QString& address, const QString& phoneNum, const QString& citizenId, const QString& avatarPath) {
     if (!currentSession->getCurrentUser()) return false;
