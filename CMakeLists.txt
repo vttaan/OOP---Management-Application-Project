@@ -107,7 +107,11 @@ qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
     src/control/Profile_Control.h src/control/Profile_Control.cpp
     src/control/Control_Navigator.h src/control/Control_Navigator.cpp
     src/control/Dashboard_Control.h src/control/Dashboard_Control.cpp
-    src/model/Employee_Model.cpp src/model/Employee_Model.h)
+    src/model/Employee_Model.cpp src/model/Employee_Model.h
+
+    src/core/Shift.h
+    src/core/Shift.cpp
+    src/model/Shift_Model.h src/model/Shift_Model.cpp)
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core Qt6::Widgets Qt6::Sql)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
