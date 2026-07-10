@@ -343,3 +343,11 @@ Registered 4 new SVG files: `filter.svg`, `filter-slash.svg`, `sort-from-bottom-
 | `src/model/Profile_Model.cpp` | Delegated to Change_password; fixed checkIfUserExist bugs |
 | `ai-logs/25127052_AIUsageLog.md` | Updated this log |
 
+---
+
+### Hotfix 1: Fix `Profile_Control` integration with new password signature
+- **Bug:** `Profile_Control::handlePasswordUpdate` and `Profile_View` were still using the old signature (`bool(password)` instead of `PasswordChangeResult(oldPw, newPw)`), causing a compile error and broken logic.
+- **Fix:** 
+  - Updated `EditPassword_Widget.h/.cpp` to emit `saveRequested(oldPassword, newPassword)`.
+  - Updated `Profile_Control.h/.cpp`'s `handlePasswordUpdate` to accept both passwords and return `PasswordChangeResult`. Removed the old bug where it accidentally set the user's name to their password (`setName(password)`).
+  - Updated `Profile_View.cpp` lambda to properly validate the confirm password and switch on `PasswordChangeResult` to show exact error messages (wrong old pw, too weak, etc.) using `QMessageBox`.

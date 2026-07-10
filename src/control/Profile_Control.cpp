@@ -48,19 +48,11 @@ bool Profile_Control::handleProfileUpdate(const QString& name, const QString& do
     return false;
 }
 
-bool Profile_Control::handlePasswordUpdate(const QString& password) {
-    if (!currentSession->getCurrentUser()) return false;
+PasswordChangeResult Profile_Control::handlePasswordUpdate(const QString& oldPassword, const QString& newPassword) {
+    if (!currentSession->getCurrentUser()) return PasswordChangeResult::DATABASE_ERROR;
 
     // Attempt database update via the model
-    bool success = model.updatePassword(currentSession->getCurrentUser()->getIdEmployee(), password);
-    if (success) {
-        currentSession->getCurrentUser()->setName(password);
-
-        // Refresh the profile view with the new data
-        view->loadUserData(currentSession);
-        return true;
-    }
-    return false;
+    return model.updatePassword(currentSession->getCurrentUser()->getIdEmployee(), oldPassword, newPassword);
 }
 
 bool Profile_Control::checkIfMatchOldPassword(const QString& password) {

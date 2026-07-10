@@ -137,7 +137,7 @@ void EditPassword_Widget::resizeEvent(QResizeEvent *event) {
 }
 
 void EditPassword_Widget::onSaveClicked() {
-    emit saveRequested(txtNewPassword->text());
+    emit saveRequested(txtOldPassword->text(), txtNewPassword->text());
 }
 
 void EditPassword_Widget::onCancelClicked() {

@@ -24,7 +24,7 @@ public:
     void loadUserData();
     User* getUser();
     bool handleProfileUpdate(const QString& name, const QString& dob, const QString& address, const QString& phoneNum, const QString& citizenId, const QString& avatarPath);
-    bool handlePasswordUpdate(const QString& password);
+    PasswordChangeResult handlePasswordUpdate(const QString& oldPassword, const QString& newPassword);
     QString saveAvatarLocally(int empId, const QString &sourcePath);
 signals:
     void backToPrevious();
