@@ -1,3 +1,4 @@
+#include "global.h"
 #include "utils/SessionManage.h"
 
 SessionManager::SessionManager() : currentUser(nullptr) {}

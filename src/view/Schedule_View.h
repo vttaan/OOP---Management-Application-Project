@@ -1,12 +1,6 @@
+#include "global.h"
 #ifndef SCHEDULE_VIEW_H
 #define SCHEDULE_VIEW_H
-#include <QWidget>
-#include <QComboBox>
-#include <QMap>
-#include <QStringList>
-#include <QTableWidgetItem>
-#include <QMessageBox>
-#include <QWidget>
 
 namespace Ui {
 class Schedule_View;

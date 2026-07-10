@@ -1,5 +1,5 @@
+#include "global.h"
 #include "Shift.h"
-
 
 Shift::Shift(short int id, QDate date, QTime start, QTime end) {
     this->status = 0; //pending

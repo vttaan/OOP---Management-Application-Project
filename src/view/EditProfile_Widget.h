@@ -1,14 +1,6 @@
 #pragma once
-
-#include <QWidget>
-#include <QLineEdit>
-#include <QPushButton>
-#include <QLabel>
-#include <QPropertyAnimation>
-#include <QVBoxLayout>
-#include <QMouseEvent>
-#include <QPainter>
-
+
+#include "global.h"
 class EditProfile_Widget : public QWidget {
     Q_OBJECT
 

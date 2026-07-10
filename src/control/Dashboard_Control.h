@@ -1,7 +1,6 @@
 #pragma once
-#include <QObject>
-#include <QMessageBox>
-#include <QDebug>
+
+#include "global.h"
 #include "utils/SessionManage.h"
 
 class Dashboard_View;

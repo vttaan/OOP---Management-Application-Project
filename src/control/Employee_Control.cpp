@@ -1,16 +1,14 @@
+#include "global.h"
 #include "Employee_Control.h"
 #include "view/employeeswidget.h"
 #include "view/AddEmployee_Dialog.h"
 #include "view/EditEmployee_Dialog.h"
-
-
 
 Employee_Control::Employee_Control(QObject *parent)
     : QObject(parent), m_view(nullptr), m_model(new Employee_Model())
 {}
 
 Employee_Control::~Employee_Control() {delete m_model;}
-
 
 void Employee_Control::setView(EmployeesWidget *view)
 {

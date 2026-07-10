@@ -1,9 +1,9 @@
+#include "global.h"
 #ifndef SHIFT_MODEL_H
 #define SHIFT_MODEL_H
 #include "core/Shift.h"
-#include <QString>
-#include "utils/Database.h"
 
+#include "utils/Database.h"
 
 class Shift_Model
 {

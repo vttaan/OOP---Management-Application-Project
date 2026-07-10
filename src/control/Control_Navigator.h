@@ -1,3 +1,4 @@
+#include "global.h"
 #ifndef CONTROL_NAVIGATOR_H
 #define CONTROL_NAVIGATOR_H
 #include "utils/SessionManage.h"
@@ -6,7 +7,6 @@
 #include "Profile_Control.h"
 #include "Employee_Control.h"
 //#include "view/View_Navigator.h"
-#include <QObject>
 
 class View_Navigator;
 class Control_Navigator : public QObject

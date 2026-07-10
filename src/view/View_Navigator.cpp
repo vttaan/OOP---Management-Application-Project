@@ -1,3 +1,4 @@
+#include "global.h"
 #include "View_Navigator.h"
 #include "ui_View_Navigator.h"
 #include "control/Control_Navigator.h"
@@ -5,7 +6,7 @@
 #include "Dashboard_View.h"
 #include "Profile_View.h"
 #include "view/employeeswidget.h"
-#include <QStackedWidget>
+
 #include "view/Profile_View.h"
 
 View_Navigator::View_Navigator(Control_Navigator* controller, QWidget *parent)
@@ -43,7 +44,6 @@ View_Navigator::View_Navigator(Control_Navigator* controller, QWidget *parent)
     ui->stackedWidget->setCurrentIndex(0);
 
     // Navigation is managed directly by Control_Navigator now.
-
 
 }
 

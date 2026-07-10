@@ -1,11 +1,5 @@
+#include "global.h"
 #include "EditProfile_Widget.h"
-#include <QFormLayout>
-#include <QFileDialog>
-#include <QDir>
-#include <QFileInfo>
-#include <QCoreApplication>
-#include <QDebug>
-#include <QGraphicsDropShadowEffect>
 
 EditProfile_Widget::EditProfile_Widget(QWidget *parent) : QWidget(parent), isPanelOpen(false) {
     // This widget acts as the semi-transparent backdrop.

@@ -1,9 +1,7 @@
+#include "global.h"
 #ifndef SHIFT_H
 #define SHIFT_H
-#include <QString>
-#include <QDate>
-#include <QTime>
-#include <cmath>
+
 using namespace std;
 class Shift {
 private:

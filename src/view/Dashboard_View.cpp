@@ -1,11 +1,10 @@
+#include "global.h"
 #include "Dashboard_View.h"
 #include "ui_Dashboard_View.h"
 #include "control/Dashboard_Control.h"
 //#include "control/Employee_Control.h"
 #include "employeecard.h"
 //#include "employeeswidget.h"
-#include <QGridLayout>
-#include <QMouseEvent>
 
 Dashboard_View::Dashboard_View(Dashboard_Control *controller, QWidget *parent) : QWidget(parent),
                                                                                  ui(new Ui::Dashboard_View()),
@@ -145,7 +144,6 @@ void Dashboard_View::on_btnLogout_clicked()
     if (controller)
         emit controller->logoutSubmitted();
 }
-
 
 void Dashboard_View::embedHRPage(QWidget *hrWidget)
 {

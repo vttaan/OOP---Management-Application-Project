@@ -1,3 +1,4 @@
+#include "global.h"
 //#include "Control_Navigator.h"
 #include "view/Login_View.h"
 #include "Login_Control.h"

@@ -1,3 +1,4 @@
+#include "global.h"
 #include "Schedule_View.h"
 #include "ui_Schedule_View.h"
 
@@ -22,11 +23,9 @@ void Schedule_View::setUpUI() {
     ui->tableDangKy->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     ui->tableSum->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
-
     ui->tableDangKy->setSelectionMode(QAbstractItemView::NoSelection);
     ui->tableDangKy->setFocusPolicy(Qt::NoFocus);
     ui->tableSum->setFocusPolicy(Qt::NoFocus);
-
 
     this->setStyleSheet("background-color: #FFFFFF;");
 
@@ -125,7 +124,4 @@ void Schedule_View::resetInputTable() {
         endTime->setCurrentIndex(0);
     }
 }
-
-
-
 

@@ -1,9 +1,7 @@
-#pragma once
+#pragma once
+#include "global.h"
 #include "utils/SessionManage.h"
 #include "model/Profile_Model.h"
-#include <QObject>
-#include <QMessageBox>
-#include <QDebug>
 
 class Profile_View;
 
