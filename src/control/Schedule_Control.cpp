@@ -103,8 +103,8 @@ void Schedule_Control::onAddShiftRequested(const QString& day,
     }
 
     // Parse times ("7:00", "13:00", etc.)
-    QTime start = QTime::fromString(startTime, "h:mm");
-    QTime end   = QTime::fromString(endTime,   "h:mm");
+    QTime start = QTime::fromString(startTime, "H:mm");
+    QTime end   = QTime::fromString(endTime,   "H:mm");
 
     if (!start.isValid() || !end.isValid()) {
         view->showError("Thời gian không hợp lệ.");

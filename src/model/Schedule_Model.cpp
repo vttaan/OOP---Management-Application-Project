@@ -14,12 +14,9 @@ bool Schedule_Model::checkOverlapping(short int id, QDate date, QTime start, QTi
         return true;
     while (query.next())
     {
-        QTime currentStartTime = QTime::fromString(query.value("startTime").toString(), "hh:mm");
-        QTime currentEndTime = QTime::fromString(query.value("endTime").toString(), "hh:mm");
-        if ((start < currentStartTime && end > currentStartTime) ||
-            (start < currentEndTime && end > currentEndTime) ||
-            (start < currentStartTime && end > currentEndTime) ||
-            (start > currentStartTime && end < currentEndTime))
+        QTime currentStartTime = query.value("startTime").toTime();
+        QTime currentEndTime = query.value("endTime").toTime();
+        if (start < currentEndTime && currentStartTime < end)
             return false;
     }
     return true;

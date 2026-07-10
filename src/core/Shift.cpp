@@ -34,3 +34,9 @@ void Shift::setTime(QTime start, QTime end)
 }
 
 void Shift::setStatus(short int status) { this->status = status; }
+
+QDate Shift::getDate() const { return date; }
+short int Shift::getEmployeeID() const { return EmployeeID; }
+QTime Shift::getStartTime() const { return startTime; }
+QTime Shift::getEndTime() const { return endTime; }
+short int Shift::getStatus() const { return status; }

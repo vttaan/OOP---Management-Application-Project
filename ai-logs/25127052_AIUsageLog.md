@@ -349,5 +349,213 @@ Registered 4 new SVG files: `filter.svg`, `filter-slash.svg`, `sort-from-bottom-
 - **Bug:** `Profile_Control::handlePasswordUpdate` and `Profile_View` were still using the old signature (`bool(password)` instead of `PasswordChangeResult(oldPw, newPw)`), causing a compile error and broken logic.
 - **Fix:** 
   - Updated `EditPassword_Widget.h/.cpp` to emit `saveRequested(oldPassword, newPassword)`.
+| `src/model/Change_password.h` | Created class structure and result enum |
+| `src/model/Change_password.cpp` | Implemented business logic for password updates |
+| `CMakeLists.txt` | Appended new source files to `PROJECT_SOURCES` |
+
+---
+
+## Session 7 — Bug Fixes, Vietnamese UI & Feature Overhaul (~22:39)
+
+### Tasks Completed
+
+#### Bug Fix 1: Missing slot declarations (employeeswidget.h)
+`filterEmployees(const QString&)` and `applyRoleFilter(int)` were implemented in the `.cpp` but not declared in the header. Fixed by adding all new slot declarations to `employeeswidget.h`.
+
+#### Bug Fix 2: Undefined `logEvent()` (employeeswidget.cpp — lines 335, 362, 415)
+`logEvent(...)` was called in three places but never declared or defined anywhere. All three calls removed.
+
+#### Bug Fix 3: Out-of-scope variables on line 335
+`row` and `emp` were referenced outside their `for` loop scope. The stray `logEvent` line was removed as part of Bug Fix 2, eliminating this error simultaneously.
+
+#### Bug Fix 4: Missing `showError` / `showSuccess` implementations
+Both methods were declared in the header and called by `Employee_Control`, but had no body in the `.cpp`. Implemented using `QMessageBox::critical` and `QMessageBox::information`.
+
+#### Bug Fix 5: Unconnected search bar and filter combo
+`searchRoster::textChanged` now wired to `filterEmployees`. Old `filterCombo` replaced entirely by the new filter button (Feature 2 below).
+
+#### Bug Fix 6: Edit/Delete action buttons not connected
+Buttons in Col 6 were created but signals were never emitted. Fixed inside `renderTable()` using lambdas capturing `empId` → emit `requestEditEmployee(empId)` and `requestDeleteEmployee(empId)`.
+
+#### Feature 1: Full Vietnamese Language Switch
+All visible UI strings switched to Vietnamese across:
+- `employeeswidget.cpp` — page title "Quản lý nhân viên", table headers, metric card labels, search placeholder, footer, sort/filter tooltips, add button, status/role badges.
+- `AddEmployee_Dialog.cpp` — window title, form labels, buttons, error messages, file dialog.
+- `EditEmployee_Dialog.cpp` — window title, form labels, buttons, error messages, file dialog.
+- Role getters in both dialogs now map Vietnamese display text ("Nhân viên" / "Quản lý") back to English internal values ("Staff" / "Manager") so the controller/model are unaffected.
+
+#### Feature 2: Filter Button Overhaul
+- Replaced `filterCombo` (QComboBox) with an icon-only `filterBtn` (QPushButton).
+- New `buildFilterDropdown()` creates a floating `QFrame` child of `EmployeesWidget` with:
+  - **Vai trò** section: checkboxes for Nhân viên / Quản lý / Quản trị viên.
+  - **Giới tính** section: checkboxes for Nam / Nữ.
+- Clicking `filterBtn` toggles the dropdown open/closed.
+- Icon switches `filter.svg` ↔ `filter-slash.svg` with dropdown state.
+- Checking any box triggers `applyFilter()` → `updateTableVisibility()` (live filtering).
+- Closed dropdown preserves all checked states.
+- Gender data stored in `Qt::UserRole + 2` on the ID column item for fast lookup.
+
+#### Feature 3: Sort Button Overhaul
+- New `buildSortDropdown()` creates a floating `QFrame` with two options: **Sắp xếp theo Mã NV** / **Sắp xếp theo Tên**.
+- Sort button toggles the dropdown; selecting an option:
+  - Sets `m_sortField` and `m_sortDir = 1` (ascending).
+  - Shows `sortTagBar` below the roster header with label "📌 Theo [field]: từ thấp đến cao ✕".
+  - Changes sort icon to `sort-from-bottom-to-top.svg`.
+  - Calls `applySort()` using `std::stable_sort` on a copy of the cached employee list.
+- Clicking the tag label cycles:
+  - Ascending → Descending (icon: `sort-from-top-to-bottom.svg`, label: "từ cao đến thấp ✕").
+  - Descending → Reset (icon reverts to `sort-vertical-svgrepo-com.svg`, tag bar hidden).
+- `loadEmployees` now splits into `loadEmployees` (caches list) + `renderTable` (renders), so `applySort` can re-render a sorted copy without corrupting the cache.
+
+#### Feature 4: Add Employee Dialog Polish
+- Removed `inpUsername` and `inpPassword` input fields from the UI form.
+- Added an info note: "Tài khoản đăng nhập sẽ được tạo tự động từ số CCCD."
+- `getUsername()` auto-returns `inpCitizenId->text()` (citizenId as username).
+- `getPassword()` returns `"NhanVien@123"` as a safe default — controller interface unchanged.
+- All form labels and buttons switched to Vietnamese.
+
+#### resources.qrc
+Registered 4 new SVG files: `filter.svg`, `filter-slash.svg`, `sort-from-bottom-to-top.svg`, `sort-from-top-to-bottom.svg`.
+
+### Files Modified
+| File | Action |
+|---|---|
+| `resources/resources.qrc` | Registered 4 new SVG icons |
+| `src/view/employeeswidget.h` | Full rewrite — new members, slot declarations, removed dead code |
+| `src/view/employeeswidget.cpp` | Full rewrite — all 6 bugs fixed, Vietnamese, filter/sort dropdowns, action buttons wired |
+| `src/view/AddEmployee_Dialog.h` | Removed username/password members, added getUsername/getPassword auto-gen |
+| `src/view/AddEmployee_Dialog.cpp` | Removed username/password UI, full Vietnamese |
+| `src/view/EditEmployee_Dialog.cpp` | Full Vietnamese, role mapping fix |
+| `ai-logs/25127052_AIUsageLog.md` | Updated this log |
+
+---
+
+## Session 8 — Include Refactoring and Precompiled Headers (2026-07-10 ~ 14:55)
+
+### Task 1: Create global precompiled header
+**Details:** To optimize compilation time and clean up the codebase, all standard library and Qt library include statements were removed from individual files and consolidated into a single precompiled header. With the recent addition of shift-related files, we expanded the coverage of the global header.
+
+**Fix:**
+- Created `src/global.h` containing all necessary `<...>` include statements (e.g., `<QString>`, `<QWidget>`, `<QMessageBox>`, `<cmath>`, `<QDate>`, `<QTime>`, etc.).
+- Wrote and executed a script to traverse all `.cpp` and `.h` files in the `src/` directory (including the new `shift_model` and `Shift` files).
+- The script removed all individual `#include <...>` lines and injected `#include "global.h"` at the top of each file (after `#pragma once` for headers).
+- Updated `CMakeLists.txt` to declare `src/global.h` as a precompiled header using `target_precompile_headers`.
+
+### Files Modified
+| File | Action |
+|---|---|
+| `src/global.h` | Created with all standard and Qt includes |
+| `src/**/*.cpp`, `src/**/*.h` | Removed individual `<...>` includes and added `#include "global.h"` |
+| `CMakeLists.txt` | Added `target_precompile_headers` |
+| `ai-logs/25127052_AIUsageLog.md` | Updated this log with the current date and time |
+
+---
+
+## Session 9 — Schedule Control Implementation & Precompiled Header Tweaks (2026-07-10 ~ 15:20)
+
+### Task 1: Schedule Control and Model Refactoring
+**Details:** The team provided a basic `shift.cpp` in `core` and a `shift_model.cpp` in `model`, as well as a UML diagram for `Schedule_Control`. I analyzed these files and created a plan to implement the control layer.
+- `Shift_Model` was renamed to `Schedule_Model` to better reflect its function managing collections of shifts.
+- Fixed a bug in `checkOverlapping` (which originally queried the wrong table) by rewriting it to check overlaps against an in-memory `QList<Shift>` managed by the controller.
+- Created `Schedule_Control.h/.cpp` with a `load()` function to fetch shifts directly from the database and populate the model.
+- Added necessary getter methods to the core `Shift` class.
+- Forward declared `Schedule_View` and initialized it to `nullptr` to unblock UI development.
+- Removed outdated `Shift_Model` files and updated `CMakeLists.txt` to include the new ones.
+
+### Task 2: Standardizing Includes
+**Details:** To align the newly created/modified schedule files with the global header architecture implemented in Session 8, standard Qt includes were replaced with the global precompiled header.
+- Replaced `<QDate>`, `<QList>`, `<QSqlQuery>`, etc., with `#include "global.h"` in `Schedule_Control.h/.cpp`, `Schedule_Model.h/.cpp`, and `Shift.h/.cpp`.
+
+### Files Modified
+| File | Action |
+|---|---|
+| `src/model/Schedule_Model.h/.cpp` | Renamed from `Shift_Model`; implemented overlap check using in-memory list; used `global.h` |
+| `src/core/Shift.h/.cpp` | Added getters for properties; used `global.h` |
+| `src/control/Schedule_Control.h/.cpp` | Created with `load()` logic fetching from SQLite DB; used `global.h` |
+| `CMakeLists.txt` | Swapped `Shift_Model` out for `Schedule_Model` and added `Schedule_Control` |
+| `ai-logs/25127052_AIUsageLog.md` | Updated this log with the current date and time |
+
+---
+
+## Session 10 — Schedule Control Design & Profile Model Password Refactor (2026-07-10 ~ 22:07)
+
+### Task 1: Schedule Control Full Design
+
+**Context:** `Schedule_View` was already implemented with two tables (input table with ComboBoxes, summary table), two buttons ("Thêm" / "Lưu"), and two signals (`requestAddShift`, `requestSaveShift`). `Schedule_Model` had the core DB logic but the controller was a skeleton with no signal wiring.
+
+**Changes:**
+
+#### `Schedule_Control.h` — Full redesign
+- Added `currentEmployeeId` (`short int`) and `setEmployeeId()`/`getEmployeeId()`.
+- Added `listDays` (`QList<QString>`) for Vietnamese day labels (Thứ 2 – CN).
+- Added `openHour` / `closeHour` config fields (default 7–22).
+- Added private helpers: `dayStringToDate()` and `buildWeeklySummary()`.
+- Declared private slots: `onAddShiftRequested(day, start, end)` and `onSaveShiftRequested()`.
+- Included `Schedule_View.h` directly (view is now fully wired).
+
+#### `Schedule_Control.cpp` — Full implementation
+- **`setView()`**: connects `requestAddShift` → `onAddShiftRequested` and `requestSaveShift` → `onSaveShiftRequested`.
+- **`load()`**: determines if registration is open (Monday rule), calls `setUpDataInputTable()`, fetches this week's shifts via `model->getSchedule()`, and pushes `buildWeeklySummary()` to the view.
+- **`onAddShiftRequested()`**: parses day string to `QDate` via `dayStringToDate()`, parses time strings, validates start < end, calls `model->handleAddShiftSubmission()`, shows error on null return, refreshes summary on success.
+- **`buildWeeklySummary()`**: iterates `model->getShiftList()`, formats each shift as `"HH:mm – HH:mm"`, returns `QMap<int, QList<QString>>` for the view.
+- **`dayStringToDate()`**: finds day index in `listDays`, computes Monday of the current week + offset.
+
+#### `Schedule_Model.h` — Getter added, invalid signals removed
+- Added `const QList<QList<Shift*>>& getShiftList() const` (inline getter for controller).
+- Removed erroneous `signals:` block (Schedule_Model is not a QObject).
+
+#### `Schedule_Model.cpp` — Bug fix
+- **Overlap logic bug fixed**: `handleAddShiftSubmission` was calling `if (checkOverlapping(...))` to block insertion, but `checkOverlapping` returns `true` when the slot is **free** and `false` when blocked. Fixed to `if (!checkOverlapping(...))`.
+
+---
+
+### Task 2: Profile Model — updatePassword Refactor
+
+**Context:** `Profile_Model::updatePassword` was a placeholder that stored passwords in plain text to the wrong table (`PROFILES` instead of `ACCOUNTS`) and performed no verification. `Change_password` (Session 6) already had the correct logic.
+
+**Changes:**
+
+#### `Profile_Model.h`
+- Included `"model/Change_password.h"` for `PasswordChangeResult`.
+- Changed `updatePassword` signature from `bool updatePassword(id, password)` → `PasswordChangeResult updatePassword(id, oldPassword, newPassword)`.
+
+#### `Profile_Model.cpp`
+- **`updatePassword`**: removed the old placeholder body. Now instantiates `Change_password` and delegates entirely to `cp.updatePassword(id, oldPw, newPw)`.
+- **`checkIfUserExist`** — bug fixes:
+  - Added `Security::hashPassword()` before comparison (was comparing plain text vs stored hash).
+  - Added missing `query.next()` call (without it, `query.value()` always returns null).
+  - Fixed column name from `"password"` → `"passWord"` (matches ACCOUNTS table schema used by Change_password).
+- Added `#include "utils/Security.h"`.
+
+### Files Modified
+| File | Action |
+|---|---|
+| `src/control/Schedule_Control.h` | Full redesign — employeeId, slots, helpers |
+| `src/control/Schedule_Control.cpp` | Full implementation — load, add, summary, wiring |
+| `src/model/Schedule_Model.h` | Added `getShiftList()` getter; removed invalid signals block |
+| `src/model/Schedule_Model.cpp` | Fixed overlap logic inversion bug |
+| `src/model/Profile_Model.h` | New updatePassword signature returning PasswordChangeResult |
+| `src/model/Profile_Model.cpp` | Delegated to Change_password; fixed checkIfUserExist bugs |
+| `ai-logs/25127052_AIUsageLog.md` | Updated this log |
+
+---
+
+### Hotfix 1: Fix `Profile_Control` integration with new password signature
+- **Bug:** `Profile_Control::handlePasswordUpdate` and `Profile_View` were still using the old signature (`bool(password)` instead of `PasswordChangeResult(oldPw, newPw)`), causing a compile error and broken logic.
+- **Fix:** 
+  - Updated `EditPassword_Widget.h/.cpp` to emit `saveRequested(oldPassword, newPassword)`.
   - Updated `Profile_Control.h/.cpp`'s `handlePasswordUpdate` to accept both passwords and return `PasswordChangeResult`. Removed the old bug where it accidentally set the user's name to their password (`setName(password)`).
   - Updated `Profile_View.cpp` lambda to properly validate the confirm password and switch on `PasswordChangeResult` to show exact error messages (wrong old pw, too weak, etc.) using `QMessageBox`.
+
+---
+
+### Hotfix 2: Linker Error (`undefined reference to 'Shift::getEndTime() const'`)
+- **Bug:** The `Shift` class had getters declared in `Shift.h` (`getDate()`, `getEmployeeID()`, `getStartTime()`, `getEndTime()`, `getStatus()`) but they were missing their implementations in `Shift.cpp`. This caused a linker error when the `Schedule_Control` tried to use them for building the summary table.
+- **Fix:** Added the 5 missing getter implementations to `Shift.cpp`.
+
+---
+
+### Hotfix 3: Schedule Control / Model Logic Bugs
+- **Bug 1 (Time Parsing):** In `Schedule_Control.cpp`, parsing times like `"13:00"` using `QTime::fromString(..., "h:mm")` failed because `"h"` only parses 1–12. Changed to `"H:mm"` to correctly parse 24-hour formats.
+- **Bug 2 (Overlap Logic):** In `Schedule_Model.cpp`, `checkOverlapping` was attempting to parse time directly from the database using string formats which is fragile, and the boundary condition logic was overly complex and flawed (it missed exact matches).
+- **Fix:** Changed `query.value().toString()` to directly use `.toTime()`. Simplified the overlap logic mathematically: two shifts overlap if `(start < currentEndTime && currentStartTime < end)`.
