@@ -19,10 +19,11 @@ public:
     Shift *handleAddShiftSubmission(short int id, QDate date, QTime start, QTime end);
     void getSchedule(short int id);
     pair<QDate, QDate> getRangeOfWeek();
+
+    // Returns the in-memory weekly shift list (index 0=Mon, 6=Sun)
+    const QList<QList<Shift *>>& getShiftList() const { return shiftList; }
+
     ~Schedule_Model();
-signals:
-    void handleAddShiftSubmission(); // put this to schedule controller
-    void updateStatusSignal();
 };
 
 #endif // SCHEDULE_MODEL_H

@@ -279,3 +279,67 @@ Registered 4 new SVG files: `filter.svg`, `filter-slash.svg`, `sort-from-bottom-
 | `src/control/Schedule_Control.h/.cpp` | Created with `load()` logic fetching from SQLite DB; used `global.h` |
 | `CMakeLists.txt` | Swapped `Shift_Model` out for `Schedule_Model` and added `Schedule_Control` |
 | `ai-logs/25127052_AIUsageLog.md` | Updated this log with the current date and time |
+
+---
+
+## Session 10 — Schedule Control Design & Profile Model Password Refactor (2026-07-10 ~ 22:07)
+
+### Task 1: Schedule Control Full Design
+
+**Context:** `Schedule_View` was already implemented with two tables (input table with ComboBoxes, summary table), two buttons ("Thêm" / "Lưu"), and two signals (`requestAddShift`, `requestSaveShift`). `Schedule_Model` had the core DB logic but the controller was a skeleton with no signal wiring.
+
+**Changes:**
+
+#### `Schedule_Control.h` — Full redesign
+- Added `currentEmployeeId` (`short int`) and `setEmployeeId()`/`getEmployeeId()`.
+- Added `listDays` (`QList<QString>`) for Vietnamese day labels (Thứ 2 – CN).
+- Added `openHour` / `closeHour` config fields (default 7–22).
+- Added private helpers: `dayStringToDate()` and `buildWeeklySummary()`.
+- Declared private slots: `onAddShiftRequested(day, start, end)` and `onSaveShiftRequested()`.
+- Included `Schedule_View.h` directly (view is now fully wired).
+
+#### `Schedule_Control.cpp` — Full implementation
+- **`setView()`**: connects `requestAddShift` → `onAddShiftRequested` and `requestSaveShift` → `onSaveShiftRequested`.
+- **`load()`**: determines if registration is open (Monday rule), calls `setUpDataInputTable()`, fetches this week's shifts via `model->getSchedule()`, and pushes `buildWeeklySummary()` to the view.
+- **`onAddShiftRequested()`**: parses day string to `QDate` via `dayStringToDate()`, parses time strings, validates start < end, calls `model->handleAddShiftSubmission()`, shows error on null return, refreshes summary on success.
+- **`buildWeeklySummary()`**: iterates `model->getShiftList()`, formats each shift as `"HH:mm – HH:mm"`, returns `QMap<int, QList<QString>>` for the view.
+- **`dayStringToDate()`**: finds day index in `listDays`, computes Monday of the current week + offset.
+
+#### `Schedule_Model.h` — Getter added, invalid signals removed
+- Added `const QList<QList<Shift*>>& getShiftList() const` (inline getter for controller).
+- Removed erroneous `signals:` block (Schedule_Model is not a QObject).
+
+#### `Schedule_Model.cpp` — Bug fix
+- **Overlap logic bug fixed**: `handleAddShiftSubmission` was calling `if (checkOverlapping(...))` to block insertion, but `checkOverlapping` returns `true` when the slot is **free** and `false` when blocked. Fixed to `if (!checkOverlapping(...))`.
+
+---
+
+### Task 2: Profile Model — updatePassword Refactor
+
+**Context:** `Profile_Model::updatePassword` was a placeholder that stored passwords in plain text to the wrong table (`PROFILES` instead of `ACCOUNTS`) and performed no verification. `Change_password` (Session 6) already had the correct logic.
+
+**Changes:**
+
+#### `Profile_Model.h`
+- Included `"model/Change_password.h"` for `PasswordChangeResult`.
+- Changed `updatePassword` signature from `bool updatePassword(id, password)` → `PasswordChangeResult updatePassword(id, oldPassword, newPassword)`.
+
+#### `Profile_Model.cpp`
+- **`updatePassword`**: removed the old placeholder body. Now instantiates `Change_password` and delegates entirely to `cp.updatePassword(id, oldPw, newPw)`.
+- **`checkIfUserExist`** — bug fixes:
+  - Added `Security::hashPassword()` before comparison (was comparing plain text vs stored hash).
+  - Added missing `query.next()` call (without it, `query.value()` always returns null).
+  - Fixed column name from `"password"` → `"passWord"` (matches ACCOUNTS table schema used by Change_password).
+- Added `#include "utils/Security.h"`.
+
+### Files Modified
+| File | Action |
+|---|---|
+| `src/control/Schedule_Control.h` | Full redesign — employeeId, slots, helpers |
+| `src/control/Schedule_Control.cpp` | Full implementation — load, add, summary, wiring |
+| `src/model/Schedule_Model.h` | Added `getShiftList()` getter; removed invalid signals block |
+| `src/model/Schedule_Model.cpp` | Fixed overlap logic inversion bug |
+| `src/model/Profile_Model.h` | New updatePassword signature returning PasswordChangeResult |
+| `src/model/Profile_Model.cpp` | Delegated to Change_password; fixed checkIfUserExist bugs |
+| `ai-logs/25127052_AIUsageLog.md` | Updated this log |
+

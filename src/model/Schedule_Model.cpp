@@ -73,11 +73,13 @@ void Schedule_Model::getSchedule(short int id)
 // flow in control: select shift -> model check overlapping -> return preview -> submit -> system handle -> add shift to database
 Shift *Schedule_Model::handleAddShiftSubmission(short int id, QDate date, QTime start, QTime end)
 {
-    if (checkOverlapping(id, date, start, end))
+    // checkOverlapping returns true when the slot is FREE (no overlap), false when blocked
+    if (!checkOverlapping(id, date, start, end))
     {
-        qDebug() << "Overlapped";
+        qDebug() << "Overlapped — shift rejected";
         return nullptr;
     }
+
     QSqlDatabase openData = Database::getInstance()->getDbConnect();
     if (!openData.transaction())
     {
