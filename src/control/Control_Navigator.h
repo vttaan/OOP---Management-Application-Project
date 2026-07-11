@@ -7,7 +7,7 @@
 #include "Profile_Control.h"
 #include "Employee_Control.h"
 //#include "view/View_Navigator.h"
-
+class Overview_Control;
 class View_Navigator;
 class Control_Navigator : public QObject
 {
@@ -19,7 +19,7 @@ public:
     Employee_Control * employeeController = nullptr;
     View_Navigator* viewWindow = nullptr;
     SessionManager* currentSession = nullptr;
-
+    Overview_Control* overviewController = nullptr;
     Control_Navigator();
     void initUIByRole();
     void switchTab(int index);
