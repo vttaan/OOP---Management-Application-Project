@@ -80,6 +80,9 @@ void Dashboard_View::on_btnMenu_Overview_clicked() {
 }
 void Dashboard_View::on_btnMenu_HR_clicked() {
     switchPage(1);
+    if (controller) {
+        emit controller->employeeClicked();
+    }
 }
 void Dashboard_View::on_btnMenu_Timekeep_clicked() {
     switchPage(2);
@@ -94,4 +97,7 @@ void Dashboard_View::on_btnMenu_Settings_clicked() {
     switchPage(5);
 }
 void Dashboard_View::on_btnLogout_clicked() {
+    if (controller) {
+        emit controller->logoutSubmitted();
+    }
 }
