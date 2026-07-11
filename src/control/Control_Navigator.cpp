@@ -6,7 +6,10 @@
 #include "view/View_Navigator.h"
 #include "view/Dashboard_View.h"
 #include "utils/SessionManage.h"
-
+#include "overview_control.h"
+#include "view/overview_view.h"
+#include "view/employeeswidget.h"
+#include "view/employeeswidget.h"
 Control_Navigator::Control_Navigator()
 {
     this->currentSession = new SessionManager();
@@ -21,9 +24,14 @@ Control_Navigator::Control_Navigator()
     this->profileController->currentSession = this->currentSession;
 
     this->employeeController = new Employee_Control(this);
-
     this->viewWindow = new View_Navigator(this); // Initialize viewWindow AFTER controllers
-
+    this->overviewController = new Overview_Control(this);
+    this->dashboardController->init();
+    this->overviewController->init();
+    this->dashboardController->getView()->embedWidgetIntoPage(0, this->overviewController->getView());
+    this->dashboardController->getView()->embedWidgetIntoPage(1, this->employeeController->getView());
+    QObject::connect(this->overviewController->getView(), SIGNAL(toggleSidebarRequested()),
+                     this->dashboardController->getView(), SLOT(toggleSidebar()));
     QObject::connect(this->loginController, &Login_Control::loginSuccessful,
                      this->viewWindow, [this]() {
         this->switchTab(1); // Switch to Dashboard (index 1)
@@ -91,10 +99,12 @@ Control_Navigator::~Control_Navigator() {
     delete profileController;
     delete dashboardController;
     delete employeeController;
+    delete overviewController;
     currentSession = nullptr;
     viewWindow = nullptr;
     loginController = nullptr;
     profileController = nullptr;
     dashboardController = nullptr;
     employeeController = nullptr;
+    overviewController = nullptr;
 }

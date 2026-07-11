@@ -11,7 +11,7 @@ Dashboard_Control::~Dashboard_Control() {
     // currentSession is owned by Control_Navigator, do not delete here
 }
 void Dashboard_Control::init(){
-    this->getView()->show();
+
 }
 
 Dashboard_View* Dashboard_Control::getView()  {
