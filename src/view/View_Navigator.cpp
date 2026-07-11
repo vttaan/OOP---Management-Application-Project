@@ -27,7 +27,7 @@ View_Navigator::View_Navigator(Control_Navigator* controller, QWidget *parent)
         delete widget;
     }
 
-    dashboardPage->embedHRPage(employeePage);
+    // dashboardPage->embedHRPage(employeePage);
 
     // Set the views on the controllers
     controller->loginController->setView(loginPage);

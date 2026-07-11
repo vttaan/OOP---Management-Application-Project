@@ -64,7 +64,7 @@ set(PROJECT_SOURCES
         src/control/Control_Navigator.cpp
         src/control/Dashboard_Control.cpp
         src/control/Employee_Control.cpp
-
+        src/control/overview_control.cpp
     # file in View
         # HEADER
         src/view/Login_View.h
@@ -78,6 +78,7 @@ set(PROJECT_SOURCES
         src/view/AddEmployee_Dialog.h
         src/view/EditEmployee_Dialog.h
         src/view/Schedule_View.h
+        src/control/overview_control.h
         # CPP
         src/view/Login_View.cpp
         src/view/Dashboard_View.cpp
@@ -115,9 +116,10 @@ qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
     src/core/Shift.h
     src/core/Shift.cpp
     src/model/Shift_Model.h src/model/Shift_Model.cpp
-
-    src/view/overview_view.h src/view/overview_view.cpp src/view/overview_view.ui
-    src/control/overview_control.h src/control/overview_control.cpp)
+    src/view/overview_view.ui
+    src/view/overview_view.h
+    src/view/overview_view.cpp
+    src/view/sidebar_widget.h src/view/sidebar_widget.cpp src/view/sidebar_widget.ui)
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core Qt6::Widgets Qt6::Sql)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_precompile_headers(${PROJECT_NAME} PRIVATE src/global.h)

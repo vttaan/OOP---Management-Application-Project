@@ -3,13 +3,15 @@
 #include "Login_Control.h"
 #include "Dashboard_Control.h"
 #include "Profile_Control.h"
+#include "Employee_Control.h"
+#include "overview_control.h"
 #include "view/View_Navigator.h"
 #include "view/Dashboard_View.h"
 #include "utils/SessionManage.h"
-#include "overview_control.h"
+#include "view/employeeswidget.h"
+#include "view/sidebar_widget.h"
 #include "view/overview_view.h"
-#include "view/employeeswidget.h"
-#include "view/employeeswidget.h"
+
 Control_Navigator::Control_Navigator()
 {
     this->currentSession = new SessionManager();
@@ -24,57 +26,50 @@ Control_Navigator::Control_Navigator()
     this->profileController->currentSession = this->currentSession;
 
     this->employeeController = new Employee_Control(this);
-    this->viewWindow = new View_Navigator(this); // Initialize viewWindow AFTER controllers
     this->overviewController = new Overview_Control(this);
+
+    this->viewWindow = new View_Navigator(this); // Initialize viewWindow AFTER controllers
+
     this->dashboardController->init();
     this->overviewController->init();
+
+    Sidebar_Widget* sidebar = new Sidebar_Widget();
+    this->dashboardController->getView()->addSidebar(sidebar);
+
+    QObject::connect(sidebar, &Sidebar_Widget::menuClicked,
+                     this->dashboardController->getView(), &Dashboard_View::switchPage);
+
+
     this->dashboardController->getView()->embedWidgetIntoPage(0, this->overviewController->getView());
     this->dashboardController->getView()->embedWidgetIntoPage(1, this->employeeController->getView());
+
     QObject::connect(this->overviewController->getView(), SIGNAL(toggleSidebarRequested()),
                      this->dashboardController->getView(), SLOT(toggleSidebar()));
+
+
     QObject::connect(this->loginController, &Login_Control::loginSuccessful,
                      this->viewWindow, [this]() {
-        this->switchTab(1); // Switch to Dashboard (index 1)
-        this->profileController->currentSession = this->currentSession;
-        this->profileController->loadUserData();
-        //qDebug() << "current user: " << this->currentSession->getCurrentUser()->getName();
-        // the whole app's session is updated
-    });
+                         this->switchTab(1); // Switch to Dashboard (index 1)
+                         this->profileController->currentSession = this->currentSession;
+                         this->profileController->loadUserData();
+                     });
 
-    QObject::connect(this->dashboardController, &Dashboard_Control::logoutSubmitted,
-                     this->viewWindow, [this]() {
+
+    auto logoutHandler = [this]() {
         this->switchTab(0); // Switch to Login (index 0)
         qDebug() << "logout";
         this->loginController->init();
-    });
+    };
 
-    QObject::connect(this->dashboardController, &Dashboard_Control::profilePageClicked,
-                     this->viewWindow, [this]() {
-        this->switchTab(2); // Switch to Profile (index 2)
-        //this->profileController->hand
-        //qDebug() << this->profileController->currentSession->getCurrentUser()->getName();
-        // no need to load user data for profile since its session already pointed to the whole app's session
-    });
+    QObject::connect(sidebar, &Sidebar_Widget::logoutClicked, this->viewWindow, logoutHandler);
 
-    QObject::connect(this->profileController, &Profile_Control::backToPrevious,
-                     this->viewWindow, [this]() {
-        this->switchTab(1); // Switch to Dashboard (index 1)
-    });
+    QObject::connect(this->dashboardController, &Dashboard_Control::logoutSubmitted, this->viewWindow, logoutHandler);
 
-    QObject::connect(this->employeeController, &Employee_Control::profilePageClicked,
-                     this->viewWindow, [this]() {
-                         this->switchTab(2); // from Employee  switch to Profile (index 2)
-                        //qDebug() << this->profileController->currentSession->getCurrentUser()->getName();
-                     });
-    QObject::connect(this->employeeController, &Employee_Control::backToDashBoard,
-                     this->viewWindow, [this]() {
-                         this->switchTab(1); // from Employee switch to Dashboard (index 1)
-                     });
+
     QObject::connect(this->dashboardController, &Dashboard_Control::employeeClicked,
                      this->viewWindow, [this]() {
-                        this->switchTab(1); // from Dashboard (index 1) switch to Employee
-                        this->viewWindow->dashboardPage->showHRPage();
-                        this->employeeController->init();
+                         this->switchTab(1); // from Dashboard (index 1) switch to Employee
+                         this->employeeController->init();
                      });
 }
 
