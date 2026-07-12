@@ -1,5 +1,5 @@
 #pragma once
-
+
 #include "global.h"
 #include "utils/SessionManage.h"
 
@@ -21,9 +21,9 @@ public:
     void setView(Dashboard_View *view);
     void init();
 signals:
-    void logoutSubmitted();
+    //void logoutSubmitted();
     void profilePageClicked();
-    void employeeClicked();
+    //void employeeClicked();
     // void DashboardSuccessful(User* currentUser);
 private slots:
     // void handleDashboardSubmission(const QString& username, const QString& password);

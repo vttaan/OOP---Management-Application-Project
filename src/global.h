@@ -1,7 +1,5 @@
 #pragma once
 
-#include <algorithm>
-#include <cmath>
 #include <QApplication>
 #include <QByteArray>
 #include <QCheckBox>
@@ -52,3 +50,6 @@
 #include <QTime>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <algorithm>
+#include <cmath>
+

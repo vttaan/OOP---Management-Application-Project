@@ -1,4 +1,5 @@
 #include "global.h"
+#include <QApplication>
 
 #include "control/Control_Navigator.h"
 #include "view/View_Navigator.h"

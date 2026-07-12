@@ -42,8 +42,7 @@ signals:
 
     // switch tab
     void profileClicked();
-    void dashboardClicked();
-    void employeeClicked();
+
 private slots:
     void buttonAddClicked();
     void buttonSaveClicked();

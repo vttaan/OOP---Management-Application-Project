@@ -94,7 +94,9 @@ EditProfile_Widget::EditProfile_Widget(QWidget *parent) : QWidget(parent), isPan
     connect(animation, &QPropertyAnimation::finished, this, &EditProfile_Widget::onAnimationFinished);
 }
 
-void EditProfile_Widget::setInitialData(const QString& name, const QString& dob, const QString& address, const QString& phone, const QString& citizenId, const QString& avatarPath) {
+void EditProfile_Widget::setInitialData(const QString& name, const QString& dob, const QString& address,
+                                        const QString& phone, const QString& citizenId, const QString& avatarPath
+                                        ) {
     txtName->setText(name);
     txtDob->setText(dob);
     txtAddress->setText(address);

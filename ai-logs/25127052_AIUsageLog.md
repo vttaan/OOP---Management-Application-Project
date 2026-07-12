@@ -558,4 +558,46 @@ Registered 4 new SVG files: `filter.svg`, `filter-slash.svg`, `sort-from-bottom-
 ### Hotfix 3: Schedule Control / Model Logic Bugs
 - **Bug 1 (Time Parsing):** In `Schedule_Control.cpp`, parsing times like `"13:00"` using `QTime::fromString(..., "h:mm")` failed because `"h"` only parses 1–12. Changed to `"H:mm"` to correctly parse 24-hour formats.
 - **Bug 2 (Overlap Logic):** In `Schedule_Model.cpp`, `checkOverlapping` was attempting to parse time directly from the database using string formats which is fragile, and the boundary condition logic was overly complex and flawed (it missed exact matches).
+    - **Bug 2 (Overlap Logic):** In `Schedule_Model.cpp`, `checkOverlapping` was attempting to parse time directly from the database using string formats which is fragile, and the boundary condition logic was overly complex and flawed (it missed exact matches).
 - **Fix:** Changed `query.value().toString()` to directly use `.toTime()`. Simplified the overlap logic mathematically: two shifts overlap if `(start < currentEndTime && currentStartTime < end)`.
+
+---
+
+## Session 11 — Merge Conflict Resolution: "Tin" Branch (2026-07-12 ~ 12:37)
+
+### Task: Resolve all merge conflicts from merging the `Tin` branch into `hwng`
+
+**Context:**
+A `git merge Tin` was in progress on branch `hwng` with 4 files in conflicted state. The conflict stemmed from two diverging architectures:
+- **HEAD (`hwng`)**: Embedded `Overview_Control`/`Overview_View` inside `Dashboard_View` (which acted as a sub-page container with its own `QStackedWidget` and sidebar).
+- **Tin Branch**: Extracted the sidebar into a separate `Sidebar_Widget`, moved it into `View_Navigator`, and added `Schedule_View` as a top-level page. `Dashboard_View` became a direct overview page with rich stats UI.
+
+**Resolution Strategy:**
+Adopted the **Tin Branch architecture** as the base because it cleanly integrates `Schedule_View` and `Sidebar_Widget`. The `Dashboard_Control` pointer from HEAD was preserved in `Dashboard_View` for dependency injection.
+
+### Conflict Decisions
+
+| File | Decision |
+|---|---|
+| `Control_Navigator.cpp` | **Tin wins**: Added `scheduleController` init, `Sidebar_Widget` signal wiring; removed `overviewController` embedding logic |
+| `Dashboard_View.h` | **Both**: Kept HEAD's `Dashboard_Control` pointer + Tin's `profileClicked` signal and `eventFilter`; removed `clickableBox` helper class |
+| `Dashboard_View.cpp` | **Both**: Constructor uses `Dashboard_Control` pointer (HEAD); `eventFilter` logic from Tin; removed all `switchPage`/`toggleSidebar`/`on_btnMenu_*` slots |
+| `Dashboard_View.ui` | **Tin wins**: Kept Tin's rich `pageOverview` layout (stat cards, header with avatar/username, search+scroll area) |
+
+### Additional Cleanup
+- Removed `Overview_Control` forward declaration from `Control_Navigator.h`.
+- Removed `overviewController` member variable from `Control_Navigator.h`.
+- Removed duplicate `#include "view/employeeswidget.h"` from `Control_Navigator.cpp`.
+
+### Files Modified
+| File | Action |
+|---|---|
+| `src/control/Control_Navigator.cpp` | Conflict resolved — Tin architecture + HEAD wiring |
+| `src/control/Control_Navigator.h` | Cleanup — removed `Overview_Control` forward decl and member |
+| `src/view/Dashboard_View.h` | Conflict resolved — merged best of both branches |
+| `src/view/Dashboard_View.cpp` | Conflict resolved — merged constructor + eventFilter |
+| `src/view/Dashboard_View.ui` | Conflict resolved — Tin's rich overview page layout |
+| `ai-logs/25127052_AIUsageLog.md` | Updated this log |
+
+### AI Tool Used
+Antigravity (Google DeepMind) — Gemini 3.1 Pro / Claude Sonnet 4.6 Thinking
