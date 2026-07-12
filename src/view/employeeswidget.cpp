@@ -810,3 +810,11 @@ QPushButton *EmployeesWidget::createActionButton(const QString &text,
   btn->setCursor(Qt::PointingHandCursor);
   return btn;
 }
+
+void EmployeesWidget::paintEvent(QPaintEvent *event)
+{
+    QStyleOption opt;
+    opt.initFrom(this);
+    QPainter p(this);
+    style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
+}

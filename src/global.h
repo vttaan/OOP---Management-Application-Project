@@ -45,6 +45,7 @@
 #include <QSqlQuery>
 #include <QStackedWidget>
 #include <QString>
+#include <QStyleOption>
 #include <QStringList>
 #include <QTableWidget>
 #include <QTableWidgetItem>
