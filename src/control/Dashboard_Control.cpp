@@ -20,7 +20,7 @@ Dashboard_View* Dashboard_Control::getView()  {
 
 void Dashboard_Control::setView(Dashboard_View* view) {
     this->view = view;
-    if (this->view) {
-        this->view->setController(this);
-    }
+    if (!this->view) return;
+    QObject::connect(this->view, &Dashboard_View::profileClicked,
+                     this, &Dashboard_Control::profilePageClicked);
 }

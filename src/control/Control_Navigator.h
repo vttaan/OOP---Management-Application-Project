@@ -6,6 +6,7 @@
 #include "Dashboard_Control.h"
 #include "Profile_Control.h"
 #include "Employee_Control.h"
+#include "Schedule_Control.h"
 //#include "view/View_Navigator.h"
 
 class View_Navigator;
@@ -17,6 +18,7 @@ public:
     Profile_Control* profileController = nullptr;
     Dashboard_Control* dashboardController = nullptr;
     Employee_Control * employeeController = nullptr;
+    Schedule_Control* scheduleController = nullptr;
     View_Navigator* viewWindow = nullptr;
     SessionManager* currentSession = nullptr;
 

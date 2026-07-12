@@ -30,7 +30,7 @@ void Employee_Control::setView(EmployeesWidget *view)
     connect(m_view, &EmployeesWidget::profileClicked,
             this, &Employee_Control::profilePageClicked);
 
-        connect(m_view, &EmployeesWidget::backToDashboard,
+    connect(m_view, &EmployeesWidget::backToDashboard,
             this, &Employee_Control::backToDashBoard);
 }
 
@@ -54,7 +54,6 @@ void Employee_Control::handleLoadEmployees()
 {
     m_model->loadData();
     if (m_view) {
-        //m_view->c(m_model->getListEmployee());
           m_view->loadEmployees(m_model->getListEmployee());
     }
 }
