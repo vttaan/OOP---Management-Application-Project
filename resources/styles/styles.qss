@@ -3,6 +3,10 @@ Login_View {
     background-color: white;
 }
 
+QMainWindow, QStackedWidget, QWidget#centralwidget {
+    background-color: #F8FAFC;
+}
+
 
 QFrame#frmLoginLeft {
     background-color: rgba(235, 245, 255, 95%);

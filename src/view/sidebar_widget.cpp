@@ -5,6 +5,7 @@ Sidebar_Widget::Sidebar_Widget(QWidget *parent) :
     QWidget(parent), ui(new Ui::Sidebar_Widget)
 {
     ui->setupUi(this);
+    this->setObjectName("Sidebar_Widget");
     initUI();
     ui->subMenu_Schedule->hide(); // setup in default, when start program
 

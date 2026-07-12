@@ -1,7 +1,7 @@
 #ifndef SIDEBAR_WIDGET_H
 #define SIDEBAR_WIDGET_H
 
-#include <QWidget>
+#include "global.h"
 
 namespace Ui { class Sidebar_Widget; }
 
