@@ -35,6 +35,13 @@ Control_Navigator::Control_Navigator()
         // logout
         QObject::connect(this->viewWindow->getSideBar(), &Sidebar_Widget::logoutClicked,
                          this, [this](){
+            auto reply = QMessageBox::question(
+                this->viewWindow, "Confirm Logout",
+                QString("Do you want to log out?"),
+                QMessageBox::Yes | QMessageBox::No);
+
+            if (reply != QMessageBox::Yes) return;
+
             this->switchTab(0);
             this->loginController->init();
         });
@@ -45,6 +52,9 @@ Control_Navigator::Control_Navigator()
         this->switchTab(1); // Switch to Dashboard (index 1)
         this->profileController->currentSession = this->currentSession;
         this->profileController->loadUserData();
+        if (this->viewWindow->getSideBar()) {
+            this->viewWindow->getSideBar()->loadUserData(this->currentSession);
+        }
         //qDebug() << "current user: " << this->currentSession->getCurrentUser()->getName();
         // the whole app's session is updated
     });
@@ -63,9 +73,16 @@ Control_Navigator::Control_Navigator()
         this->switchTab(1); // Switch to Dashboard (index 1)
     });
 
+    QObject::connect(this->profileController, &Profile_Control::profileUpdated,
+                     this, [this]() {
+        if (this->viewWindow && this->viewWindow->getSideBar()) {
+            this->viewWindow->getSideBar()->loadUserData(this->currentSession);
+        }
+    });
+
     QObject::connect(this->employeeController, &Employee_Control::profilePageClicked,
                      this->viewWindow, [this]() {
-                         this->switchTab(2); // from Employee  switch to Profile (index 2)
+                          this->switchTab(2); // from Employee  switch to Profile (index 2)
                         //qDebug() << this->profileController->currentSession->getCurrentUser()->getName();
                      });
 }

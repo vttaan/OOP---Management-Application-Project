@@ -24,11 +24,11 @@ signals:
     void profileClicked();
 
 protected:
-    bool eventFilter(QObject *watched, QEvent *event) override;
+    //bool eventFilter(QObject *watched, QEvent *event) override;
 
 private:
     Ui::Dashboard_View *ui;
     Dashboard_Control *controller;
 };
 
-#endif // DASHBOARD_VIEW_H
+#endif // DASHBOARD_VIEW_H

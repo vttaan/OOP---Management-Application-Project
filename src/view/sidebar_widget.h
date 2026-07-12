@@ -5,6 +5,8 @@
 
 namespace Ui { class Sidebar_Widget; }
 
+class SessionManager;
+
 class Sidebar_Widget : public QWidget
 {
     Q_OBJECT
@@ -14,12 +16,17 @@ public:
     ~Sidebar_Widget();
     QString getNormalStyle() {return this->normalStyle;}
     QString getActiveStyle() {return this->activeStyle;}
+    void loadUserData(SessionManager* session);
 
 signals:
     void menuClicked(int pageIndex);
     void logoutClicked();
 
+protected:
+    void paintEvent(QPaintEvent *event) override;
+
 private:
+    void setupSidebarAvatar(const QString& imagePath);
     Ui::Sidebar_Widget *ui;
     // mainIndex is tab in sidebar, subIndex is tab in Schedule
     void updateButtonStyles(int mainIndex);

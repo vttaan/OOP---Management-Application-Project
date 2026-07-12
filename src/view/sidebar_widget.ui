@@ -19,6 +19,13 @@
     </widget>
    </item>
    <item>
+    <widget class="QPushButton" name="btnProfile">
+     <property name="text">
+      <string>Trang cá nhân</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QPushButton" name="btnMenu_Overview">
      <property name="text">
       <string>Tổng quan</string>
@@ -41,6 +48,9 @@
    </item>
    <item>
     <widget class="QFrame" name="subMenu_Schedule">
+     <property name="styleSheet">
+      <string notr="true">background-color: #e7e9ec;</string>
+     </property>
      <property name="frameShape">
       <enum>QFrame::Shape::StyledPanel</enum>
      </property>
@@ -97,6 +107,9 @@
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Orientation::Vertical</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Expanding</enum>
      </property>
      <property name="sizeHint" stdset="0">
       <size>

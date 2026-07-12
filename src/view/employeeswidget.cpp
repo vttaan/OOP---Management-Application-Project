@@ -51,30 +51,30 @@ void EmployeesWidget::setupUi()
   userCardLayout->setSpacing(10);
 
   // Circular avatar with initials
-  QLabel *userAvatar = new QLabel("ME");
-  userAvatar->setObjectName("userAvatar");
-  userAvatar->setFixedSize(36, 36);
-  userAvatar->setAlignment(Qt::AlignCenter);
+  // QLabel *userAvatar = new QLabel("ME");
+  // userAvatar->setObjectName("userAvatar");
+  // userAvatar->setFixedSize(36, 36);
+  // userAvatar->setAlignment(Qt::AlignCenter);
 
   // Name + role column
-  QVBoxLayout *userInfoLayout = new QVBoxLayout();
-  userInfoLayout->setSpacing(1);
+  // QVBoxLayout *userInfoLayout = new QVBoxLayout();
+  // userInfoLayout->setSpacing(1);
 
-  QLabel *userName = new QLabel("TÔI");
-  userName->setObjectName("userName");
+  // QLabel *userName = new QLabel("TÔI");
+  // userName->setObjectName("userName");
 
-  QLabel *userRole = new QLabel("Quản trị viên");
-  userRole->setObjectName("userRole");
+  // QLabel *userRole = new QLabel("Quản trị viên");
+  // userRole->setObjectName("userRole");
 
-  userInfoLayout->addWidget(userName);
-  userInfoLayout->addWidget(userRole);
+  // userInfoLayout->addWidget(userName);
+  // userInfoLayout->addWidget(userRole);
 
   // Caret icon
   QLabel *caretIcon = new QLabel("›");
   caretIcon->setObjectName("userCaret");
 
-  userCardLayout->addWidget(userAvatar);
-  userCardLayout->addLayout(userInfoLayout);
+  //userCardLayout->addWidget(userAvatar);
+  //userCardLayout->addLayout(userInfoLayout);
   userCardLayout->addWidget(caretIcon);
 
   profileLayout->addWidget(lblPageTitle);
