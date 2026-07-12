@@ -40,7 +40,7 @@ void Schedule_View::setUpUI() {
         );
 
     QString tableStyle =
-        "QTableWidget { border: none; background-color: white; gridline-color: #EFEFEF; } "
+        "QTableWidget { border: none; background-color: white; gridline-color: #EFEFEF; color: #ffffff; } "
         "QHeaderView::section { background-color: #F8F9FA; border: none; border-bottom: 2px solid #E5E7EB; padding: 8px; font-weight: bold; color: #475467; }";
 
     ui->tableDangKy->setStyleSheet(tableStyle);

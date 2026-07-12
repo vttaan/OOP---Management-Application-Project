@@ -41,6 +41,9 @@
    </item>
    <item>
     <widget class="QFrame" name="subMenu_Schedule">
+     <property name="styleSheet">
+      <string notr="true">background-color: #e7e9ec;</string>
+     </property>
      <property name="frameShape">
       <enum>QFrame::Shape::StyledPanel</enum>
      </property>

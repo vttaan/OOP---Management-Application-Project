@@ -15,7 +15,7 @@
   </property>
   <property name="styleSheet">
    <string notr="true">
-QWidget#Dashboard_View {
+Dashboard_View {
     background-color: #f8f9fa;
 }
 
