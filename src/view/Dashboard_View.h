@@ -34,7 +34,6 @@ public slots:
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
-    void paintEvent(QPaintEvent *event) override;
 
 private slots:
     void on_btnMenu_Overview_clicked();

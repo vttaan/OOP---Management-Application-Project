@@ -42,7 +42,6 @@ bool Dashboard_View::eventFilter(QObject *watched, QEvent *event) {
     return QWidget::eventFilter(watched, event);
 }
 
-<<<<<<< Updated upstream
 void Dashboard_View::switchPage(int index) {
     ui->stackedWidget->setCurrentIndex(index);
 
@@ -95,12 +94,4 @@ void Dashboard_View::on_btnMenu_Settings_clicked() {
     switchPage(5);
 }
 void Dashboard_View::on_btnLogout_clicked() {
-=======
-void Dashboard_View::paintEvent(QPaintEvent *event)
-{
-    QStyleOption opt;
-    opt.initFrom(this);
-    QPainter p(this);
-    style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
->>>>>>> Stashed changes
 }
