@@ -65,6 +65,11 @@ void EditEmployee_Dialog::setupUi(User *emp)
     cmbRole->addItem("Quản lý");
     cmbRole->setMinimumHeight(32);
 
+    cmbGender = new QComboBox();
+    cmbGender->addItem("Nam");
+    cmbGender->addItem("Nữ");
+    cmbGender->setMinimumHeight(32);
+
     if (emp) {
         // Map English role to Vietnamese display text
         QString displayRole = emp->getRole();
@@ -72,6 +77,14 @@ void EditEmployee_Dialog::setupUi(User *emp)
         else displayRole = "Nhân viên";
         int idx = cmbRole->findText(displayRole);
         if (idx >= 0) cmbRole->setCurrentIndex(idx);
+    }
+    if (emp) {
+        // Map English role to Vietnamese display text
+        QString displayRole = emp->getGender();
+        if (displayRole == "Nam") displayRole = "Nam";
+        else displayRole = "Nữ";
+        int idx = cmbGender->findText(displayRole);
+        if (idx >= 0) cmbGender->setCurrentIndex(idx);
     }
 
     //AVATAR UPLOAD SECTION
@@ -149,11 +162,13 @@ void EditEmployee_Dialog::setupUi(User *emp)
 
     form->addRow(makeLabel("Ảnh đại diện"),    avatarLayout);
     form->addRow(makeLabel("Họ và tên *"),    inpName);
+    form->addRow(makeLabel("Vai trò *"),      cmbGender);
     form->addRow(makeLabel("Vai trò *"),      cmbRole);
     form->addRow(makeLabel("Số điện thoại"),  inpPhone);
     form->addRow(makeLabel("Ngày sinh"),      inpDob);
     form->addRow(makeLabel("Địa chỉ"),        inpAddress);
     form->addRow(makeLabel("CCCD / CMND"),    inpCitizenId);
+
     mainLayout->addLayout(form);
 
     //Error label
@@ -210,6 +225,12 @@ QString EditEmployee_Dialog::getRole()      const {
     if (vn == "Quản lý") return "Manager";
     return "Staff";
 }
+QString EditEmployee_Dialog::getGender()      const {
+    QString vn = cmbGender->currentText();
+    if (vn == "Nam") return "Nam";
+    return "Nữ";
+}
+
 QString EditEmployee_Dialog::getPhone()     const { return inpPhone->text().trimmed(); }
 QString EditEmployee_Dialog::getDob()       const { return inpDob->text().trimmed(); }
 QString EditEmployee_Dialog::getAddress()   const { return inpAddress->text().trimmed(); }

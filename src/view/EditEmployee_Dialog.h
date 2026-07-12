@@ -1,5 +1,5 @@
 #pragma once
-
+
 #include "global.h"
 #include "core/User.h"
 
@@ -18,6 +18,7 @@ public:
     QString getAddress()   const;
     QString getCitizenId() const;
     QString getAvatarPath() const;
+    QString getGender() const;
 
 private slots:
     void onConfirm();
@@ -34,6 +35,7 @@ private:
     QLineEdit *inpAddress;
     QLineEdit *inpCitizenId;
     QComboBox *cmbRole;
+    QComboBox *cmbGender;
 
     QLabel *lblAvatarPreview;
     QPushButton *btnUpload;

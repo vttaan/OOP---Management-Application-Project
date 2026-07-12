@@ -108,7 +108,7 @@ bool Employee_Model::updateEmployee(User *emp)
   query.prepare("UPDATE PROFILES SET role = :role, name = :name, phoneNum = "
                 ":phone, dob = :dob, "
                 "address = :address, avatarPath = :avatar, IdCitizenIdentity "
-                "= :citizen WHERE idEmployee = :id");
+                "= :citizen, Gender = :gender WHERE idEmployee = :id");
   query.bindValue(":role", emp->getRole());
   query.bindValue(":name", emp->getName());
   query.bindValue(":phone", emp->getPhoneNum());
@@ -117,6 +117,7 @@ bool Employee_Model::updateEmployee(User *emp)
   query.bindValue(":avatar", emp->getAvatarPath());
   query.bindValue(":citizen", emp->getIdentityID());
   query.bindValue(":id", emp->getIdEmployee());
+  query.bindValue(":gender", emp->getGender());
 
   if (!query.exec())
   {

@@ -105,7 +105,7 @@ void Employee_Control::handleEditEmployee(int idEmployee)
     emp->setAddress(dlg.getAddress());
     emp->setIndentityID(dlg.getCitizenId());
     emp->setAva(dlg.getAvatarPath()); // Update with new avatar path
-
+    emp->setGender(dlg.getGender());
     // Call Model to update DB
     if (m_model->updateEmployee(emp)) {
         m_view->showSuccess(QString("Employee '%1' updated successfully!").arg(emp->getName()));
