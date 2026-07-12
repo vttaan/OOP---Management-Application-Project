@@ -5,7 +5,8 @@
 // #include "Profile_View.h"
 // #include "Dashboard_View.h"
 #include "control/Control_Navigator.h"
-
+#include "Schedule_View.h"
+#include "sidebar_widget.h"
 namespace Ui {
 class View_Navigator;
 }
@@ -20,11 +21,13 @@ private:
     Control_Navigator* controller;
 public:
     View_Navigator(Control_Navigator* controller, QWidget *parent = nullptr);
-
+    Sidebar_Widget* getSideBar();
     Login_View* loginPage = nullptr;
     Dashboard_View* dashboardPage = nullptr;
     Profile_View* profilePage = nullptr;
     EmployeesWidget* employeePage = nullptr;
+    Schedule_View* schedulePage = nullptr;
+    Sidebar_Widget* sidebar = nullptr;
     Control_Navigator* getController();
     QWidget* getWindow();
     Ui::View_Navigator* getUI();

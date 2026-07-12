@@ -60,7 +60,7 @@ void EmployeesWidget::setupUi()
   QVBoxLayout *userInfoLayout = new QVBoxLayout();
   userInfoLayout->setSpacing(1);
 
-  QLabel *userName = new QLabel("ME");
+  QLabel *userName = new QLabel("TÔI");
   userName->setObjectName("userName");
 
   QLabel *userRole = new QLabel("Quản trị viên");
