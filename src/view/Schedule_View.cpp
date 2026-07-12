@@ -40,8 +40,9 @@ void Schedule_View::setUpUI() {
         );
 
     QString tableStyle =
-        "QTableWidget { border: none; background-color: white; gridline-color: #EFEFEF; color: #ffffff; } "
-        "QHeaderView::section { background-color: #F8F9FA; border: none; border-bottom: 2px solid #E5E7EB; padding: 8px; font-weight: bold; color: #475467; }";
+        "QTableWidget { border: none; background-color: white; gridline-color: #EFEFEF; } "
+        "QHeaderView::section { background-color: #F8F9FA; border: none; border-bottom: 2px solid #E5E7EB; padding: 8px; font-weight: bold; color: #475467; } "
+        "QHeaderView::section:vertical { background-color: #475467; color: #ffffff; border: none; }";
 
     ui->tableDangKy->setStyleSheet(tableStyle);
     ui->tableSum->setStyleSheet(tableStyle);
