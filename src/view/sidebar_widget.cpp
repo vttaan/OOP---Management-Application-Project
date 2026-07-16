@@ -47,10 +47,10 @@ Sidebar_Widget::~Sidebar_Widget() { delete ui; }
 
 void Sidebar_Widget::initUI() {
 
-    // Dark navy sidebar background
+    // Cyan gradient sidebar background
     this->setStyleSheet("Sidebar_Widget { "
-                        "   background-color: #0F172A; "
-                        "   border-right: 1px solid #1E293B; "
+                        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #0284C7, stop:1 #06B6D4); "
+                        "   border-right: 1px solid rgba(255, 255, 255, 0.2); "
                         "}");
 
     // Logo
@@ -60,7 +60,7 @@ void Sidebar_Widget::initUI() {
         ui->labelLogo->setStyleSheet(
             "font-size: 15px; "
             "font-weight: 900; "
-            "color: #F8FAFC; "
+            "color: #FFFFFF; "
             "border: none; "
             "margin-top: 12px; "
             "margin-bottom: 14px;"
@@ -71,73 +71,86 @@ void Sidebar_Widget::initUI() {
         ui->btnProfile->setText("");
         ui->btnProfile->setStyleSheet(
             "QPushButton#btnProfile { "
-            "   background-color: #1E293B; "
-            "   border: 1px solid #334155; "
+            "   background-color: rgba(255, 255, 255, 0.15); "
+            "   border: 1px solid rgba(255, 255, 255, 0.3); "
             "   border-radius: 12px; "
             "   margin: 5px 12px; "
-            "   padding: 5px; "
+            "   padding: 8px; "
             "   text-align: left; "
             "}"
             "QPushButton#btnProfile:hover { "
-            "   background-color: #263548; "
-            "   border-color: #475569; "
+            "   background-color: rgba(255, 255, 255, 0.25); "
+            "   border-color: rgba(255, 255, 255, 0.4); "
             "}"
             "QPushButton#btnProfile:pressed { "
-            "   background-color: #1a2a3a; "
+            "   background-color: rgba(255, 255, 255, 0.1); "
             "}"
         );
-        ui->btnProfile->setFixedHeight(70);
+        ui->btnProfile->setFixedHeight(82);
         QHBoxLayout* profileLayout = new QHBoxLayout(ui->btnProfile);
-        profileLayout->setContentsMargins(14, 10, 12, 10);
+        profileLayout->setContentsMargins(16, 0, 12, 0); // Shift avatar off the left border a bit
         profileLayout->setSpacing(12);
+        profileLayout->setAlignment(Qt::AlignVCenter);
 
+        // --- Avatar (44x44 circle) ---
         QLabel* lblAvatar = new QLabel(ui->btnProfile);
         lblAvatar->setObjectName("lblSidebarAvatar");
-        lblAvatar->setFixedSize(40, 40);
-        lblAvatar->setStyleSheet("background-color: #2563EB; border-radius: 20px; border: none;");
+        lblAvatar->setFixedSize(44, 44);
+        lblAvatar->setStyleSheet("background-color: #3B82F6; border-radius: 22px; border: 2px solid #93C5FD;");
         lblAvatar->setAlignment(Qt::AlignCenter);
         lblAvatar->setText("👤");
         lblAvatar->setAttribute(Qt::WA_TransparentForMouseEvents, true);
 
+        // --- Text column: Name + Role pill ---
         QVBoxLayout* textLayout = new QVBoxLayout();
-        textLayout->setSpacing(2);
+        textLayout->setSpacing(5);
         textLayout->setContentsMargins(0, 0, 0, 0);
 
         QLabel* lblName = new QLabel("Quản trị viên", ui->btnProfile);
         lblName->setObjectName("lblSidebarName");
-        lblName->setStyleSheet("font-size: 13px; font-weight: bold; color: #F1F5F9; background: transparent; border: none;");
+        lblName->setStyleSheet(
+            "font-size: 15px; font-weight: bold; color: #FFFFFF; "
+            "background: transparent; border: none;");
         lblName->setAttribute(Qt::WA_TransparentForMouseEvents, true);
 
-        QLabel* lblRole = new QLabel("Quản trị hệ thống", ui->btnProfile);
+        // Role pill badge (default: Admin style)
+        QLabel* lblRole = new QLabel("Quản trị viên", ui->btnProfile);
         lblRole->setObjectName("lblSidebarRole");
-        lblRole->setStyleSheet("font-size: 11px; color: #64748B; background: transparent; border: none;");
+        lblRole->setAlignment(Qt::AlignCenter);
+        lblRole->setFixedHeight(20);
         lblRole->setAttribute(Qt::WA_TransparentForMouseEvents, true);
+        lblRole->setStyleSheet(
+            "font-size: 11px; font-weight: 800; "
+            "color: #1D4ED8; background-color: #DBEAFE; "
+            "border-radius: 10px; padding: 0px 8px; border: none;");
+        // Clamp width to content + padding
+        lblRole->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+        lblRole->adjustSize();
 
         textLayout->addWidget(lblName);
-        textLayout->addWidget(lblRole);
+        textLayout->addWidget(lblRole, 0, Qt::AlignLeft);
 
         profileLayout->addWidget(lblAvatar);
         profileLayout->addLayout(textLayout);
-        profileLayout->addStretch();
+        profileLayout->addStretch();           // trailing stretch pushes content left
     }
 
     // ---- Add SVG icons to all menu buttons ----
-    auto applyIcon = [](QPushButton* btn, const QString& path, int sz = 18) {
+    auto applyIcon = [](QPushButton* btn, const QString& path, int sz = 24) {
         if (!btn) return;
         btn->setIcon(QIcon(path));
         btn->setIconSize(QSize(sz, sz));
     };
-    applyIcon(ui->btnMenu_Overview,              ":/images/dashboard.svg");
-    applyIcon(ui->btnMenu_HR,                    ":/images/employee-organization.svg");
-    applyIcon(ui->buttonSchedule,                ":/images/calendar.svg");
-    applyIcon(ui->btnMenu_Salary,                ":/images/dolar-svgrepo-com.svg");
-    applyIcon(ui->btnMenu_Report,                ":/images/report.svg");
-    applyIcon(ui->btnMenu_Settings,              ":/images/setting.svg");
-    applyIcon(ui->btnLogout,                     ":/images/exitm.svg");
+    applyIcon(ui->btnMenu_Overview,              ":/images/dashboard-light.svg");
+    applyIcon(ui->btnMenu_HR,                    ":/images/employee-light.svg");
+    applyIcon(ui->buttonSchedule,                ":/images/calendar-light.svg");
+    applyIcon(ui->btnMenu_Report,                ":/images/report-white.svg");
+    applyIcon(ui->btnMenu_Settings,              ":/images/setting-light.svg");
+    applyIcon(ui->btnLogout,                     ":/images/exit-light.svg");
 
-    // Sub-menu frame dark background
+    // Sub-menu frame — glassmorphic background
     if (ui->subMenu_Schedule) {
-        ui->subMenu_Schedule->setStyleSheet("background-color: #1E293B; border-radius: 6px;");
+        ui->subMenu_Schedule->setStyleSheet("background-color: rgba(255, 255, 255, 0.1); border-radius: 6px;");
     }
 
     // setup default
@@ -158,7 +171,6 @@ void Sidebar_Widget::updateButtonStyles(int mainIndex)
     ui->btnMenu_Overview->setStyleSheet(normal);
     ui->btnMenu_HR->setStyleSheet(normal);
     ui->buttonSchedule->setStyleSheet(normal);
-    ui->btnMenu_Salary->setStyleSheet(normal);
     ui->btnMenu_Report->setStyleSheet(normal);
     ui->btnMenu_Settings->setStyleSheet(normal);
     ui->buttonRegistrationSchedule->setStyleSheet(normal);
@@ -192,15 +204,35 @@ void Sidebar_Widget::loadUserData(SessionManager* session) {
     QLabel* lblRole = this->findChild<QLabel*>("lblSidebarRole");
 
     if (lblName) lblName->setText(user->getName());
+
     if (lblRole) {
-        QString roleText = user->getRole();
-        if (roleText == "Manage") {
-            lblRole->setText("Quản trị hệ thống");
-        } else if (roleText == "Staff") {
-            lblRole->setText("Nhân viên");
+        QString roleInternal = user->getRole();
+        QString displayText;
+        QString pillStyle;
+
+        if (roleInternal == "Manage") {
+            displayText = "Quản lý";
+            // Purple pill — matches employee table Manager badge
+            pillStyle = "font-size: 11px; font-weight: 800; "
+                        "color: #6D28D9; background-color: #EDE9FE; "
+                        "border-radius: 10px; padding: 0px 8px; border: none;";
+        } else if (roleInternal == "Admin") {
+            displayText = "Quản trị viên";
+            // Blue pill
+            pillStyle = "font-size: 11px; font-weight: 800; "
+                        "color: #1D4ED8; background-color: #DBEAFE; "
+                        "border-radius: 10px; padding: 0px 8px; border: none;";
         } else {
-            lblRole->setText(roleText);
+            displayText = "Nhân viên";
+            // Light blue pill — matches employee table Staff badge
+            pillStyle = "font-size: 11px; font-weight: 800; "
+                        "color: #0369A1; background-color: #E0F2FE; "
+                        "border-radius: 10px; padding: 0px 8px; border: none;";
         }
+
+        lblRole->setText(displayText);
+        lblRole->setStyleSheet(pillStyle);
+        lblRole->adjustSize();
     }
     setupSidebarAvatar(user->getAvatarPath());
 }

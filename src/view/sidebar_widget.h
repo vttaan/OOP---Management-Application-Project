@@ -34,52 +34,53 @@ private:
     // mainIndex is tab in sidebar, subIndex is tab in Schedule
     void updateButtonStyles(int mainIndex);
     void initUI();
-    // CSS for normal (inactive) button — dark sidebar theme
+    // CSS for normal (inactive) button — glassmorphic cyan theme
     const QString normalStyle = "QPushButton { "
                                 "   text-align: left; "
                                 "   padding-left: 16px; "
-                                "   font-size: 13px; "
-                                "   font-weight: 500; "
-                                "   color: #94A3B8; "
+                                "   font-size: 15px; "
+                                "   font-weight: 600; "
+                                "   color: rgba(255, 255, 255, 0.85); "
                                 "   background-color: transparent; "
                                 "   border: none; "
-                                "   border-radius: 8px; "
-                                "   height: 44px; "
-                                "   margin: 2px 12px; "
+                                "   border-radius: 12px; "
+                                "   height: 48px; "
+                                "   margin: 4px 12px; "
                                 "} "
                                 "QPushButton:hover { "
-                                "   background-color: #1E293B; "
-                                "   color: #CBD5E1; "
+                                "   background-color: rgba(255, 255, 255, 0.15); "
+                                "   color: #FFFFFF; "
                                 "}";
-    // CSS for clicked button
-    // const QString logOutStyle = "QPushButton { "
-    //                             "   text-align: left; "
-    //                             "   padding-left: 35px; "
-    //                             "   font-size: 14px; "
-    //                             "   font-weight: 600; "
-    //                             "   color: #475467; "
-    //                             "   background-color: transparent; "
-    //                             "   border: none; "
-    //                             "   border-radius: 8px; "
-    //                             "   height: 45px; "
-    //                             "   margin: 4px 16px; "
-    //                             "} "
-    //                             "QPushButton:hover { "
-    //                             "   background-color: #F62440; "
-    //                             "}";
+    // CSS for logout button — glassmorphic with red hover
+    const QString logOutStyle = "QPushButton { "
+                                "   text-align: left; "
+                                "   padding-left: 16px; "
+                                "   font-size: 15px; "
+                                "   font-weight: 600; "
+                                "   color: rgba(255, 255, 255, 0.85); "
+                                "   background-color: transparent; "
+                                "   border: none; "
+                                "   border-radius: 12px; "
+                                "   height: 48px; "
+                                "   margin: 4px 12px; "
+                                "} "
+                                "QPushButton:hover { "
+                                "   background-color: rgba(239, 68, 68, 0.8); "
+                                "   color: #FFFFFF; "
+                                "}";
+    // CSS for active (selected) button — glassmorphic highlight
     const QString activeStyle =
         "QPushButton { "
         "   text-align: left; "
         "   padding-left: 16px; "
-        "   font-size: 13px; "
+        "   font-size: 15px; "
         "   font-weight: bold; "
         "   color: #FFFFFF; "
-        "   background-color: #2563EB; "
-        "   border: none; "
-        "   border-radius: 8px; "
-        "   height: 44px; "
-        "   margin: 2px 12px; "
-        "}";
-};
+        "   background-color: rgba(255, 255, 255, 0.25); "
+        "   border: 1px solid rgba(255, 255, 255, 0.4); "
+        "   border-radius: 12px; "
+        "   height: 48px; "
+        "   margin: 4px 12px; "
+        "}";};
 
 #endif

@@ -26,11 +26,11 @@
         <file>images/filter-slash.svg</file>
         <file>images/sort-from-bottom-to-top.svg</file>
         <file>images/sort-from-top-to-bottom.svg</file>
-        <file>images/dashboard.svg</file>
-        <file>images/calendar.svg</file>
-        <file>images/employee-organization.svg</file>
-        <file>images/report.svg</file>
-        <file>images/setting.svg</file>
-        <file>images/exitm.svg</file>
+        <file>images/dashboard-light.svg</file>
+        <file>images/calendar-light.svg</file>
+        <file>images/employee-light.svg</file>
+        <file>images/report-white.svg</file>
+        <file>images/setting-light.svg</file>
+        <file>images/exit-light.svg</file>
     </qresource>
 </RCC>
