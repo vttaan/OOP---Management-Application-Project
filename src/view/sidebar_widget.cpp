@@ -164,7 +164,7 @@ void Sidebar_Widget::updateButtonStyles(int mainIndex)
     ui->buttonRegistrationSchedule->setStyleSheet(normal);
     ui->buttonArrangeSchedule->setStyleSheet(normal);
     ui->buttonViewSchedule->setStyleSheet(normal);
-    ui->btnLogout->setStyleSheet(normal);
+    ui->btnLogout->setStyleSheet(logOutStyle);
 
     switch(mainIndex) {
     case 1: ui->btnMenu_Overview->setStyleSheet(activeMain); break;

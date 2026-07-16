@@ -1,6 +1,6 @@
 #include "global.h"
 #include "EditEmployee_Dialog.h"
-
+#include <functional>
 EditEmployee_Dialog::EditEmployee_Dialog(User *emp, QWidget *parent)
     : QDialog(parent)
 {
@@ -203,11 +203,13 @@ void EditEmployee_Dialog::setupUi(User *emp)
 
 bool EditEmployee_Dialog::validate()
 {
-    if (inpName->text().trimmed().isEmpty()) {
-        lblError->setText("⚠  Họ và tên là bắt buộc.");
-        lblError->setVisible(true);
-        inpName->setFocus();
-        return false;
+    if (validatorDelegate) {
+        QString errorMsg = validatorDelegate(this);
+        if (!errorMsg.isEmpty()) {
+            lblError->setText(errorMsg);
+            lblError->setVisible(true);
+            return false;
+        }
     }
     lblError->setVisible(false);
     return true;

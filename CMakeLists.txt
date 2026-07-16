@@ -45,11 +45,13 @@ set(PROJECT_SOURCES
         src/model/Change_password.h
         src/model/Employee_Model.h
         src/model/Profile_Model.h
+        src/model/validator.h
         # CPP
         src/model/Login_Model.cpp
         src/model/Change_password.cpp
         src/model/Employee_Model.cpp
         src/model/Profile_Model.cpp
+        src/model/validator.cpp
 
     # file in Control
         # HEADER
@@ -120,7 +122,8 @@ qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
     src/model/Schedule_Model.h src/model/Schedule_Model.cpp
     src/control/Schedule_Control.h src/control/Schedule_Control.cpp
     src/view/overview_view.h src/view/overview_view.cpp src/view/overview_view.ui
-    src/control/overview_control.h src/control/overview_control.cpp)
+    src/control/overview_control.h src/control/overview_control.cpp
+    src/model/Validator.h src/model/Validator.cpp)
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core Qt6::Widgets Qt6::Sql)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_precompile_headers(${PROJECT_NAME} PRIVATE src/global.h)

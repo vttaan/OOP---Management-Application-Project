@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
     else qDebug() << "Can not load QSS File!";
 
     Control_Navigator *appWindow = new Control_Navigator();
-    if (appWindow && appWindow->viewWindow) appWindow->viewWindow->show();
+    if (appWindow && appWindow->viewWindow) appWindow->viewWindow->showMaximized();
 
     int res = app.exec();
 

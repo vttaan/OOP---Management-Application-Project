@@ -3,7 +3,10 @@
 
 #include "global.h"
 
-namespace Ui { class Sidebar_Widget; }
+namespace Ui
+{
+    class Sidebar_Widget;
+}
 
 class SessionManager;
 
@@ -14,9 +17,9 @@ class Sidebar_Widget : public QWidget
 public:
     explicit Sidebar_Widget(QWidget *parent = nullptr);
     ~Sidebar_Widget();
-    QString getNormalStyle() {return this->normalStyle;}
-    QString getActiveStyle() {return this->activeStyle;}
-    void loadUserData(SessionManager* session);
+    QString getNormalStyle() { return this->normalStyle; }
+    QString getActiveStyle() { return this->activeStyle; }
+    void loadUserData(SessionManager *session);
 
 signals:
     void menuClicked(int pageIndex);
@@ -26,7 +29,7 @@ protected:
     void paintEvent(QPaintEvent *event) override;
 
 private:
-    void setupSidebarAvatar(const QString& imagePath);
+    void setupSidebarAvatar(const QString &imagePath);
     Ui::Sidebar_Widget *ui;
     // mainIndex is tab in sidebar, subIndex is tab in Schedule
     void updateButtonStyles(int mainIndex);
@@ -48,7 +51,22 @@ private:
                                 "   background-color: #1E293B; "
                                 "   color: #CBD5E1; "
                                 "}";
-    // CSS for active (selected) button — vibrant blue pill
+    // CSS for clicked button
+    // const QString logOutStyle = "QPushButton { "
+    //                             "   text-align: left; "
+    //                             "   padding-left: 35px; "
+    //                             "   font-size: 14px; "
+    //                             "   font-weight: 600; "
+    //                             "   color: #475467; "
+    //                             "   background-color: transparent; "
+    //                             "   border: none; "
+    //                             "   border-radius: 8px; "
+    //                             "   height: 45px; "
+    //                             "   margin: 4px 16px; "
+    //                             "} "
+    //                             "QPushButton:hover { "
+    //                             "   background-color: #F62440; "
+    //                             "}";
     const QString activeStyle =
         "QPushButton { "
         "   text-align: left; "
