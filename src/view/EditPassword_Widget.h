@@ -44,7 +44,7 @@ public:
     password_LineEdit* txtNewPassword;
     password_LineEdit* txtConfirmPassword;
 signals:
-    void saveRequested(const QString& password);
+    void saveRequested(const QString& oldPassword, const QString& newPassword);
 protected:
     void paintEvent(QPaintEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;

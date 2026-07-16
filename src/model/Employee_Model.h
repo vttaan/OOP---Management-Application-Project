@@ -1,4 +1,4 @@
-#pragma once
+#pragma once
 #include "global.h"
 #include "core/User.h"
 #include "utils/Database.h"
@@ -45,4 +45,10 @@ public:
 
     bool updateEmployee(User *emp);
     bool deleteEmployee(short idEmployee);
+
+    static QString generateAutoUsername(int id, QString& role);
+    static QString generateAutoPassword(QString& name, QString& dob);
+
+    static int getNextId(const QString& role);
+
 };

@@ -1,4 +1,4 @@
-#pragma once
+#pragma once
 #include "global.h"
 #include "utils/SessionManage.h"
 #include "model/Profile_Model.h"
@@ -24,11 +24,9 @@ public:
     void loadUserData();
     User* getUser();
     bool handleProfileUpdate(const QString& name, const QString& dob, const QString& address, const QString& phoneNum, const QString& citizenId, const QString& avatarPath);
-    bool handlePasswordUpdate(const QString& password);
+    PasswordChangeResult handlePasswordUpdate(const QString& oldPassword, const QString& newPassword);
     QString saveAvatarLocally(int empId, const QString &sourcePath);
 signals:
     void backToPrevious();
-    //void loginSuccessful(User* currentUser);
-private slots:
-    //void handleLoginSubmission(const QString& username, const QString& password);
+    void profileUpdated();
 };

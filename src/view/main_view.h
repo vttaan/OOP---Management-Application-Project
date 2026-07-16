@@ -3,7 +3,7 @@
 #define MAIN_VIEW_H
 
 namespace Ui {
-class Main_View;
+class Overview_view;
 }
 
 class Main_View : public QWidget
@@ -35,7 +35,7 @@ signals:
     void profileClicked();
     void toggleSidebarClicked();
 private:
-    Ui::Main_View *ui;
+    Ui::Overview_view *ui;
 
     QGridLayout* gridLayoutEmployees;
     int currentRow;

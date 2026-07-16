@@ -32,24 +32,25 @@ Profile_View::Profile_View(Profile_Control* controller, QWidget *parent)
     editPasswordWidget = new EditPassword_Widget(this);
     editPasswordWidget->setGeometry(this->rect());
 
-    connect(editPasswordWidget, &EditPassword_Widget::saveRequested, this, [this](const QString& password) {
+    connect(editPasswordWidget, &EditPassword_Widget::saveRequested, this, [this](const QString& oldPassword, const QString& newPassword) {
         if (this->controller) {
-            // note: add if condition to check whether the new password
-            // meets the password conditon (>=6 digits or smth idk)
-            if (this->controller->checkIfMatchOldPassword(password)
-                && this->editPasswordWidget->txtNewPassword == this->editPasswordWidget->txtConfirmPassword) {
-                bool success = this->controller->handlePasswordUpdate(password);
-                if (success) {
-                    editProfileWidget->slideOut();
-                } else {
-                    QMessageBox::warning(this, "Lỗi", "Không thể cập nhật mật khẩu!");
-                }
+            if (this->editPasswordWidget->txtNewPassword->text() != this->editPasswordWidget->txtConfirmPassword->text()) {
+                QMessageBox::warning(this, "Lỗi", "Mật khẩu mới không trùng khớp!");
+                return;
             }
-            else {
-                if (!this->controller->checkIfMatchOldPassword(password)) QMessageBox::warning(this, "Lỗi", "Mật khẩu cũ không đúng!");
-                else if (this->editPasswordWidget->txtNewPassword != this->editPasswordWidget->txtConfirmPassword) QMessageBox::warning(this, "Lỗi", "Mật khẩu mới không trùng khớp!");
+            
+            PasswordChangeResult result = this->controller->handlePasswordUpdate(oldPassword, newPassword);
+            
+            if (result == PasswordChangeResult::SUCCESS) {
+                editPasswordWidget->slideOut();
+                QMessageBox::information(this, "Thành công", "Đổi mật khẩu thành công!");
+            } else if (result == PasswordChangeResult::WRONG_OLD_PASSWORD) {
+                QMessageBox::warning(this, "Lỗi", "Mật khẩu cũ không đúng!");
+            } else if (result == PasswordChangeResult::NEW_PASSWORD_TOO_WEAK) {
+                QMessageBox::warning(this, "Lỗi", "Mật khẩu mới quá yếu (ít nhất 6 ký tự)!");
+            } else {
+                QMessageBox::warning(this, "Lỗi", "Lỗi cơ sở dữ liệu!");
             }
-
         }
     });
 }

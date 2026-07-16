@@ -3,6 +3,7 @@
 #include "view/employeeswidget.h"
 #include "view/AddEmployee_Dialog.h"
 #include "view/EditEmployee_Dialog.h"
+#include "model/Validator.h"
 
 Employee_Control::Employee_Control(QObject *parent)
     : QObject(parent), m_view(nullptr), m_model(new Employee_Model())
@@ -27,10 +28,9 @@ void Employee_Control::setView(EmployeesWidget *view)
     connect(m_view, &EmployeesWidget::requestUpdate,
             this, &Employee_Control::handleUpdate);
 
-    connect(m_view, &EmployeesWidget::profileClicked,
-            this, &Employee_Control::profilePageClicked);
 
-        connect(m_view, &EmployeesWidget::backToDashboard,
+
+    connect(m_view, &EmployeesWidget::backToDashboard,
             this, &Employee_Control::backToDashBoard);
 }
 
@@ -54,7 +54,6 @@ void Employee_Control::handleLoadEmployees()
 {
     m_model->loadData();
     if (m_view) {
-        //m_view->c(m_model->getListEmployee());
           m_view->loadEmployees(m_model->getListEmployee());
     }
 }
@@ -62,17 +61,30 @@ void Employee_Control::handleLoadEmployees()
 void Employee_Control::handleAddEmployee()
 {
     if (!m_view) return;
-
-    // Open a single form dialog instead of multiple QInputDialogs
     AddEmployee_Dialog dlg(m_view);
-    if (dlg.exec() != QDialog::Accepted) return;
+    // ==========================================================
+    // CONTROLLER TIÊM LOGIC KIỂM TRA VÀO HỘP THOẠI TRƯỚC KHI MỞ
+    // ==========================================================
+    dlg.validatorDelegate = [](const AddEmployee_Dialog* d) -> QString {
 
+        QString s = "";
+        if (d->getName().isEmpty()) s += "⚠ Nhập đúng họ và tên đầy đủ.\n";
+        if (d->getUsername().isEmpty()) s+="⚠ Nhập tên đăng nhập hợp lệ.\n";
+        if (!Validator::isValidCitizenId(d->getCitizenId()))
+            s+= "⚠ Căn cước công dân phải bao gồm đúng 12 chữ số.\n";
+        return s; // if return "" it means that no error.
+    };
+    // ==========================================================
+
+    if (dlg.exec() != QDialog::Accepted) return;
     if(m_model->addEmployee(dlg.getRole(), dlg.getAvatarPath(), dlg.getCitizenId(), dlg.getName(),
-     dlg.getDob(), dlg.getAddress(), dlg.getPhone(), dlg.getGender(), dlg.getUsername(), dlg.getPassword())) {
+                             dlg.getDob(), dlg.getAddress(), dlg.getPhone(), dlg.getGender(), dlg.getUsername(), dlg.getPassword())) {
         m_view->showSuccess(QString("THÊM NHÂN VIÊN %1 THÀNH CÔNG").arg(dlg.getName()));
         handleLoadEmployees();
     }
-    else m_view->showError(QString("THÊM NHÂN VIÊN %1 THẤT BẠI").arg(dlg.getName()));
+    else {
+        m_view->showError(QString("THÊM NHÂN VIÊN %1 THẤT BẠI").arg(dlg.getName()));
+    }
 }
 
 void Employee_Control::handleEditEmployee(int idEmployee)
@@ -95,6 +107,26 @@ void Employee_Control::handleEditEmployee(int idEmployee)
 
     // Open dialog pre-filled with the current data
     EditEmployee_Dialog dlg(emp, m_view);
+
+
+    dlg.validatorDelegate = [](const EditEmployee_Dialog* d) -> QString {
+        QString s = "";
+        if (d->getName().isEmpty())
+            s += "⚠ Nhập đúng họ và tên đầy đủ.\n";
+        if (d->getAddress().isEmpty())
+            s += "⚠ Nhập đúng địa chỉ \n";
+
+        if (!Validator::isValidCitizenId(d->getCitizenId()))
+            s += "⚠ Căn cước công dân phải bao gồm đúng 12 chữ số.\n";
+
+        if (!Validator::isValidPhoneNumber(d->getPhone()))
+            s += "⚠ Số điện thoại phải bao gồm đúng 10 chữ số.\n";
+
+        if (!Validator::isValidDate(d->getDob()))
+            s += "⚠ Ngày sinh không hợp lệ. Cần nhập đúng (YYYY-MM-DD).\n";
+        return s;
+    };
+
     if (dlg.exec() != QDialog::Accepted) return;
 
     // Apply changes from dialog to User object
@@ -105,7 +137,7 @@ void Employee_Control::handleEditEmployee(int idEmployee)
     emp->setAddress(dlg.getAddress());
     emp->setIndentityID(dlg.getCitizenId());
     emp->setAva(dlg.getAvatarPath()); // Update with new avatar path
-
+    emp->setGender(dlg.getGender());
     // Call Model to update DB
     if (m_model->updateEmployee(emp)) {
         m_view->showSuccess(QString("Employee '%1' updated successfully!").arg(emp->getName()));

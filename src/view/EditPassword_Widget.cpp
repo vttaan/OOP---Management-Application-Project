@@ -1,5 +1,6 @@
 #include "global.h"
 #include "EditPassword_Widget.h"
+#include <QScrollArea>
 
 EditPassword_Widget::EditPassword_Widget(QWidget *parent) : QWidget(parent), isPanelOpen(false) {
     // This widget acts as the semi-transparent backdrop.
@@ -20,27 +21,45 @@ EditPassword_Widget::EditPassword_Widget(QWidget *parent) : QWidget(parent), isP
     panelWidget->setGraphicsEffect(shadow);
 
     QVBoxLayout *mainLayout = new QVBoxLayout(panelWidget);
-    mainLayout->setContentsMargins(30, 40, 30, 40);
-    mainLayout->setSpacing(20);
+    mainLayout->setContentsMargins(30, 30, 30, 30);
+    mainLayout->setSpacing(15);
 
     QLabel *lblTitle = new QLabel("Chỉnh sửa mật khẩu", panelWidget);
     lblTitle->setStyleSheet("font-size: 24px; font-weight: bold; color: #0f172a; border: none;");
     mainLayout->addWidget(lblTitle);
 
+    // Scroll Area for the form content
+    QScrollArea *scrollArea = new QScrollArea(panelWidget);
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setFrameShape(QFrame::NoFrame);
+    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    scrollArea->setStyleSheet("QScrollArea { background: transparent; border: none; } QWidget#scrollContent { background: transparent; }");
+
+    QWidget *scrollContent = new QWidget(scrollArea);
+    scrollContent->setObjectName("scrollContent");
+    QVBoxLayout *scrollLayout = new QVBoxLayout(scrollContent);
+    scrollLayout->setContentsMargins(0, 0, 0, 0);
+    scrollLayout->setSpacing(15);
+
     // Form section
     QFormLayout *formLayout = new QFormLayout();
     formLayout->setVerticalSpacing(15);
 
-    txtOldPassword = new password_LineEdit(panelWidget);
-    txtNewPassword = new password_LineEdit(panelWidget);
-    txtConfirmPassword = new password_LineEdit(panelWidget);
+    txtOldPassword = new password_LineEdit(scrollContent);
+    txtNewPassword = new password_LineEdit(scrollContent);
+    txtConfirmPassword = new password_LineEdit(scrollContent);
 
     formLayout->addRow("Mật khẩu cũ:", txtOldPassword);
     formLayout->addRow("Mật khẩu mới:", txtNewPassword);
     formLayout->addRow("Xác nhận mật khẩu mới:", txtConfirmPassword);
 
-    mainLayout->addLayout(formLayout);
-    mainLayout->addStretch();
+    scrollLayout->addLayout(formLayout);
+    scrollLayout->addStretch();
+
+    scrollContent->setLayout(scrollLayout);
+    scrollArea->setWidget(scrollContent);
+    mainLayout->addWidget(scrollArea);
 
     // Buttons section
     QWidget *buttonsWidget = new QWidget(panelWidget);
@@ -137,7 +156,7 @@ void EditPassword_Widget::resizeEvent(QResizeEvent *event) {
 }
 
 void EditPassword_Widget::onSaveClicked() {
-    emit saveRequested(txtNewPassword->text());
+    emit saveRequested(txtOldPassword->text(), txtNewPassword->text());
 }
 
 void EditPassword_Widget::onCancelClicked() {
