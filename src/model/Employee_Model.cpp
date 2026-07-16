@@ -5,6 +5,22 @@
 
 Employee_Model::Employee_Model() {}
 
+
+int Employee_Model::getNextId(const QString& role) {
+    QSqlQuery query;
+    int newId = 1;
+
+    query.prepare("SELECT MAX(idEmployee) AS MaxID FROM PROFILES WHERE role = :u");
+    query.bindValue(":u", role);
+
+    if (query.exec() && query.next()) {
+        QVariant v = query.value("MaxID");
+        if (!v.isNull()) {
+            newId = v.toInt() + 1;
+        }
+    }
+    return newId;
+}
 bool Employee_Model::addUserInList(User *emp)
 {
   if (emp == nullptr)
@@ -404,4 +420,28 @@ QList<User *> Employee_Model::searchInEmployee(QList<User *> inputList, QString 
       listOfEmployeeForSearch.push_back(inputList[i]);
   }
   return listOfEmployeeForSearch;
+}
+
+QString Employee_Model::generateAutoUsername(int id, QString& role){
+    QString res = (role=="Staff")? "NV_" : "QL_";
+    res += QString::number(id).rightJustified(3, '0');
+    // can memories 3 number 0 leading.
+    return res;
+}
+
+QString Employee_Model::generateAutoPassword(QString &name, QString &dob){
+    QStringList words = name.split(" ", Qt::SkipEmptyParts);
+    QString res = "";
+
+    for(const QString& w : words){
+        res += w.at(0).toUpper();
+    }
+    // yyyy-mm-dd
+    QStringList dates = dob.split("-");
+
+
+    QString dd = dates[2], mm = dates[1];
+
+    return res + '#' + dd + mm;
+    // TQT#0609
 }

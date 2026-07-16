@@ -52,4 +52,5 @@
 #include <QWidget>
 #include <algorithm>
 #include <cmath>
+#include <functional>
 

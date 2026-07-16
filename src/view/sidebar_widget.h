@@ -48,6 +48,21 @@ private:
                                 "   background-color: #F1F5F9; "
                                 "}";
     // CSS for clicked button
+    const QString logOutStyle = "QPushButton { "
+                                "   text-align: left; "
+                                "   padding-left: 35px; "
+                                "   font-size: 14px; "
+                                "   font-weight: 600; "
+                                "   color: #475467; "
+                                "   background-color: transparent; "
+                                "   border: none; "
+                                "   border-radius: 8px; "
+                                "   height: 45px; "
+                                "   margin: 4px 16px; "
+                                "} "
+                                "QPushButton:hover { "
+                                "   background-color: #F62440; "
+                                "}";
     const QString activeStyle =
         "QPushButton { "
         "   text-align: left; "

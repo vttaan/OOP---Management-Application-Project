@@ -227,8 +227,17 @@ void EmployeesWidget::setupTableHeader()
   hdr->setSectionResizeMode(QHeaderView::ResizeToContents);
   hdr->setSectionResizeMode(
       1, QHeaderView::Stretch); // Name column always fills remaining space
+  hdr->setSectionResizeMode(2, QHeaderView::Fixed);
+  employeesTable->setColumnWidth(2, 110);
 
-  // Minimum widths so columns never collapse below readable size
+
+  hdr->setSectionResizeMode(5, QHeaderView::Fixed);
+  employeesTable->setColumnWidth(5, 110);
+
+
+  hdr->setSectionResizeMode(6, QHeaderView::Fixed);
+  employeesTable->setColumnWidth(6, 90);
+
   hdr->setMinimumSectionSize(72);
 }
 
@@ -786,8 +795,15 @@ QLabel *EmployeesWidget::createRoleBadge(const QString &role)
             "font-size:11px;font-weight:bold;padding:2px 10px;";
 
   badge->setStyleSheet(style);
-  int textWidth = badge->fontMetrics().horizontalAdvance(displayRole);
-  badge->setFixedWidth(textWidth + 24);
+  //int textWidth = badge->fontMetrics().horizontalAdvance(displayRole);
+  //badge->setFixedWidth(textWidth + 24);
+
+  QFont font = badge->font();
+  font.setBold(true);
+  QFontMetrics fm(font);
+
+  int textWidth = fm.horizontalAdvance(displayRole);
+  badge->setFixedWidth(textWidth + 30);
   return badge;
 }
 

@@ -1,6 +1,7 @@
 #pragma once
-
+
 #include "global.h"
+#include<functional>
 class AddEmployee_Dialog : public QDialog {
     Q_OBJECT
 
@@ -19,7 +20,7 @@ public:
     // Auto-generated (not shown in UI): username = citizenId, password = default
     QString getUsername()   const;
     QString getPassword()   const;
-
+    std::function<QString(const AddEmployee_Dialog*)> validatorDelegate;
 private slots:
     void onConfirm();
 
@@ -50,4 +51,5 @@ private:
 
     // Error label
     QLabel *lblError;
+
 };
