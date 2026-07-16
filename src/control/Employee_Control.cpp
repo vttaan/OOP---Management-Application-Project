@@ -27,8 +27,7 @@ void Employee_Control::setView(EmployeesWidget *view)
     connect(m_view, &EmployeesWidget::requestUpdate,
             this, &Employee_Control::handleUpdate);
 
-    connect(m_view, &EmployeesWidget::profileClicked,
-            this, &Employee_Control::profilePageClicked);
+
 
     connect(m_view, &EmployeesWidget::backToDashboard,
             this, &Employee_Control::backToDashBoard);

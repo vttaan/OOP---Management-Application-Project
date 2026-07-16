@@ -31,35 +31,36 @@ private:
     // mainIndex is tab in sidebar, subIndex is tab in Schedule
     void updateButtonStyles(int mainIndex);
     void initUI();
-    // CSS for normal button
+    // CSS for normal (inactive) button — dark sidebar theme
     const QString normalStyle = "QPushButton { "
                                 "   text-align: left; "
-                                "   padding-left: 35px; "
-                                "   font-size: 14px; "
-                                "   font-weight: 600; "
-                                "   color: #475467; "
+                                "   padding-left: 16px; "
+                                "   font-size: 13px; "
+                                "   font-weight: 500; "
+                                "   color: #94A3B8; "
                                 "   background-color: transparent; "
                                 "   border: none; "
                                 "   border-radius: 8px; "
-                                "   height: 45px; "
-                                "   margin: 4px 16px; "
+                                "   height: 44px; "
+                                "   margin: 2px 12px; "
                                 "} "
                                 "QPushButton:hover { "
-                                "   background-color: #F1F5F9; "
+                                "   background-color: #1E293B; "
+                                "   color: #CBD5E1; "
                                 "}";
-    // CSS for clicked button
+    // CSS for active (selected) button — vibrant blue pill
     const QString activeStyle =
         "QPushButton { "
         "   text-align: left; "
-        "   padding-left: 35px; "
-        "   font-size: 14px; "
+        "   padding-left: 16px; "
+        "   font-size: 13px; "
         "   font-weight: bold; "
-        "   color: #1A73E8; "
-        "   background-color: #E8F0FE; "
+        "   color: #FFFFFF; "
+        "   background-color: #2563EB; "
         "   border: none; "
         "   border-radius: 8px; "
-        "   height: 45px; "
-        "   margin: 4px 16px; "
+        "   height: 44px; "
+        "   margin: 2px 12px; "
         "}";
 };
 

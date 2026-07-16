@@ -26,5 +26,11 @@
         <file>images/filter-slash.svg</file>
         <file>images/sort-from-bottom-to-top.svg</file>
         <file>images/sort-from-top-to-bottom.svg</file>
+        <file>images/dashboard.svg</file>
+        <file>images/calendar.svg</file>
+        <file>images/employee-organization.svg</file>
+        <file>images/report.svg</file>
+        <file>images/setting.svg</file>
+        <file>images/exitm.svg</file>
     </qresource>
 </RCC>

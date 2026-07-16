@@ -13,7 +13,6 @@ public:
     ~EmployeesWidget();
 
 signals:
-    void profileClicked();
     void backToDashboard();
     // Signals sent to the Controller — CRUD
     void requestAddEmployee();
@@ -48,8 +47,7 @@ private slots:
     // Updates metric card values from m_allEmployees
     void updateMetricCards();
 
-protected:
-    bool eventFilter(QObject *watched, QEvent *event) override;
+    // Removed eventFilter
 
 private:
     void setupUi();
@@ -73,6 +71,7 @@ private:
                                   const QString &badgeColor = QString());
     QLabel      *createStatusBadge(const QString &status);
     QLabel      *createRoleBadge(const QString &role);
+    QLabel      *createPayTypeBadge(const QString &payType);
     QPushButton *createActionButton(const QString &iconPath, const QString &tooltip);
 
     // --- Profile Block (top-right) ---

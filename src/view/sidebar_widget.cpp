@@ -47,23 +47,23 @@ Sidebar_Widget::~Sidebar_Widget() { delete ui; }
 
 void Sidebar_Widget::initUI() {
 
-    // setup background
+    // Dark navy sidebar background
     this->setStyleSheet("Sidebar_Widget { "
-                        "   background-color: #f7f9fc; "
-                        "   border-right: 1px solid #E5E7EB; "
+                        "   background-color: #0F172A; "
+                        "   border-right: 1px solid #1E293B; "
                         "}");
 
-    // setup logo
+    // Logo
     if (ui->labelLogo) {
         ui->labelLogo->setText("Hệ thống quản lý\nnhân sự");
         ui->labelLogo->setAlignment(Qt::AlignCenter);
         ui->labelLogo->setStyleSheet(
-            "font-size: 16px; "
+            "font-size: 15px; "
             "font-weight: 900; "
-            "color: #111827; "
+            "color: #F8FAFC; "
             "border: none; "
-            "margin-top: 10px; "
-            "margin-bottom: 15px;"
+            "margin-top: 12px; "
+            "margin-bottom: 14px;"
             );
     }
 
@@ -71,32 +71,32 @@ void Sidebar_Widget::initUI() {
         ui->btnProfile->setText("");
         ui->btnProfile->setStyleSheet(
             "QPushButton#btnProfile { "
-            "   background-color: #ffffff; "
-            "   border: 1px solid #e2e8f0; "
+            "   background-color: #1E293B; "
+            "   border: 1px solid #334155; "
             "   border-radius: 12px; "
-            "   margin: 5px 15px; "
+            "   margin: 5px 12px; "
             "   padding: 5px; "
             "   text-align: left; "
             "}"
             "QPushButton#btnProfile:hover { "
-            "   background-color: #f8fafc; "
-            "   border-color: #cbd5e1; "
+            "   background-color: #263548; "
+            "   border-color: #475569; "
             "}"
             "QPushButton#btnProfile:pressed { "
-            "   background-color: #f1f5f9; "
+            "   background-color: #1a2a3a; "
             "}"
         );
         ui->btnProfile->setFixedHeight(70);
         QHBoxLayout* profileLayout = new QHBoxLayout(ui->btnProfile);
-        profileLayout->setContentsMargins(20, 10, 12, 10);
+        profileLayout->setContentsMargins(14, 10, 12, 10);
         profileLayout->setSpacing(12);
 
         QLabel* lblAvatar = new QLabel(ui->btnProfile);
         lblAvatar->setObjectName("lblSidebarAvatar");
-        lblAvatar->setFixedSize(36, 36);
-        lblAvatar->setStyleSheet("background-color: #d2e3fc; border-radius: 18px; border: none;");
+        lblAvatar->setFixedSize(40, 40);
+        lblAvatar->setStyleSheet("background-color: #2563EB; border-radius: 20px; border: none;");
         lblAvatar->setAlignment(Qt::AlignCenter);
-        lblAvatar->setText("👨‍💼");
+        lblAvatar->setText("👤");
         lblAvatar->setAttribute(Qt::WA_TransparentForMouseEvents, true);
 
         QVBoxLayout* textLayout = new QVBoxLayout();
@@ -105,12 +105,12 @@ void Sidebar_Widget::initUI() {
 
         QLabel* lblName = new QLabel("Quản trị viên", ui->btnProfile);
         lblName->setObjectName("lblSidebarName");
-        lblName->setStyleSheet("font-size: 13px; font-weight: bold; color: #212b36; background: transparent; border: none;");
+        lblName->setStyleSheet("font-size: 13px; font-weight: bold; color: #F1F5F9; background: transparent; border: none;");
         lblName->setAttribute(Qt::WA_TransparentForMouseEvents, true);
 
         QLabel* lblRole = new QLabel("Quản trị hệ thống", ui->btnProfile);
         lblRole->setObjectName("lblSidebarRole");
-        lblRole->setStyleSheet("font-size: 11px; color: #637381; background: transparent; border: none;");
+        lblRole->setStyleSheet("font-size: 11px; color: #64748B; background: transparent; border: none;");
         lblRole->setAttribute(Qt::WA_TransparentForMouseEvents, true);
 
         textLayout->addWidget(lblName);
@@ -119,6 +119,25 @@ void Sidebar_Widget::initUI() {
         profileLayout->addWidget(lblAvatar);
         profileLayout->addLayout(textLayout);
         profileLayout->addStretch();
+    }
+
+    // ---- Add SVG icons to all menu buttons ----
+    auto applyIcon = [](QPushButton* btn, const QString& path, int sz = 18) {
+        if (!btn) return;
+        btn->setIcon(QIcon(path));
+        btn->setIconSize(QSize(sz, sz));
+    };
+    applyIcon(ui->btnMenu_Overview,              ":/images/dashboard.svg");
+    applyIcon(ui->btnMenu_HR,                    ":/images/employee-organization.svg");
+    applyIcon(ui->buttonSchedule,                ":/images/calendar.svg");
+    applyIcon(ui->btnMenu_Salary,                ":/images/dolar-svgrepo-com.svg");
+    applyIcon(ui->btnMenu_Report,                ":/images/report.svg");
+    applyIcon(ui->btnMenu_Settings,              ":/images/setting.svg");
+    applyIcon(ui->btnLogout,                     ":/images/exitm.svg");
+
+    // Sub-menu frame dark background
+    if (ui->subMenu_Schedule) {
+        ui->subMenu_Schedule->setStyleSheet("background-color: #1E293B; border-radius: 6px;");
     }
 
     // setup default
