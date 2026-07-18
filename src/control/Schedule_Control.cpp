@@ -63,20 +63,21 @@ Schedule_View* Schedule_Control::getView() const
 
 void Schedule_Control::load()
 {
+
     if (!view || currentEmployeeId < 0) {
         qDebug() << "Schedule_Control::load() — view or employeeId not set.";
         return;
     }
-
     // 1. Determine if registration is currently allowed.
     //    Business rule: registration opens on Monday of each week.
     //    Adjust this logic as needed (e.g. read from DB config).
     QDate today = QDate::currentDate();
-    bool registrationOpen = (today.dayOfWeek() == Qt::Monday);
+    bool registrationOpen = (today.dayOfWeek() == Config::getDayOpenRegisShift());
     view->enableRegistration(registrationOpen);
+    if(!registrationOpen) return;
 
     // 2. Set up the input table with days and allowed hours.
-    view->setUpDataInputTable(listDays, openHour, closeHour);
+    view->setUpDataInputTable(listDays, Config::getOpenHour(), Config::getCloseHour());
 
     // 3. Fetch this week's shifts from DB into the model.
     model->getSchedule(currentEmployeeId);

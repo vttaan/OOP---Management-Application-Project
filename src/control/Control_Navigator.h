@@ -23,9 +23,7 @@ public:
     SessionManager* currentSession = nullptr;
 
     Control_Navigator();
-    void initUIByRole();
     void switchTab(int index);
-    void handleLogOut();
 
     ~Control_Navigator();
 };

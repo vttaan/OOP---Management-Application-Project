@@ -1,6 +1,5 @@
 #include "sidebar_widget.h"
 #include "ui_sidebar_widget.h"
-
 Sidebar_Widget::Sidebar_Widget(QWidget *parent) :
     QWidget(parent), ui(new Ui::Sidebar_Widget)
 {
@@ -17,19 +16,30 @@ Sidebar_Widget::Sidebar_Widget(QWidget *parent) :
     // main tab
     connect(ui->btnMenu_Overview, &QPushButton::clicked, [this]() { emit menuClicked(1); updateButtonStyles(1); });
     connect(ui->btnMenu_HR, &QPushButton::clicked, [this]() { emit menuClicked(3); updateButtonStyles(3); });
-    //connect(ui->btnMenu_Salary, &QPushButton::clicked, [this]() { emit menuClicked(7); updateButtonStyles(7); });
-    //connect(ui->btnMenu_Report, &QPushButton::clicked, [this]() { emit menuClicked(8); updateButtonStyles(8); });
-    //connect(ui->btnMenu_Settings, &QPushButton::clicked, [this]() { emit menuClicked(9); updateButtonStyles(9); });
 
     // subTab in Schedule
     connect(ui->buttonRegistrationSchedule, &QPushButton::clicked, [this]() { emit menuClicked(4); updateButtonStyles(4); });
     connect(ui->buttonArrangeSchedule, &QPushButton::clicked, [this]() { emit menuClicked(5); updateButtonStyles(5); });
     connect(ui->buttonViewSchedule, &QPushButton::clicked, [this]() { emit menuClicked(6); updateButtonStyles(6); });
+    //connect(ui->btnMenu_Salary, &QPushButton::clicked, [this]() { emit menuClicked(7); updateButtonStyles(7); });
+    //connect(ui->btnMenu_Report, &QPushButton::clicked, [this]() { emit menuClicked(8); updateButtonStyles(8); });
+    //connect(ui->btnMenu_Settings, &QPushButton::clicked, [this]() { emit menuClicked(9); updateButtonStyles(9); });
 
     connect(ui->btnLogout, &QPushButton::clicked, [this]() { emit logoutClicked(); });
 
     // default set view in dashboard
     updateButtonStyles(1);
+
+
+    // permission default
+    setPermission(false);
+}
+
+void Sidebar_Widget::setPermission(const bool& permitted) {
+    ui->btnMenu_HR->setVisible(permitted);
+    ui->buttonArrangeSchedule->setVisible(permitted);
+    ui->buttonRegistrationSchedule->setVisible(!permitted);
+    ui->subMenu_Schedule->hide();
 }
 
 Sidebar_Widget::~Sidebar_Widget() { delete ui; }

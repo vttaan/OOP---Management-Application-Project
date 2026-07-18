@@ -14,6 +14,8 @@ public:
     ~Sidebar_Widget();
     QString getNormalStyle() {return this->normalStyle;}
     QString getActiveStyle() {return this->activeStyle;}
+    void setPermission(const bool& permitted);
+    void updateButtonStyles(int mainIndex);
 
 signals:
     void menuClicked(int pageIndex);
@@ -22,7 +24,6 @@ signals:
 private:
     Ui::Sidebar_Widget *ui;
     // mainIndex is tab in sidebar, subIndex is tab in Schedule
-    void updateButtonStyles(int mainIndex);
     void initUI();
     // CSS for normal button
     const QString normalStyle = "QPushButton { "
