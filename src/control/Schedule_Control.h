@@ -4,7 +4,8 @@
 #include "global.h"
 #include "model/Schedule_Model.h"
 #include "view/Schedule_View.h"
-
+#include "utils/SessionManage.h"
+#include "utils/Config.h"
 class Schedule_Control : public QObject
 {
     Q_OBJECT
@@ -16,9 +17,6 @@ private:
     // Days list provided by business logic (Mon–Sun in the display language)
     QList<QString>   listDays;
 
-    // Config: store hours (configurable; defaults match typical F&B hours)
-    int openHour  = 7;
-    int closeHour = 22;
 
     // Helper: convert "Monday" display string → QDate of that day this week
     QDate dayStringToDate(const QString& day) const;

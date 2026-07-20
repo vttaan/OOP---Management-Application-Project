@@ -43,12 +43,14 @@ Control_Navigator::Control_Navigator()
             if (reply != QMessageBox::Yes) return;
 
             this->switchTab(0);
-            this->loginController->init();
+            //this->loginController->init();
         });
     }
 
     QObject::connect(this->loginController, &Login_Control::loginSuccessful,
                      this->viewWindow, [this]() {
+        // set permission of side bar for display feature
+        this->viewWindow->getSideBar()->setPermission(currentSession->checkPermission("Manage"));
         this->switchTab(1); // Switch to Dashboard (index 1)
         this->profileController->currentSession = this->currentSession;
         this->profileController->loadUserData();
@@ -90,6 +92,9 @@ Control_Navigator::Control_Navigator()
 void Control_Navigator::switchTab(int index) {
     // load data before switch tab
     switch(index) {
+    case 0:
+        this->loginController->init();
+        break;
     case 1:
         this->dashboardController->init();
         break;
@@ -97,9 +102,10 @@ void Control_Navigator::switchTab(int index) {
         this->profileController->init();
         break;
     case 3:
-        this->employeeController->init();
+        if(currentSession->checkPermission("Manage")) this->employeeController->init();
         break;
     case 4:
+        this->scheduleController->setEmployeeId(currentSession->getCurrentUser()->getIdEmployee());
         this->scheduleController->load();
         break;
     }
@@ -107,16 +113,11 @@ void Control_Navigator::switchTab(int index) {
     // show view tab
     if (this->viewWindow) {
         this->viewWindow->setPageIndex(index);
+        // put pointer of side bar follow index
+        this->viewWindow->getSideBar()->updateButtonStyles(index);
     }
 }
 
-void Control_Navigator::initUIByRole() {
-    // Implement UI initialization by role here
-}
-
-void Control_Navigator::handleLogOut() {
-    // Implement logout logic here
-}
 
 Control_Navigator::~Control_Navigator() {
     delete currentSession;
