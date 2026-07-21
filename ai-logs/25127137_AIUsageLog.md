@@ -192,3 +192,45 @@ Guided the student in building a custom profile widget in Qt C++, outlining the 
 | `src/control/Profile_Control.cpp` | Updated — updated avatarPath parameter binding |
 | `src/view/EditProfile_Widget.cpp` | Updated — postponed avatar copying to prevent premature state changes |
 
+---
+
+## Session 8 — Shift Management Review (~09:55, July 10)
+
+### Changes Made
+- Reviewed `Shift` and `Schedule_Model` management code for memory leaks and provided optimization suggestions.
+
+---
+
+## Session 9 — CMake Build Fix (~13:28, July 11)
+
+### Changes Made
+- Fixed `CMakeLists.txt` pathing issue causing the project path to not be found.
+
+### Files Modified
+| File | Action |
+|---|---|
+| `CMakeLists.txt` | Updated — fixed project path inclusion |
+| `check_files.py` | [NEW] Created script for validation |
+
+---
+
+## Session 10 — UI Refinements & Fixes (~06:47, July 12)
+
+### Changes Made
+- Fixed UI widget backgrounds dynamically inheriting OS theme.
+- Fixed layout expanding issues with the logout button pushing down in `sidebar_widget`.
+- Adjusted font colors on the `Schedule_View` table.
+- Enlarged profile avatars on sidebar and fixed missing Save/Cancel buttons in `Profile_View` popups.
+
+### Files Modified
+| File | Action |
+|---|---|
+| `styles.qss` | Updated — UI styling fixes for themes and font colors |
+| `Control_Navigator.cpp` | Updated — refined view switching |
+| `Profile_Control.cpp/.h` | Updated — backend linking |
+| `Dashboard_View.ui` | Updated — UI layout changes |
+| `EditPassword_Widget.cpp` | Updated — UI visibility updates |
+| `EditProfile_Widget.cpp` | Updated — UI layout constraints |
+| `Schedule_View.cpp` | Updated — UI font styling |
+| `employeeswidget.cpp/.h` | Updated — related widgets |
+| `sidebar_widget.cpp/.h/.ui` | Updated — layout padding and avatar scaling |
