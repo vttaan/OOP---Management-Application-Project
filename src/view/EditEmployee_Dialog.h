@@ -2,7 +2,7 @@
 
 #include "global.h"
 #include "core/User.h"
-
+#include<functional>
 class EditEmployee_Dialog : public QDialog {
     Q_OBJECT
 
@@ -19,7 +19,7 @@ public:
     QString getCitizenId() const;
     QString getAvatarPath() const;
     QString getGender() const;
-
+    std::function<QString(const EditEmployee_Dialog*)> validatorDelegate;
 private slots:
     void onConfirm();
 

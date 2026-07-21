@@ -10,8 +10,7 @@
 #include "utils/SessionManage.h"
 #include "core/User.h"
 
-Sidebar_Widget::Sidebar_Widget(QWidget *parent) :
-    QWidget(parent), ui(new Ui::Sidebar_Widget)
+Sidebar_Widget::Sidebar_Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Sidebar_Widget)
 {
     ui->setupUi(this);
     this->setObjectName("Sidebar_Widget");
@@ -19,106 +18,160 @@ Sidebar_Widget::Sidebar_Widget(QWidget *parent) :
     ui->subMenu_Schedule->hide(); // setup in default, when start program
 
     // logic in Schedule tab, because Schedule tab has 3 subTab.
-    connect(ui->buttonSchedule, &QPushButton::clicked, [this]() {
+    connect(ui->buttonSchedule, &QPushButton::clicked, [this]()
+            {
         bool isHidden = ui->subMenu_Schedule->isHidden();
-        ui->subMenu_Schedule->setVisible(isHidden);
-    });
+        ui->subMenu_Schedule->setVisible(isHidden); });
 
     // main tab
-    connect(ui->btnProfile, &QPushButton::clicked, [this]() { emit menuClicked(2); updateButtonStyles(2); });
-    connect(ui->btnMenu_Overview, &QPushButton::clicked, [this]() { emit menuClicked(1); updateButtonStyles(1); });
-    connect(ui->btnMenu_HR, &QPushButton::clicked, [this]() { emit menuClicked(3); updateButtonStyles(3); });
-    //connect(ui->btnMenu_Salary, &QPushButton::clicked, [this]() { emit menuClicked(7); updateButtonStyles(7); });
-    //connect(ui->btnMenu_Report, &QPushButton::clicked, [this]() { emit menuClicked(8); updateButtonStyles(8); });
-    //connect(ui->btnMenu_Settings, &QPushButton::clicked, [this]() { emit menuClicked(9); updateButtonStyles(9); });
+    connect(ui->btnProfile, &QPushButton::clicked, [this]()
+            { emit menuClicked(2); updateButtonStyles(2); });
+    connect(ui->btnMenu_Overview, &QPushButton::clicked, [this]()
+            { emit menuClicked(1); updateButtonStyles(1); });
+    connect(ui->btnMenu_HR, &QPushButton::clicked, [this]()
+            { emit menuClicked(3); updateButtonStyles(3); });
 
     // subTab in Schedule
-    connect(ui->buttonRegistrationSchedule, &QPushButton::clicked, [this]() { emit menuClicked(4); updateButtonStyles(4); });
-    connect(ui->buttonArrangeSchedule, &QPushButton::clicked, [this]() { emit menuClicked(5); updateButtonStyles(5); });
-    connect(ui->buttonViewSchedule, &QPushButton::clicked, [this]() { emit menuClicked(6); updateButtonStyles(6); });
+    connect(ui->buttonRegistrationSchedule, &QPushButton::clicked, [this]()
+            { emit menuClicked(4); updateButtonStyles(4); });
+    connect(ui->buttonArrangeSchedule, &QPushButton::clicked, [this]()
+            { emit menuClicked(5); updateButtonStyles(5); });
+    connect(ui->buttonViewSchedule, &QPushButton::clicked, [this]()
+            { emit menuClicked(6); updateButtonStyles(6); });
+    // connect(ui->btnMenu_Salary, &QPushButton::clicked, [this]() { emit menuClicked(7); updateButtonStyles(7); });
+    // connect(ui->btnMenu_Report, &QPushButton::clicked, [this]() { emit menuClicked(8); updateButtonStyles(8); });
+    // connect(ui->btnMenu_Settings, &QPushButton::clicked, [this]() { emit menuClicked(9); updateButtonStyles(9); });
 
-    connect(ui->btnLogout, &QPushButton::clicked, [this]() { emit logoutClicked(); });
+    connect(ui->btnLogout, &QPushButton::clicked, [this]()
+            { emit logoutClicked(); });
 
     // default set view in dashboard
     updateButtonStyles(1);
+
+    // permission default
+    setPermission(false);
+}
+
+void Sidebar_Widget::setPermission(const bool &permitted)
+{
+    ui->btnMenu_HR->setVisible(permitted);
+    ui->buttonArrangeSchedule->setVisible(permitted);
+    ui->buttonRegistrationSchedule->setVisible(!permitted);
+    ui->subMenu_Schedule->hide();
 }
 
 Sidebar_Widget::~Sidebar_Widget() { delete ui; }
 
-void Sidebar_Widget::initUI() {
+void Sidebar_Widget::initUI()
+{
 
-    // setup background
+    // Cyan gradient sidebar background
     this->setStyleSheet("Sidebar_Widget { "
-                        "   background-color: #f7f9fc; "
-                        "   border-right: 1px solid #E5E7EB; "
+                        "   background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #0284C7, stop:1 #06B6D4); "
+                        "   border-right: 1px solid rgba(255, 255, 255, 0.2); "
                         "}");
 
-    // setup logo
-    if (ui->labelLogo) {
+    // Logo
+    if (ui->labelLogo)
+    {
         ui->labelLogo->setText("Hệ thống quản lý\nnhân sự");
         ui->labelLogo->setAlignment(Qt::AlignCenter);
         ui->labelLogo->setStyleSheet(
-            "font-size: 16px; "
+            "font-size: 15px; "
             "font-weight: 900; "
-            "color: #111827; "
+            "color: #FFFFFF; "
             "border: none; "
-            "margin-top: 10px; "
-            "margin-bottom: 15px;"
-            );
+            "margin-top: 12px; "
+            "margin-bottom: 14px;");
     }
 
-    if (ui->btnProfile) {
+    if (ui->btnProfile)
+    {
         ui->btnProfile->setText("");
         ui->btnProfile->setStyleSheet(
             "QPushButton#btnProfile { "
-            "   background-color: #ffffff; "
-            "   border: 1px solid #e2e8f0; "
+            "   background-color: rgba(255, 255, 255, 0.15); "
+            "   border: 1px solid rgba(255, 255, 255, 0.3); "
             "   border-radius: 12px; "
-            "   margin: 5px 15px; "
-            "   padding: 5px; "
+            "   margin: 5px 12px; "
+            "   padding: 8px; "
             "   text-align: left; "
             "}"
             "QPushButton#btnProfile:hover { "
-            "   background-color: #f8fafc; "
-            "   border-color: #cbd5e1; "
+            "   background-color: rgba(255, 255, 255, 0.25); "
+            "   border-color: rgba(255, 255, 255, 0.4); "
             "}"
             "QPushButton#btnProfile:pressed { "
-            "   background-color: #f1f5f9; "
-            "}"
-        );
-        ui->btnProfile->setFixedHeight(70);
-        QHBoxLayout* profileLayout = new QHBoxLayout(ui->btnProfile);
-        profileLayout->setContentsMargins(20, 10, 12, 10);
+            "   background-color: rgba(255, 255, 255, 0.1); "
+            "}");
+        ui->btnProfile->setFixedHeight(82);
+        QHBoxLayout *profileLayout = new QHBoxLayout(ui->btnProfile);
+        profileLayout->setContentsMargins(16, 0, 12, 0); // Shift avatar off the left border a bit
         profileLayout->setSpacing(12);
+        profileLayout->setAlignment(Qt::AlignVCenter);
 
-        QLabel* lblAvatar = new QLabel(ui->btnProfile);
+        // --- Avatar (44x44 circle) ---
+        QLabel *lblAvatar = new QLabel(ui->btnProfile);
         lblAvatar->setObjectName("lblSidebarAvatar");
-        lblAvatar->setFixedSize(36, 36);
-        lblAvatar->setStyleSheet("background-color: #d2e3fc; border-radius: 18px; border: none;");
+        lblAvatar->setFixedSize(44, 44);
+        lblAvatar->setStyleSheet("background-color: #3B82F6; border-radius: 22px; border: 2px solid #93C5FD;");
         lblAvatar->setAlignment(Qt::AlignCenter);
-        lblAvatar->setText("👨‍💼");
+        lblAvatar->setText("👤");
         lblAvatar->setAttribute(Qt::WA_TransparentForMouseEvents, true);
 
-        QVBoxLayout* textLayout = new QVBoxLayout();
-        textLayout->setSpacing(2);
+        // --- Text column: Name + Role pill ---
+        QVBoxLayout *textLayout = new QVBoxLayout();
+        textLayout->setSpacing(5);
         textLayout->setContentsMargins(0, 0, 0, 0);
 
-        QLabel* lblName = new QLabel("Quản trị viên", ui->btnProfile);
+        QLabel *lblName = new QLabel("Quản trị viên", ui->btnProfile);
         lblName->setObjectName("lblSidebarName");
-        lblName->setStyleSheet("font-size: 13px; font-weight: bold; color: #212b36; background: transparent; border: none;");
+        lblName->setStyleSheet(
+            "font-size: 15px; font-weight: bold; color: #FFFFFF; "
+            "background: transparent; border: none;");
         lblName->setAttribute(Qt::WA_TransparentForMouseEvents, true);
 
-        QLabel* lblRole = new QLabel("Quản trị hệ thống", ui->btnProfile);
+        // Role pill badge (default: Admin style)
+        QLabel *lblRole = new QLabel("Quản trị viên", ui->btnProfile);
         lblRole->setObjectName("lblSidebarRole");
-        lblRole->setStyleSheet("font-size: 11px; color: #637381; background: transparent; border: none;");
+        lblRole->setAlignment(Qt::AlignCenter);
+        lblRole->setFixedHeight(20);
         lblRole->setAttribute(Qt::WA_TransparentForMouseEvents, true);
+        lblRole->setStyleSheet(
+            "font-size: 11px; font-weight: 800; "
+            "color: #1D4ED8; background-color: #DBEAFE; "
+            "border-radius: 10px; padding: 0px 8px; border: none;");
+        // Clamp width to content + padding
+        lblRole->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+        lblRole->adjustSize();
 
         textLayout->addWidget(lblName);
-        textLayout->addWidget(lblRole);
+        textLayout->addWidget(lblRole, 0, Qt::AlignLeft);
 
         profileLayout->addWidget(lblAvatar);
         profileLayout->addLayout(textLayout);
-        profileLayout->addStretch();
+        profileLayout->addStretch(); // trailing stretch pushes content left
+    }
+
+    // ---- Add SVG icons to all menu buttons ----
+    auto applyIcon = [](QPushButton *btn, const QString &path, int sz = 24)
+    {
+        if (!btn)
+            return;
+        btn->setIcon(QIcon(path));
+        btn->setIconSize(QSize(sz, sz));
+    };
+    applyIcon(ui->btnMenu_Overview, ":/images/dashboard-light.svg");
+    applyIcon(ui->btnMenu_HR, ":/images/employee-light.svg");
+    applyIcon(ui->buttonSchedule, ":/images/calendar-light.svg");
+    applyIcon(ui->btnMenu_Report, ":/images/report-white.svg");
+    applyIcon(ui->btnMenu_Settings, ":/images/setting-light.svg");
+    applyIcon(ui->btnLogout, ":/images/exit-light.svg");
+
+    // Sub-menu frame — glassmorphic background
+    if (ui->subMenu_Schedule)
+    {
+        ui->subMenu_Schedule->setStyleSheet("background-color: rgba(255, 255, 255, 0.1); border-radius: 6px;");
     }
 
     // setup default
@@ -139,17 +192,21 @@ void Sidebar_Widget::updateButtonStyles(int mainIndex)
     ui->btnMenu_Overview->setStyleSheet(normal);
     ui->btnMenu_HR->setStyleSheet(normal);
     ui->buttonSchedule->setStyleSheet(normal);
-    ui->btnMenu_Salary->setStyleSheet(normal);
     ui->btnMenu_Report->setStyleSheet(normal);
     ui->btnMenu_Settings->setStyleSheet(normal);
     ui->buttonRegistrationSchedule->setStyleSheet(normal);
     ui->buttonArrangeSchedule->setStyleSheet(normal);
     ui->buttonViewSchedule->setStyleSheet(normal);
-    ui->btnLogout->setStyleSheet(normal);
+    ui->btnLogout->setStyleSheet(logOutStyle);
 
-    switch(mainIndex) {
-    case 1: ui->btnMenu_Overview->setStyleSheet(activeMain); break;
-    case 3: ui->btnMenu_HR->setStyleSheet(activeMain); break;
+    switch (mainIndex)
+    {
+    case 1:
+        ui->btnMenu_Overview->setStyleSheet(activeMain);
+        break;
+    case 3:
+        ui->btnMenu_HR->setStyleSheet(activeMain);
+        break;
     case 4:
         ui->buttonSchedule->setStyleSheet(activeMain);
         ui->buttonRegistrationSchedule->setStyleSheet(activeSub);
@@ -165,30 +222,61 @@ void Sidebar_Widget::updateButtonStyles(int mainIndex)
     }
 }
 
-void Sidebar_Widget::loadUserData(SessionManager* session) {
-    if (!session || !session->getCurrentUser()) return;
-    User* user = session->getCurrentUser();
+void Sidebar_Widget::loadUserData(SessionManager *session)
+{
+    if (!session || !session->getCurrentUser())
+        return;
+    User *user = session->getCurrentUser();
 
-    QLabel* lblName = this->findChild<QLabel*>("lblSidebarName");
-    QLabel* lblRole = this->findChild<QLabel*>("lblSidebarRole");
+    QLabel *lblName = this->findChild<QLabel *>("lblSidebarName");
+    QLabel *lblRole = this->findChild<QLabel *>("lblSidebarRole");
 
-    if (lblName) lblName->setText(user->getName());
-    if (lblRole) {
-        QString roleText = user->getRole();
-        if (roleText == "Manage") {
-            lblRole->setText("Quản trị hệ thống");
-        } else if (roleText == "Staff") {
-            lblRole->setText("Nhân viên");
-        } else {
-            lblRole->setText(roleText);
+    if (lblName)
+        lblName->setText(user->getName());
+
+    if (lblRole)
+    {
+        QString roleInternal = user->getRole();
+        QString displayText;
+        QString pillStyle;
+
+        if (roleInternal == "Manage")
+        {
+            displayText = "Quản lý";
+            // Purple pill — matches employee table Manager badge
+            pillStyle = "font-size: 11px; font-weight: 800; "
+                        "color: #6D28D9; background-color: #EDE9FE; "
+                        "border-radius: 10px; padding: 0px 8px; border: none;";
         }
+        else if (roleInternal == "Admin")
+        {
+            displayText = "Quản trị viên";
+            // Blue pill
+            pillStyle = "font-size: 11px; font-weight: 800; "
+                        "color: #1D4ED8; background-color: #DBEAFE; "
+                        "border-radius: 10px; padding: 0px 8px; border: none;";
+        }
+        else
+        {
+            displayText = "Nhân viên";
+            // Light blue pill — matches employee table Staff badge
+            pillStyle = "font-size: 11px; font-weight: 800; "
+                        "color: #0369A1; background-color: #E0F2FE; "
+                        "border-radius: 10px; padding: 0px 8px; border: none;";
+        }
+
+        lblRole->setText(displayText);
+        lblRole->setStyleSheet(pillStyle);
+        lblRole->adjustSize();
     }
     setupSidebarAvatar(user->getAvatarPath());
 }
 
-void Sidebar_Widget::setupSidebarAvatar(const QString& imagePath) {
-    QLabel* lblAvatar = this->findChild<QLabel*>("lblSidebarAvatar");
-    if (!lblAvatar) return;
+void Sidebar_Widget::setupSidebarAvatar(const QString &imagePath)
+{
+    QLabel *lblAvatar = this->findChild<QLabel *>("lblSidebarAvatar");
+    if (!lblAvatar)
+        return;
 
     QDir appDir(QCoreApplication::applicationDirPath());
     appDir.cdUp(); // build
@@ -196,11 +284,13 @@ void Sidebar_Widget::setupSidebarAvatar(const QString& imagePath) {
     QString folderPath = appDir.filePath("resources");
 
     QPixmap avatarPixmap;
-    if (!imagePath.isEmpty() && QFile::exists(folderPath + "/avatars/" + imagePath)) {
+    if (!imagePath.isEmpty() && QFile::exists(folderPath + "/avatars/" + imagePath))
+    {
         avatarPixmap.load(folderPath + "/avatars/" + imagePath);
     }
 
-    if (avatarPixmap.isNull()) {
+    if (avatarPixmap.isNull())
+    {
         avatarPixmap.load(":/images/avatarSample.png");
     }
 
@@ -226,7 +316,8 @@ void Sidebar_Widget::setupSidebarAvatar(const QString& imagePath) {
     lblAvatar->setPixmap(rounded);
 }
 
-void Sidebar_Widget::paintEvent(QPaintEvent *event) {
+void Sidebar_Widget::paintEvent(QPaintEvent *event)
+{
     QStyleOption opt;
     opt.initFrom(this);
     QPainter p(this);

@@ -21,9 +21,7 @@ public:
     View_Navigator* viewWindow = nullptr;
     SessionManager* currentSession = nullptr;
     Control_Navigator();
-    void initUIByRole();
     void switchTab(int index);
-    void handleLogOut();
 
     ~Control_Navigator();
 };

@@ -21,28 +21,28 @@
    <item>
     <widget class="QPushButton" name="btnProfile">
      <property name="text">
-      <string>Trang cá nhân</string>
+      <string>   Trang cá nhân</string>
      </property>
     </widget>
    </item>
    <item>
     <widget class="QPushButton" name="btnMenu_Overview">
      <property name="text">
-      <string>Tổng quan</string>
+      <string>   Tổng quan</string>
      </property>
     </widget>
    </item>
    <item>
     <widget class="QPushButton" name="btnMenu_HR">
      <property name="text">
-      <string>Nhân sự</string>
+      <string>   Nhân sự</string>
      </property>
     </widget>
    </item>
    <item>
     <widget class="QPushButton" name="buttonSchedule">
      <property name="text">
-      <string>Lịch Làm</string>
+      <string>   Lịch Làm</string>
      </property>
     </widget>
    </item>
@@ -61,21 +61,21 @@
       <item>
        <widget class="QPushButton" name="buttonRegistrationSchedule">
         <property name="text">
-         <string>Đăng Ký Lịch</string>
+         <string>   Đăng Ký Lịch</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="buttonArrangeSchedule">
         <property name="text">
-         <string>Xếp Lịch Làm</string>
+         <string>   Xếp Lịch Làm</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="buttonViewSchedule">
         <property name="text">
-         <string>Xem Lịch Làm</string>
+         <string>   Xem Lịch Làm</string>
         </property>
        </widget>
       </item>
@@ -83,23 +83,9 @@
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="btnMenu_Salary">
-     <property name="text">
-      <string>Lương</string>
-     </property>
-    </widget>
-   </item>
-   <item>
     <widget class="QPushButton" name="btnMenu_Report">
      <property name="text">
-      <string>Báo cáo</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QPushButton" name="btnMenu_Settings">
-     <property name="text">
-      <string>Cài đặt</string>
+      <string>   Báo cáo</string>
      </property>
     </widget>
    </item>
@@ -120,9 +106,16 @@
     </spacer>
    </item>
    <item>
+    <widget class="QPushButton" name="btnMenu_Settings">
+     <property name="text">
+      <string>   Cài đặt</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QPushButton" name="btnLogout">
      <property name="text">
-      <string>Đăng xuất</string>
+      <string>   Đăng xuất</string>
      </property>
     </widget>
    </item>

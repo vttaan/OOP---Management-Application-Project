@@ -4,6 +4,8 @@
 	<file>styles/Employee_View_styles.qss</file>
 
         <file>images/login_bg.jpg</file>
+	<file>images/login_bg.png</file>
+
         <file>images/eyeClosed.svg</file>
         <file>images/eyeOpen.svg</file>
         <file>fonts/inter.ttf</file>
@@ -26,5 +28,11 @@
         <file>images/filter-slash.svg</file>
         <file>images/sort-from-bottom-to-top.svg</file>
         <file>images/sort-from-top-to-bottom.svg</file>
+        <file>images/dashboard-light.svg</file>
+        <file>images/calendar-light.svg</file>
+        <file>images/employee-light.svg</file>
+        <file>images/report-white.svg</file>
+        <file>images/setting-light.svg</file>
+        <file>images/exit-light.svg</file>
     </qresource>
 </RCC>
