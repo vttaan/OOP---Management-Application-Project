@@ -10,7 +10,7 @@
 
 Control_Navigator::Control_Navigator()
 {
-    this->currentSession = new SessionManager();
+    //this->currentSession = new SessionManager();
 
     this->dashboardController = new Dashboard_Control(this);
     this->dashboardController->currentSession = this->currentSession;
@@ -24,6 +24,8 @@ Control_Navigator::Control_Navigator()
     this->employeeController = new Employee_Control(this);
 
     this->scheduleController = new Schedule_Control(this);
+
+    this->salaryController = new Salary_Control(this);
 
     this->viewWindow = new View_Navigator(this); // Initialize viewWindow AFTER controllers
 
@@ -61,13 +63,13 @@ Control_Navigator::Control_Navigator()
         // the whole app's session is updated
     });
 
-    QObject::connect(this->dashboardController, &Dashboard_Control::profilePageClicked,
-                     this->viewWindow, [this]() {
-        this->switchTab(2); // Switch to Profile (index 2)
-        //this->profileController->hand
-        //qDebug() << this->profileController->currentSession->getCurrentUser()->getName();
-        // no need to load user data for profile since its session already pointed to the whole app's session
-    });
+    // QObject::connect(this->dashboardController, &Dashboard_Control::profilePageClicked,
+    //                  this->viewWindow, [this]() {
+    //     this->switchTab(2); // Switch to Profile (index 2)
+    //     //this->profileController->hand
+    //     //qDebug() << this->profileController->currentSession->getCurrentUser()->getName();
+    //     // no need to load user data for profile since its session already pointed to the whole app's session
+    // });
 
     // switch from profile back previous
     QObject::connect(this->profileController, &Profile_Control::backToPrevious,
@@ -105,8 +107,17 @@ void Control_Navigator::switchTab(int index) {
         if(currentSession->checkPermission("Manage")) this->employeeController->init();
         break;
     case 4:
-        this->scheduleController->setEmployeeId(currentSession->getCurrentUser()->getIdEmployee());
-        this->scheduleController->load();
+    case 5:
+    case 6:
+        if (currentSession && currentSession->getCurrentUser()) {
+            this->scheduleController->setEmployeeId(currentSession->getCurrentUser()->getIdEmployee());
+            this->scheduleController->load();
+        }
+        break;
+    case 7:
+        this->salaryController->init();
+        break;
+    default:
         break;
     }
 

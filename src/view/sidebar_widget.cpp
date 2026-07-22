@@ -38,7 +38,8 @@ Sidebar_Widget::Sidebar_Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Si
             { emit menuClicked(5); updateButtonStyles(5); });
     connect(ui->buttonViewSchedule, &QPushButton::clicked, [this]()
             { emit menuClicked(6); updateButtonStyles(6); });
-    // connect(ui->btnMenu_Salary, &QPushButton::clicked, [this]() { emit menuClicked(7); updateButtonStyles(7); });
+    connect(ui->btnMenu_Salary, &QPushButton::clicked, [this]()
+            { emit menuClicked(7); updateButtonStyles(7); });
     // connect(ui->btnMenu_Report, &QPushButton::clicked, [this]() { emit menuClicked(8); updateButtonStyles(8); });
     // connect(ui->btnMenu_Settings, &QPushButton::clicked, [this]() { emit menuClicked(9); updateButtonStyles(9); });
 
@@ -164,7 +165,7 @@ void Sidebar_Widget::initUI()
     applyIcon(ui->btnMenu_Overview, ":/images/dashboard-light.svg");
     applyIcon(ui->btnMenu_HR, ":/images/employee-light.svg");
     applyIcon(ui->buttonSchedule, ":/images/calendar-light.svg");
-    applyIcon(ui->btnMenu_Report, ":/images/report-white.svg");
+    applyIcon(ui->btnMenu_Salary, ":/images/report-white.svg");
     applyIcon(ui->btnMenu_Settings, ":/images/setting-light.svg");
     applyIcon(ui->btnLogout, ":/images/exit-light.svg");
 
@@ -192,7 +193,7 @@ void Sidebar_Widget::updateButtonStyles(int mainIndex)
     ui->btnMenu_Overview->setStyleSheet(normal);
     ui->btnMenu_HR->setStyleSheet(normal);
     ui->buttonSchedule->setStyleSheet(normal);
-    ui->btnMenu_Report->setStyleSheet(normal);
+    ui->btnMenu_Salary->setStyleSheet(normal);
     ui->btnMenu_Settings->setStyleSheet(normal);
     ui->buttonRegistrationSchedule->setStyleSheet(normal);
     ui->buttonArrangeSchedule->setStyleSheet(normal);
@@ -218,6 +219,9 @@ void Sidebar_Widget::updateButtonStyles(int mainIndex)
     case 6:
         ui->buttonSchedule->setStyleSheet(activeMain);
         ui->buttonViewSchedule->setStyleSheet(activeSub);
+        break;
+    case 7:
+        ui->btnMenu_Salary->setStyleSheet(activeMain);
         break;
     }
 }
