@@ -102,6 +102,17 @@ void Control_Navigator::switchTab(int index) {
     case 4:
         this->scheduleController->load();
         break;
+    case 5:
+     // Xếp lịch làm - Chưa có controller, chỉ chuyển UI
+    case 6:
+     // Xem lịch làm - Chưa có controller, chỉ chuyển UI
+    case 7:
+     // Xem lịch làm - Chưa có controller, chỉ chuyển UI
+    case 8:
+     // Xem lịch làm - Chưa có controller, chỉ chuyển UI
+    case 9:
+    // this->settingsController->init();
+        break;
     }
 
     // show view tab

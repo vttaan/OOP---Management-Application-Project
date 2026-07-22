@@ -40,10 +40,18 @@
     <item>
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>9</number>
       </property>
       <widget class="QWidget" name="page"/>
       <widget class="QWidget" name="page_2"/>
+      <widget class="QWidget" name="page_3"/>
+      <widget class="QWidget" name="page_4"/>
+      <widget class="QWidget" name="page_5"/>
+      <widget class="QWidget" name="page_6"/>
+      <widget class="QWidget" name="page_7"/>
+      <widget class="QWidget" name="page_8"/>
+      <widget class="QWidget" name="page_9"/>
+      <widget class="QWidget" name="page_10"/>
      </widget>
     </item>
    </layout>
@@ -64,7 +72,7 @@
   <customwidget>
    <class>Sidebar_Widget</class>
    <extends>QWidget</extends>
-   <header>sidebar_widget.h</header>
+   <header>view/sidebar_widget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

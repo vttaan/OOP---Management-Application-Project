@@ -4,14 +4,15 @@
 #include "global.h"
 #include "core/Shift.h"
 #include "utils/Database.h"
-
+#include "utils/Optimizer.h"
 class Schedule_Model
 {
 private:
     QList<QList<Shift *>> shiftList{7}; // 7 days
-    // maybe add qlist temporary shift list
     int numberOfShift;
-
+    QVector<ShiftRegistration> fetchPendingShifts(const QDate& weekStart, const QDate& weekEnd);
+    // Lấy tổng số phút đã làm của từng nhân viên
+    QVector<EmployeeInfo> fetchAllEmployeeInfos(const QDate& weekStart);
 public:
     Schedule_Model();
     bool checkOverlapping(short int id, QDate date, QTime start, QTime end);
@@ -22,7 +23,7 @@ public:
 
     // Returns the in-memory weekly shift list (index 0=Mon, 6=Sun)
     const QList<QList<Shift *>>& getShiftList() const { return shiftList; }
-
+     OptimizerOutput generateSchedule();
     ~Schedule_Model();
 };
 
