@@ -6,6 +6,10 @@
 
 QString convertCurrency(QString salary) {
     QString validSalary;
+    if (salary[0] == '-') {
+        validSalary += "-";
+        salary = salary.sliced(1);
+    }
     int index = ((salary.length() + 2) / 3) * 3 - salary.length();
     int i = 0;
     while (i < salary.length()) {

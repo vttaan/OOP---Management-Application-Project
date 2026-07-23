@@ -25,7 +25,7 @@ SalaryData Salary_Model::getSalarySummary(User* user, int month, int year)
         data.holidayHours = holidayDays.size();
         data.normalSalary = data.normalHours * user->getSalary();
         data.holidaySalary = data.holidayHours * (user->getSalary() * 2);
-        data.penalty = absentDays * 200000;
+        data.penalty = absentDays * 2000000;
 
         data.totalSalary = data.normalSalary + data.holidaySalary - data.penalty;
     } else if (user->getRole() == "Staff") {
