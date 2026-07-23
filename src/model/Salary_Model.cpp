@@ -18,17 +18,17 @@ SalaryData Salary_Model::getSalarySummary(User* user, int month, int year)
     if (user->getRole() == "Manager") {
         int totalDaysWorked = normalDays.size() + holidayDays.size();
         QDate date(year, month, 1);
-        int daysInMonth = date.daysInMonth();
-        int absentDays = daysInMonth - totalDaysWorked;
+        int absentDays = date.daysInMonth() - totalDaysWorked;
         if (absentDays < 0) absentDays = 0;
         
-        data.normalHours = totalDaysWorked;
-        data.holidayHours = 0;
-        data.normalSalary = user->getSalary();
-        data.holidaySalary = 0;
-        data.penalty = absentDays; 
-        data.totalSalary = data.normalSalary;
-    } else {
+        data.normalHours = normalDays.size();
+        data.holidayHours = holidayDays.size();
+        data.normalSalary = data.normalHours * user->getSalary();
+        data.holidaySalary = data.holidayHours * (user->getSalary() * 2);
+        data.penalty = absentDays * 200000;
+
+        data.totalSalary = data.normalSalary + data.holidaySalary - data.penalty;
+    } else if (user->getRole() == "Staff") {
         for (int hours : normalDays.values()) {
             data.normalHours += hours;
         }
@@ -51,7 +51,9 @@ QMap<QString, int> Salary_Model::getNormalDaysData(User* user, int month, int ye
     QSqlQuery query(openData);
 
     QDate startDate(year, month, 1);
-    QDate endDate = startDate.addMonths(1).addDays(-1);
+    QDate endDate = QDate::currentDate();
+
+    qDebug() << "id: " << user->getIdEmployee();
 
     query.prepare("SELECT * FROM SHIFT WHERE idEmployee = :id AND workDate BETWEEN :start AND :end");
     query.bindValue(":id", user->getIdEmployee());
@@ -82,7 +84,3 @@ QMap<QString, int> Salary_Model::getHolidayDaysData(User* user, int month, int y
     return data;
 }
 
-QString Salary_Model::getBaseSalary()
-{
-    return "25.000 VNĐ";
-}

@@ -29,6 +29,7 @@ signals:
 
 private:
     Ui::Salary_View *ui;
+    QString currentRole;
     void setupUI();
     void setupConnections();
 };

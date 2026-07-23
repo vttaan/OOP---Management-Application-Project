@@ -31,7 +31,6 @@ public:
     QMap<QString, int> getHolidayDaysData(User* currentUser, int month, int year);
     User* currentUser;
 
-    QString getBaseSalary();
 
 signals:
 

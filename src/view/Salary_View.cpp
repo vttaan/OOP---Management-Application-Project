@@ -87,6 +87,7 @@ void Salary_View::setBaseSalary(const QString& salary)
 
 void Salary_View::setRole(const QString& role)
 {
+    this->currentRole = role;
     if (role == "Manager") {
         ui->normalTable->setVisible(false);
         ui->holidayTable->setVisible(false);
@@ -128,17 +129,22 @@ void Salary_View::populateHolidayTable(const QMap<QString, int>& data)
 
 void Salary_View::populateSummaryTable(const SalaryData& data)
 {
-    ui->summaryTable->setItem(0, 0, new QTableWidgetItem(QString::number(data.normalHours)));
-    ui->summaryTable->setItem(0, 1, new QTableWidgetItem(QString::number(data.holidayHours)));
+    QString normalHoursText = QString::number(data.normalHours) + (currentRole == "Manager" ? " ngày" : " giờ");
+    QString holidayHoursText = QString::number(data.holidayHours) + (currentRole == "Manager" ? " ngày" : " giờ");
+
+    ui->summaryTable->setItem(0, 0, new QTableWidgetItem(normalHoursText));
+    ui->summaryTable->setItem(0, 1, new QTableWidgetItem(holidayHoursText));
     
-    ui->summaryTable->setItem(1, 0, new QTableWidgetItem(data.normalSalary));
-    ui->summaryTable->setItem(1, 1, new QTableWidgetItem(data.holidaySalary));
+    ui->summaryTable->setItem(1, 0, new QTableWidgetItem(convertCurrency(QString::number(data.normalSalary))));
+    ui->summaryTable->setItem(1, 1, new QTableWidgetItem(convertCurrency(QString::number(data.holidaySalary))));
     
-    QTableWidgetItem* penaltyItem = new QTableWidgetItem(data.penalty);
+    QString penaltyText = convertCurrency(QString::number(data.penalty));
+                          
+    QTableWidgetItem* penaltyItem = new QTableWidgetItem(penaltyText);
     penaltyItem->setTextAlignment(Qt::AlignCenter);
     ui->summaryTable->setItem(2, 0, penaltyItem);
     
-    QTableWidgetItem* totalItem = new QTableWidgetItem(data.totalSalary);
+    QTableWidgetItem* totalItem = new QTableWidgetItem(convertCurrency(QString::number(data.totalSalary)));
     totalItem->setTextAlignment(Qt::AlignCenter);
     ui->summaryTable->setItem(3, 0, totalItem);
 }
