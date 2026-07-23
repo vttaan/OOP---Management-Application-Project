@@ -23,6 +23,7 @@ set(PROJECT_SOURCES
         src/core/Staff.h
         src/core/Manager.h
         src/core/UserFactory.h
+        src/core/ShiftBlock.h
         # CPP
         src/core/User.cpp
         src/core/Staff.cpp
@@ -125,6 +126,8 @@ qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
     src/view/overview_view.h src/view/overview_view.cpp src/view/overview_view.ui
     src/control/overview_control.h src/control/overview_control.cpp
     src/model/Validator.h src/model/Validator.cpp
+    src/view/viewschedule_view.h src/view/viewschedule_view.cpp src/view/viewschedule_view.ui
+    src/control/viewschedule_control.h src/control/viewschedule_control.cpp
     #src/utils/Config.h
     )
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core Qt6::Widgets Qt6::Sql)

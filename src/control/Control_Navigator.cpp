@@ -7,7 +7,7 @@
 #include "view/Dashboard_View.h"
 #include "utils/SessionManage.h"
 #include "view/employeeswidget.h"
-
+#include "ViewSchedule_Control.h"
 Control_Navigator::Control_Navigator()
 {
     this->currentSession = new SessionManager();
@@ -24,7 +24,8 @@ Control_Navigator::Control_Navigator()
     this->employeeController = new Employee_Control(this);
 
     this->scheduleController = new Schedule_Control(this);
-
+    this->viewScheduleController = new ViewSchedule_Control(this);
+    this->viewScheduleController->currentSession = this->currentSession;
     this->viewWindow = new View_Navigator(this); // Initialize viewWindow AFTER controllers
 
     // switch tab side bar do all
@@ -108,6 +109,10 @@ void Control_Navigator::switchTab(int index) {
         this->scheduleController->setEmployeeId(currentSession->getCurrentUser()->getIdEmployee());
         this->scheduleController->load();
         break;
+    case 5:
+        this->viewScheduleController->setEmployeeId(currentSession->getCurrentUser()->getIdEmployee());
+        this->viewScheduleController->load();
+        break;
     }
 
     // show view tab
@@ -127,6 +132,7 @@ Control_Navigator::~Control_Navigator() {
     delete dashboardController;
     delete employeeController;
     delete scheduleController;
+    delete viewScheduleController;
     currentSession = nullptr;
     viewWindow = nullptr;
     loginController = nullptr;
@@ -134,5 +140,6 @@ Control_Navigator::~Control_Navigator() {
     dashboardController = nullptr;
     employeeController = nullptr;
     scheduleController = nullptr;
+    viewScheduleController = nullptr;
 }
 

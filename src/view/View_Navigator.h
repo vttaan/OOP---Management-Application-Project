@@ -7,6 +7,7 @@
 #include "control/Control_Navigator.h"
 #include "view/Schedule_View.h"
 #include "view/sidebar_widget.h"
+#include "view/viewschedule_view.h"
 namespace Ui {
 class View_Navigator;
 }
@@ -28,6 +29,7 @@ public:
     EmployeesWidget* employeePage = nullptr;
     Schedule_View* schedulePage = nullptr;
     Sidebar_Widget* sidebar = nullptr;
+    ViewSchedule_View* viewSchedulePage = nullptr;
     Control_Navigator* getController();
     QWidget* getWindow();
     Ui::View_Navigator* getUI();

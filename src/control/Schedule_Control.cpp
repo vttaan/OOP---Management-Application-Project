@@ -83,7 +83,7 @@ void Schedule_Control::load()
     model->getSchedule(currentEmployeeId);
 
     // 4. Build the weekly summary and push it to the view's read-only table.
-    view->updateSumTable(buildWeeklySummary());
+    view->updateSumTable(model->getWeeklySummaryStrings());
 
     qDebug() << "Schedule_Control::load() — loaded schedule for employee" << currentEmployeeId;
 }
@@ -128,7 +128,7 @@ void Schedule_Control::onAddShiftRequested(const QString& day,
 
     // Success: reload the in-memory list from DB and refresh summary table
     model->getSchedule(currentEmployeeId);
-    view->updateSumTable(buildWeeklySummary());
+    view->updateSumTable(model->getWeeklySummaryStrings());
     view->resetInputTable();
 
     delete newShift; // Ownership stays in the model's shiftList after reload
@@ -196,23 +196,4 @@ QDate Schedule_Control::dayStringToDate(const QString& day) const
     // Get Monday of the current week
     QDate monday = QDate::currentDate().addDays(-(QDate::currentDate().dayOfWeek() - 1));
     return monday.addDays(idx);
-}
-
-QMap<int, QList<QString>> Schedule_Control::buildWeeklySummary() const
-{
-    // Returns a map: col (0–6) → list of "HH:mm – HH:mm" strings
-    QMap<int, QList<QString>> weeklyData;
-    const auto& shifts = model->getShiftList();
-
-    for (int col = 0; col < shifts.size(); ++col) {
-        QList<QString> labels;
-        for (const Shift* s : shifts[col]) {
-            QString label = s->getStartTime().toString("HH:mm")
-                          + " – "
-                          + s->getEndTime().toString("HH:mm");
-            labels.append(label);
-        }
-        if (!labels.isEmpty()) weeklyData.insert(col, labels);
-    }
-    return weeklyData;
 }

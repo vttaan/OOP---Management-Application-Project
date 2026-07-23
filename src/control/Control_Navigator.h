@@ -8,6 +8,7 @@
 #include "Employee_Control.h"
 #include "Schedule_Control.h"
 //#include "view/View_Navigator.h"
+#include "ViewSchedule_Control.h"
 class View_Navigator;
 class Control_Navigator : public QObject
 {
@@ -20,6 +21,7 @@ public:
     Schedule_Control* scheduleController = nullptr;
     View_Navigator* viewWindow = nullptr;
     SessionManager* currentSession = nullptr;
+    ViewSchedule_Control* viewScheduleController = nullptr;
     Control_Navigator();
     void switchTab(int index);
 

@@ -421,7 +421,7 @@ void EmployeesWidget::renderTable(const QList<User *> &employees)
     // Col 0 — ID
     QTableWidgetItem *idItem =
         new QTableWidgetItem(QString("NV-%1").arg(emp->getIdEmployee()));
-    idItem->setForeground(QColor("#64748B"));
+    idItem->setForeground(QColor(0x64748B));
     idItem->setFont(QFont("Segoe UI", 9));
     idItem->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     idItem->setData(Qt::UserRole, emp->getRole());
@@ -473,7 +473,7 @@ void EmployeesWidget::renderTable(const QList<User *> &employees)
                           .arg(QString::number(emp->getSalary(), 'f', 0))
                           .arg(suffix);
     QTableWidgetItem *rateItem = new QTableWidgetItem(rateStr);
-    rateItem->setForeground(QColor("#0F172A"));
+    rateItem->setForeground(QColor(0x0F172A));
     rateItem->setFont(QFont("Segoe UI", 9, QFont::DemiBold));
     rateItem->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     employeesTable->setItem(row, 4, rateItem);

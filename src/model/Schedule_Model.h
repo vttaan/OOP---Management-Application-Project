@@ -5,12 +5,15 @@
 #include "core/Shift.h"
 #include "utils/Database.h"
 
+#include "core/ShiftBlock.h"
+#include <QMap>
 class Schedule_Model
 {
 private:
     QList<QList<Shift *>> shiftList{7}; // 7 days
     // maybe add qlist temporary shift list
     int numberOfShift;
+    QList<User*> currentWeeklyUsers;
 
 public:
     Schedule_Model();
@@ -23,6 +26,9 @@ public:
     // Returns the in-memory weekly shift list (index 0=Mon, 6=Sun)
     const QList<QList<Shift *>>& getShiftList() const { return shiftList; }
 
+    void getAcceptedSchedule(short int id, QDate monday);
+    QMap<int, QMap<int, ShiftBlock*>> getManagerWeeklyGrid(QDate monday);
+    QMap<int, QList<QString>> getWeeklySummaryStrings() const;
     ~Schedule_Model();
 };
 

@@ -22,11 +22,27 @@ void Schedule_View::setUpUI() {
 
     ui->tableDangKy->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     ui->tableSum->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    
+    // Force uppercase for horizontal headers
+    for(int i = 0; i < ui->tableDangKy->columnCount(); ++i) {
+        if(ui->tableDangKy->horizontalHeaderItem(i)) {
+            ui->tableDangKy->horizontalHeaderItem(i)->setText(ui->tableDangKy->horizontalHeaderItem(i)->text().toUpper());
+        }
+    }
+    for(int i = 0; i < ui->tableSum->columnCount(); ++i) {
+        if(ui->tableSum->horizontalHeaderItem(i)) {
+            ui->tableSum->horizontalHeaderItem(i)->setText(ui->tableSum->horizontalHeaderItem(i)->text().toUpper());
+        }
+    }
 
     ui->tableDangKy->setSelectionMode(QAbstractItemView::NoSelection);
     ui->tableDangKy->setFocusPolicy(Qt::NoFocus);
     ui->tableSum->setFocusPolicy(Qt::NoFocus);
+    // change can not adjust information inside table sum
+    ui->tableSum->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
+    // change can not select info
+    //ui->tableSum->setSelectionMode(QAbstractItemView::NoSelection);
     this->setStyleSheet("background-color: #FFFFFF;");
 
     ui->ButtonThem->setStyleSheet(
@@ -41,11 +57,13 @@ void Schedule_View::setUpUI() {
 
     QString tableStyle =
         "QTableWidget { border: none; background-color: white; gridline-color: #EFEFEF; } "
-        "QHeaderView::section { background-color: #F8F9FA; border: none; border-bottom: 2px solid #E5E7EB; padding: 8px; font-weight: bold; color: #475467; } "
-        "QHeaderView::section:vertical { background-color: #475467; color: #ffffff; border: none; }";
+        "QHeaderView::section { background-color: #F8F9FA; border: none; border-bottom: 2px solid #E5E7EB; padding: 8px; font-weight: bold; color: black; text-transform: uppercase; } "
+        "QHeaderView::section:vertical { background-color: #E5E7EB; color: black; border: none; font-weight: bold; }";
 
     ui->tableDangKy->setStyleSheet(tableStyle);
+
     ui->tableSum->setStyleSheet(tableStyle);
+
 }
 
 QComboBox* Schedule_View::createComboBox(const QList<QString>& item) {

@@ -29,7 +29,7 @@
     <widget class="QTableWidget" name="tableDangKy">
      <row>
       <property name="text">
-       <string>New Row</string>
+       <string>Lịch</string>
       </property>
      </row>
      <column>
