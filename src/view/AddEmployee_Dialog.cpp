@@ -1,6 +1,6 @@
 #include "global.h"
 #include "AddEmployee_Dialog.h"
-
+#include "model/Employee_Model.h"
 AddEmployee_Dialog::AddEmployee_Dialog(QWidget *parent)
     : QDialog(parent)
 {
@@ -134,18 +134,55 @@ void AddEmployee_Dialog::setupUi()
     form->addRow(makeLabel("Địa chỉ"),          inpAddress);
     form->addRow(makeLabel("CCCD / CMND *"),    inpCitizenId);
 
-    // Account credentials section
-    QLabel *lblAccount = new QLabel("— Thông tin tài khoản —");
+    QLabel *lblAccount = new QLabel("— Thông tin tài khoản (Tự động cấp) —");
     lblAccount->setObjectName("lblAccount");
     lblAccount->setAlignment(Qt::AlignCenter);
     form->addRow(lblAccount);
 
-    inpUsername = makeInput("Tên đăng nhập");
-    inpPassword = makeInput("Mật khẩu");
-    inpPassword->setEchoMode(QLineEdit::Password);
+    inpUsername = makeInput("");
+    inpUsername->setReadOnly(true);
+    inpUsername->setText("Chưa nhập đủ thông tin nhân viên");
+    inpUsername->setStyleSheet("color: gray; background-color: #f2f2f2;");
 
-    form->addRow(makeLabel("Tên đăng nhập *"), inpUsername);
-    form->addRow(makeLabel("Mật khẩu *"),      inpPassword);
+    inpPassword = makeInput("");
+    inpPassword->setReadOnly(true);
+
+    inpPassword->setText("Chưa nhập đủ thông tin nhân viên");
+    inpPassword->setStyleSheet("color: blue; background-color: #f2f2f2; font-weight: bold;");
+    form->addRow(makeLabel("Tên đăng nhập"), inpUsername);
+    form->addRow(makeLabel("Mật khẩu"),      inpPassword);
+
+    auto updateAutoCredentials = [=]() {
+        QString name = inpName->text().trimmed();
+        QString dob = inpDob->text().trimmed();
+
+        // update user's password
+        if (!name.isEmpty() && dob.length() == 10) {
+            QString autoPass = Employee_Model::generateAutoPassword(name, dob);
+            if (!autoPass.isEmpty()) {
+                inpPassword->setText(autoPass);
+            }
+        } else {
+            inpPassword->setText("Đang chờ nhập đủ tên và ngày sinh...");
+        }
+        // update username
+        if (!name.isEmpty()) {
+            QString role = getRole(); // (Manage // Staff)
+            int nextId = Employee_Model::getNextId(role);
+
+            QString autoUser = Employee_Model::generateAutoUsername(nextId, role);
+            inpUsername->setText(autoUser);
+        } else {
+            inpUsername->setText("Vui lòng nhập đủ thông tin cá nhân");
+        }
+    };
+
+    connect(inpName, &QLineEdit::textChanged, this, updateAutoCredentials);
+    connect(inpDob, &QLineEdit::textChanged, this, updateAutoCredentials);
+
+
+    connect(cmbRole, &QComboBox::currentTextChanged, this, updateAutoCredentials);
+
 
     mainLayout->addLayout(form);
 
@@ -191,30 +228,15 @@ void AddEmployee_Dialog::setupUi()
 // ============================================================
 bool AddEmployee_Dialog::validate()
 {
-    if (inpName->text().trimmed().isEmpty()) {
-        lblError->setText("⚠  Họ và tên là bắt buộc.");
-        lblError->setVisible(true);
-        inpName->setFocus();
-        return false;
+    if (validatorDelegate) {
+        QString errorMsg = validatorDelegate(this); // Gọi Controller kiểm tra
+        if (!errorMsg.isEmpty()) {
+            lblError->setText(errorMsg);
+            lblError->setVisible(true);
+            return false;
+        }
     }
-    if (inpCitizenId->text().trimmed().isEmpty()) {
-        lblError->setText("⚠  Số CCCD / CMND là bắt buộc.");
-        lblError->setVisible(true);
-        inpCitizenId->setFocus();
-        return false;
-    }
-    if (inpUsername->text().trimmed().isEmpty()) {
-        lblError->setText("⚠  Tên đăng nhập là bắt buộc.");
-        lblError->setVisible(true);
-        inpUsername->setFocus();
-        return false;
-    }
-    if (inpPassword->text().isEmpty()) {
-        lblError->setText("⚠  Mật khẩu là bắt buộc.");
-        lblError->setVisible(true);
-        inpPassword->setFocus();
-        return false;
-    }
+
     lblError->setVisible(false);
     return true;
 }

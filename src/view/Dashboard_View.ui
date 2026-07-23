@@ -15,7 +15,7 @@
   </property>
   <property name="styleSheet">
    <string notr="true">
-QWidget#Dashboard_View {
+Dashboard_View {
     background-color: #f8f9fa;
 }
 
@@ -32,8 +32,8 @@ QPushButton.MenuButton {
     color: #637381;
     border: none;
     border-radius: 8px;
-    height: 45px;
-    margin: 5px 15px;
+    height: 40px;
+    margin: 2px 15px;
 }
 QPushButton.MenuButton:hover {
     background-color: #f4f6f8;
@@ -151,86 +151,6 @@ QHBoxLayout#horizontalLayout_ListToolbar {
             </size>
            </property>
           </spacer>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_UserInfo">
-           <property name="spacing">
-            <number>12</number>
-           </property>
-           <item>
-            <widget class="QLabel" name="lblAvatar">
-             <property name="minimumSize">
-              <size>
-               <width>40</width>
-               <height>40</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>40</width>
-               <height>40</height>
-              </size>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">background-color: #d2e3fc; border-radius: 20px;</string>
-             </property>
-             <property name="text">
-              <string>👨‍💼</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignmentFlag::AlignCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <layout class="QVBoxLayout" name="verticalLayout_UserDetails">
-             <property name="spacing">
-              <number>2</number>
-             </property>
-             <item>
-              <widget class="QLabel" name="lblUserName">
-               <property name="font">
-                <font>
-                 <pointsize>10</pointsize>
-                 <bold>true</bold>
-                </font>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">color: #212b36;</string>
-               </property>
-               <property name="text">
-                <string>Quản trị viên</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="lblUserRole">
-               <property name="font">
-                <font>
-                 <pointsize>8</pointsize>
-                </font>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">color: #637381;</string>
-               </property>
-               <property name="text">
-                <string>Quản trị hệ thống</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <widget class="QLabel" name="lblDropdown">
-             <property name="styleSheet">
-              <string notr="true">color: #637381;</string>
-             </property>
-             <property name="text">
-              <string>⌄</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
          </item>
         </layout>
        </item>
@@ -594,7 +514,7 @@ QHBoxLayout#horizontalLayout_ListToolbar {
             <x>0</x>
             <y>0</y>
             <width>1200</width>
-            <height>412</height>
+            <height>443</height>
            </rect>
           </property>
          </widget>

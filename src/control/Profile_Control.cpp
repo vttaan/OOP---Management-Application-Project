@@ -43,6 +43,7 @@ bool Profile_Control::handleProfileUpdate(const QString& name, const QString& do
         
         // Refresh the profile view with the new data
         view->loadUserData(currentSession);
+        emit profileUpdated();
         return true;
     }
     return false;

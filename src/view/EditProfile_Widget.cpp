@@ -1,5 +1,6 @@
 #include "global.h"
 #include "EditProfile_Widget.h"
+#include <QScrollArea>
 
 EditProfile_Widget::EditProfile_Widget(QWidget *parent) : QWidget(parent), isPanelOpen(false) {
     // This widget acts as the semi-transparent backdrop.
@@ -18,17 +19,31 @@ EditProfile_Widget::EditProfile_Widget(QWidget *parent) : QWidget(parent), isPan
     shadow->setYOffset(0);
     shadow->setColor(QColor(0, 0, 0, 80));
     panelWidget->setGraphicsEffect(shadow);
-
+ 
     QVBoxLayout *mainLayout = new QVBoxLayout(panelWidget);
-    mainLayout->setContentsMargins(30, 40, 30, 40);
-    mainLayout->setSpacing(20);
+    mainLayout->setContentsMargins(30, 30, 30, 30);
+    mainLayout->setSpacing(15);
     
     QLabel *lblTitle = new QLabel("Chỉnh sửa thông tin", panelWidget);
     lblTitle->setStyleSheet("font-size: 24px; font-weight: bold; color: #0f172a; border: none;");
     mainLayout->addWidget(lblTitle);
+
+    // Scroll Area for the form content
+    QScrollArea *scrollArea = new QScrollArea(panelWidget);
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setFrameShape(QFrame::NoFrame);
+    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    scrollArea->setStyleSheet("QScrollArea { background: transparent; border: none; } QWidget#scrollContent { background: transparent; }");
+    
+    QWidget *scrollContent = new QWidget(scrollArea);
+    scrollContent->setObjectName("scrollContent");
+    QVBoxLayout *scrollLayout = new QVBoxLayout(scrollContent);
+    scrollLayout->setContentsMargins(0, 0, 0, 0);
+    scrollLayout->setSpacing(15);
     
     // Avatar section
-    QWidget *avatarWidget = new QWidget(panelWidget);
+    QWidget *avatarWidget = new QWidget(scrollContent);
     QHBoxLayout *avatarLayout = new QHBoxLayout(avatarWidget);
     avatarLayout->setContentsMargins(0,0,0,0);
     
@@ -45,17 +60,17 @@ EditProfile_Widget::EditProfile_Widget(QWidget *parent) : QWidget(parent), isPan
     avatarLayout->addWidget(lblAvatarPreview);
     avatarLayout->addWidget(btnChangeAvatar);
     avatarLayout->addStretch();
-    mainLayout->addWidget(avatarWidget);
+    scrollLayout->addWidget(avatarWidget);
     
     // Form section
     QFormLayout *formLayout = new QFormLayout();
     formLayout->setVerticalSpacing(15);
     
-    txtName = new QLineEdit(panelWidget);
-    txtDob = new QLineEdit(panelWidget);
-    txtAddress = new QLineEdit(panelWidget);
-    txtPhone = new QLineEdit(panelWidget);
-    txtCitizenId = new QLineEdit(panelWidget);
+    txtName = new QLineEdit(scrollContent);
+    txtDob = new QLineEdit(scrollContent);
+    txtAddress = new QLineEdit(scrollContent);
+    txtPhone = new QLineEdit(scrollContent);
+    txtCitizenId = new QLineEdit(scrollContent);
     
     formLayout->addRow("Họ và tên:", txtName);
     formLayout->addRow("Ngày sinh:", txtDob);
@@ -63,8 +78,12 @@ EditProfile_Widget::EditProfile_Widget(QWidget *parent) : QWidget(parent), isPan
     formLayout->addRow("Số điện thoại:", txtPhone);
     formLayout->addRow("CMND/CCCD:", txtCitizenId);
     
-    mainLayout->addLayout(formLayout);
-    mainLayout->addStretch();
+    scrollLayout->addLayout(formLayout);
+    scrollLayout->addStretch();
+    
+    scrollContent->setLayout(scrollLayout);
+    scrollArea->setWidget(scrollContent);
+    mainLayout->addWidget(scrollArea);
     
     // Buttons section
     QWidget *buttonsWidget = new QWidget(panelWidget);
@@ -94,7 +113,9 @@ EditProfile_Widget::EditProfile_Widget(QWidget *parent) : QWidget(parent), isPan
     connect(animation, &QPropertyAnimation::finished, this, &EditProfile_Widget::onAnimationFinished);
 }
 
-void EditProfile_Widget::setInitialData(const QString& name, const QString& dob, const QString& address, const QString& phone, const QString& citizenId, const QString& avatarPath) {
+void EditProfile_Widget::setInitialData(const QString& name, const QString& dob, const QString& address,
+                                        const QString& phone, const QString& citizenId, const QString& avatarPath
+                                        ) {
     txtName->setText(name);
     txtDob->setText(dob);
     txtAddress->setText(address);

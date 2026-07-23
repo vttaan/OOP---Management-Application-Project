@@ -7,13 +7,13 @@
 
 ---
 
-## Session 1 — Initial Build (~20:00)
+## Session 1 — Initial Build (2026-07-03 ~ 20:00)
 
 Built the full EmployeesWidget dashboard from scratch with: top bar (breadcrumb, clock, bell), 3 metric cards, team roster table with avatar, role/status badges, and action buttons. QSS styled in `styles.qss`. Mock data for 7 employees.
 
 ---
 
-## Session 2 — F&B Refinements (~20:22)
+## Session 2 — F&B Refinements (2026-07-03 ~ 20:22)
 
 1. **QSS reorganized** into 8 named sections in `styles.qss`.
 2. **Department column removed** (F&B context).
@@ -23,7 +23,7 @@ Built the full EmployeesWidget dashboard from scratch with: top bar (breadcrumb,
 
 ---
 
-## Session 3 — UI Cleanup & Bug Fix (~21:36)
+## Session 3 — UI Cleanup & Bug Fix (2026-07-03 ~ 21:36)
 
 ### Changes Made
 
@@ -79,7 +79,7 @@ And `main_control.cpp` still called `Main_View` methods (`switchPage()`, constru
 
 ---
 
-## Session 4 — Hotfixes (~21:48)
+## Session 4 — Hotfixes (2026-07-03 ~ 21:48)
 
 ### Bug Fix 1: Missing slot declaration
 **Error:** `no declaration matches 'void Dashboard_View::on_btnLogout_clicked()'` / `Out-of-line definition of 'on_btnLogout_clicked' does not match any declaration in 'Dashboard_View'`
@@ -109,7 +109,7 @@ And `main_control.cpp` still called `Main_View` methods (`switchPage()`, constru
 
 ---
 
-## Session 5 — Build Optimization (~22:10)
+## Session 5 — Build Optimization (2026-07-03 ~ 22:10)
 
 ### Issue: Very slow compilation times
 **Root Cause 1:** The `CMakeLists.txt` contained major duplicates. Several files (`Dashboard_View.h/.cpp/.ui`, `View_Navigator.h/.cpp/.ui`, `Profile_View.h/.cpp/.ui`, `employeeswidget.h`, `Profile_Control.cpp`) were defined in the `PROJECT_SOURCES` variable *and* appended again manually to the `qt_add_executable()` call. `Profile_Control.cpp` was even appended twice in `qt_add_executable()`. This causes CMake to process files multiple times. For `AUTOUIC` and `AUTOMOC`, this means regenerating headers, and compiling `.cpp` files multiple times during the build process, directly leading to massively bloated build times.
@@ -124,7 +124,7 @@ And `main_control.cpp` still called `Main_View` methods (`switchPage()`, constru
 
 ---
 
-## Session 6 — UI Refinements & Password Model Implementation (~13:20)
+## Session 6 — UI Refinements & Password Model Implementation (2026-07-03 ~ 13:20)
 
 ### Task 1: UI Icon Replacements and Clean Up
 **Details:** The `employeeswidget` originally used emojis for action buttons and metric cards. We needed to replace these with scalable vector graphics (SVGs) for a more professional and consistent look, and remove the emojis to simplify the codebase.
@@ -160,7 +160,7 @@ And `main_control.cpp` still called `Main_View` methods (`switchPage()`, constru
 
 ---
 
-## Session 7 — Bug Fixes, Vietnamese UI & Feature Overhaul (~22:39)
+## Session 7 — Bug Fixes, Vietnamese UI & Feature Overhaul (2026-07-03 ~ 22:39)
 
 ### Tasks Completed
 
@@ -558,4 +558,114 @@ Registered 4 new SVG files: `filter.svg`, `filter-slash.svg`, `sort-from-bottom-
 ### Hotfix 3: Schedule Control / Model Logic Bugs
 - **Bug 1 (Time Parsing):** In `Schedule_Control.cpp`, parsing times like `"13:00"` using `QTime::fromString(..., "h:mm")` failed because `"h"` only parses 1–12. Changed to `"H:mm"` to correctly parse 24-hour formats.
 - **Bug 2 (Overlap Logic):** In `Schedule_Model.cpp`, `checkOverlapping` was attempting to parse time directly from the database using string formats which is fragile, and the boundary condition logic was overly complex and flawed (it missed exact matches).
+    - **Bug 2 (Overlap Logic):** In `Schedule_Model.cpp`, `checkOverlapping` was attempting to parse time directly from the database using string formats which is fragile, and the boundary condition logic was overly complex and flawed (it missed exact matches).
 - **Fix:** Changed `query.value().toString()` to directly use `.toTime()`. Simplified the overlap logic mathematically: two shifts overlap if `(start < currentEndTime && currentStartTime < end)`.
+
+---
+
+## Session 11 — Merge Conflict Resolution: "Tin" Branch (2026-07-12 ~ 12:37)
+
+### Task: Resolve all merge conflicts from merging the `Tin` branch into `hwng`
+
+**Context:**
+A `git merge Tin` was in progress on branch `hwng` with 4 files in conflicted state. The conflict stemmed from two diverging architectures:
+- **HEAD (`hwng`)**: Embedded `Overview_Control`/`Overview_View` inside `Dashboard_View` (which acted as a sub-page container with its own `QStackedWidget` and sidebar).
+- **Tin Branch**: Extracted the sidebar into a separate `Sidebar_Widget`, moved it into `View_Navigator`, and added `Schedule_View` as a top-level page. `Dashboard_View` became a direct overview page with rich stats UI.
+
+**Resolution Strategy:**
+Adopted the **Tin Branch architecture** as the base because it cleanly integrates `Schedule_View` and `Sidebar_Widget`. The `Dashboard_Control` pointer from HEAD was preserved in `Dashboard_View` for dependency injection.
+
+### Conflict Decisions
+
+| File | Decision |
+|---|---|
+| `Control_Navigator.cpp` | **Tin wins**: Added `scheduleController` init, `Sidebar_Widget` signal wiring; removed `overviewController` embedding logic |
+| `Dashboard_View.h` | **Both**: Kept HEAD's `Dashboard_Control` pointer + Tin's `profileClicked` signal and `eventFilter`; removed `clickableBox` helper class |
+| `Dashboard_View.cpp` | **Both**: Constructor uses `Dashboard_Control` pointer (HEAD); `eventFilter` logic from Tin; removed all `switchPage`/`toggleSidebar`/`on_btnMenu_*` slots |
+| `Dashboard_View.ui` | **Tin wins**: Kept Tin's rich `pageOverview` layout (stat cards, header with avatar/username, search+scroll area) |
+
+### Additional Cleanup
+- Removed `Overview_Control` forward declaration from `Control_Navigator.h`.
+- Removed `overviewController` member variable from `Control_Navigator.h`.
+- Removed duplicate `#include "view/employeeswidget.h"` from `Control_Navigator.cpp`.
+
+### Files Modified
+| File | Action |
+|---|---|
+| `src/control/Control_Navigator.cpp` | Conflict resolved — Tin architecture + HEAD wiring |
+| `src/control/Control_Navigator.h` | Cleanup — removed `Overview_Control` forward decl and member |
+| `src/view/Dashboard_View.h` | Conflict resolved — merged best of both branches |
+| `src/view/Dashboard_View.cpp` | Conflict resolved — merged constructor + eventFilter |
+| `src/view/Dashboard_View.ui` | Conflict resolved — Tin's rich overview page layout |
+| `ai-logs/25127052_AIUsageLog.md` | Updated this log |
+
+### AI Tool Used
+Antigravity (Google DeepMind) — Gemini 3.1 Pro / Claude Sonnet 4.6 Thinking
+
+---
+
+## Session 12 — Employee Table Badge Fixes (2026-07-16 ~ 21:59)
+
+### Tasks Completed
+
+#### Fix 1: Badge Alignment (Problem 1)
+The Role (VAI TRÒ) and Status (TRẠNG THÁI) cell containers had `setContentsMargins(6, 4, 4, 4)`, causing the badge to be inset 6px from the left — visually misaligned with the left-aligned header text. Changed to `setContentsMargins(0, 4, 4, 4)` for both `roleLayout` and `statusLayout`.  
+Applied the same `(0, 4, 4, 4)` margin to the new Pay Type badge container for consistency.
+
+#### Fix 2: Role Badge Color Bug (`"Manager"` → `"Manage"`)
+In `createRoleBadge()`, the color-selection `if` block checked `role == "Manager"` but the internal role string stored in the model is `"Manage"`. Because of this typo, "Quản lý" always fell through to the default grey style. Fixed by correcting the condition to `role == "Manage"`.  
+Also updated the Staff ("Nhân viên") fallback from grey (`#F1F5F9 / #475569`) to light blue (`#E0F2FE / #0369A1`) for visual distinction.
+
+#### Fix 3: Pay Type Badge (LOẠI LƯƠNG column)
+Replaced the plain `QTableWidgetItem` (text only) in column 3 with a `QWidget`-hosted badge, following the same pattern as Role and Status columns.  
+Added `createPayTypeBadge(const QString &payType)` factory function:
+- **"Theo giờ"** (Hourly): warm amber — `#FEF3C7` bg / `#B45309` text
+- **"Cố định"** (Fixed): indigo — `#EEF2FF` bg / `#4338CA` text  
+Badge width is auto-sized to text + 24px padding, identical pattern to existing badge factories.
+
+### Files Modified
+| File | Action |
+|---|---|
+| `src/view/employeeswidget.h` | Added `createPayTypeBadge` declaration |
+| `src/view/employeeswidget.cpp` | Fixed alignment margins; fixed role badge typo; replaced pay type plain text with badge; implemented `createPayTypeBadge` |
+| `ai-logs/25127052_AIUsageLog.md` | Updated this log |
+
+### AI Tool Used
+Antigravity (Google DeepMind) — Claude Sonnet 4.6 Thinking
+
+---
+
+## Session 13 — Sidebar Dark Theme Redesign (2026-07-16 ~ 22:21)
+
+### Tasks Completed
+
+#### Task 1: Register SVG Icons in `resources.qrc`
+Added 7 previously-unregistered SVG assets to `resources.qrc` so they can be accessed via Qt's resource system at `:/images/...`:
+`dashboard.svg`, `calendar.svg`, `employee-organization.svg`, `report.svg`, `setting.svg`, `exitm.svg`, plus the already-present `dolar-svgrepo-com.svg` for Salary.
+
+#### Task 2: Reorder `.ui` Layout — Settings & Logout to Bottom
+In `sidebar_widget.ui`, moved the `verticalSpacer` item to sit above `btnMenu_Settings`. This causes Qt's layout engine to push the spacer upward, anchoring "Cài đặt" (Settings) and "Đăng xuất" (Sign Out) to the bottom of the sidebar — matching the reference design.
+
+#### Task 3: Dark Navy Theme — `sidebar_widget.h` Styles
+Updated `normalStyle` and `activeStyle` constants:
+- **Normal**: Text `#94A3B8` (slate), transparent bg, hover `#1E293B`
+- **Active**: Text `#FFFFFF`, background `#2563EB` (vibrant blue) — matching the reference image
+
+#### Task 4: `sidebar_widget.cpp` — Full Dark Theme + Icons
+- **Background**: `#0F172A` (deep navy) with `#1E293B` right border
+- **Logo**: Text color updated to `#F8FAFC` (near-white)
+- **Profile Card (`btnProfile`)**: Background `#1E293B`, border `#334155`, name label white `#F1F5F9`, role label muted `#64748B`; avatar circle updated to `#2563EB` blue
+- **Sub-menu (`subMenu_Schedule`)**: Background updated to `#1E293B`
+- **Icons**: Added `setIcon()` + `setIconSize(18,18)` calls for all 7 main menu buttons using the newly registered SVGs
+
+### Files Modified
+| File | Action |
+|---|---|
+| `resources/resources.qrc` | Registered 7 sidebar SVG icons |
+| `src/view/sidebar_widget.ui` | Moved spacer above Settings; Logout remains last |
+| `src/view/sidebar_widget.h` | Updated normalStyle/activeStyle to dark navy theme |
+| `src/view/sidebar_widget.cpp` | Dark background, logo, profile card, icons on buttons |
+| `ai-logs/25127052_AIUsageLog.md` | Updated this log |
+
+### AI Tool Used
+Antigravity (Google DeepMind) — Claude Sonnet 4.6 Thinking

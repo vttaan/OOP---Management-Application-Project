@@ -53,3 +53,7 @@ void User::setAva(QString a) {
 void User::setPhoneNum(QString phone) {
     this->phoneNum = phone;
 }
+
+void User::setGender(QString g) {
+    this->gender = g;
+}

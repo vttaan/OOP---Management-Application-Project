@@ -48,7 +48,7 @@ void Login_View::clearPassword() {
 
 void Login_View::setupUI(){
     ui->txtLoginPassword->setEchoMode(QLineEdit::Password);
-    bgPixmap = QPixmap(":/images/login_bg.jpg");
+    bgPixmap = QPixmap(":/images/login_bg.png");
     hidePassword = ui->txtLoginPassword->addAction(
         QIcon(":/images/eyeOpen.svg"),
         QLineEdit::TrailingPosition
@@ -78,7 +78,7 @@ void Login_View::on_btnLogin_clicked() {
     QString pass = ui->txtLoginPassword->text();
 
     if (user.isEmpty() || pass.isEmpty()) {
-        QMessageBox::warning(this, "Warning - Invalid information", "Enter fully your password and username");
+        QMessageBox::warning(this, "Cảnh báo - Sai thông tin", "Nhập lại đầy đủ tên đăng nhập và mật khẩu");
         return;
     }
 
@@ -86,7 +86,6 @@ void Login_View::on_btnLogin_clicked() {
 }
 void Login_View::paintEvent(QPaintEvent *event)
 {
-
     QWidget::paintEvent(event);
 
     if (bgPixmap.isNull()) {
@@ -108,8 +107,6 @@ void Login_View::paintEvent(QPaintEvent *event)
     int y = rightRect.y() + (rightRect.height() - scaled.height()) / 2;
     painter.setClipRect(rightRect);
     painter.drawPixmap(x, y, scaled);
-
-    //painter.fillRect(rightRect, QColor(0, 20, 60, 80));
 }
 
 void Login_View::on_txtLoginPassword_returnPressed()
@@ -120,7 +117,7 @@ void Login_View::on_txtLoginPassword_returnPressed()
     ui->btnLogin->setEnabled(true);
     ui->btnLogin->setCheckable(true);
     if (user.isEmpty() || pass.isEmpty()) {
-        QMessageBox::warning(this, "Warning - Invalid information", "Enter fully your password and username");
+        QMessageBox::warning(this, "Cảnh báo - Sai thông tin", "Nhập lại đầy đủ tên đăng nhập và mật khẩu");
         return;
     }
     emit loginSubmitted(user, pass);

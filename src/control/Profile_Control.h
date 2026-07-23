@@ -1,4 +1,4 @@
-#pragma once
+#pragma once
 #include "global.h"
 #include "utils/SessionManage.h"
 #include "model/Profile_Model.h"
@@ -28,7 +28,5 @@ public:
     QString saveAvatarLocally(int empId, const QString &sourcePath);
 signals:
     void backToPrevious();
-    //void loginSuccessful(User* currentUser);
-private slots:
-    //void handleLoginSubmission(const QString& username, const QString& password);
+    void profileUpdated();
 };

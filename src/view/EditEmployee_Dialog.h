@@ -1,8 +1,8 @@
 #pragma once
-
+
 #include "global.h"
 #include "core/User.h"
-
+#include<functional>
 class EditEmployee_Dialog : public QDialog {
     Q_OBJECT
 
@@ -18,7 +18,8 @@ public:
     QString getAddress()   const;
     QString getCitizenId() const;
     QString getAvatarPath() const;
-
+    QString getGender() const;
+    std::function<QString(const EditEmployee_Dialog*)> validatorDelegate;
 private slots:
     void onConfirm();
 
@@ -34,6 +35,7 @@ private:
     QLineEdit *inpAddress;
     QLineEdit *inpCitizenId;
     QComboBox *cmbRole;
+    QComboBox *cmbGender;
 
     QLabel *lblAvatarPreview;
     QPushButton *btnUpload;
