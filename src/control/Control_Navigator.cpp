@@ -52,7 +52,7 @@ Control_Navigator::Control_Navigator()
     QObject::connect(this->loginController, &Login_Control::loginSuccessful,
                      this->viewWindow, [this]() {
         // set permission of side bar for display feature
-        this->viewWindow->getSideBar()->setPermission(currentSession->checkPermission("Manage"));
+        this->viewWindow->getSideBar()->setPermission(currentSession->checkPermission("Manager"));
         this->switchTab(1); // Switch to Dashboard (index 1)
         this->profileController->currentSession = this->currentSession;
         this->profileController->loadUserData();

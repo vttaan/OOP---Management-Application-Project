@@ -1,5 +1,6 @@
 #include "Salary_Model.h"
 
+
 Salary_Model::Salary_Model(QObject *parent) : QObject(parent)
 {
 }
@@ -8,60 +9,70 @@ Salary_Model::~Salary_Model()
 {
 }
 
-SalaryData Salary_Model::getSalarySummary(int month, int year)
+SalaryData Salary_Model::getSalarySummary(User* user, int month, int year)
 {
-    Q_UNUSED(month)
-    Q_UNUSED(year)
-    // Dummy implementation
-    SalaryData data;
-    data.normalHours = 120;
-    data.holidayHours = 16;
-    data.normalSalary = "3.000.000 VNĐ";
-    data.holidaySalary = "800.000 VNĐ";
-    data.penalty = "50.000 VNĐ";
-    data.totalSalary = "3.750.000 VNĐ";
+    SalaryData data = {0, 0, 0, 0, 0, 0};
+    QMap<QString, int> normalDays = getNormalDaysData(user, month, year);
+    QMap<QString, int> holidayDays = getHolidayDaysData(user, month, year);
+
+    if (user->getRole() == "Manager") {
+        int totalDaysWorked = normalDays.size() + holidayDays.size();
+        QDate date(year, month, 1);
+        int daysInMonth = date.daysInMonth();
+        int absentDays = daysInMonth - totalDaysWorked;
+        if (absentDays < 0) absentDays = 0;
+        
+        data.normalHours = totalDaysWorked;
+        data.holidayHours = 0;
+        data.normalSalary = user->getSalary();
+        data.holidaySalary = 0;
+        data.penalty = absentDays; 
+        data.totalSalary = data.normalSalary;
+    } else {
+        for (int hours : normalDays.values()) {
+            data.normalHours += hours;
+        }
+        for (int hours : holidayDays.values()) {
+            data.holidayHours += hours;
+        }
+        data.normalSalary = data.normalHours * user->getSalary();
+        data.holidaySalary = data.holidayHours * (user->getSalary() * 2);
+        data.penalty = 50000;
+        data.totalSalary = data.normalSalary + data.holidaySalary - data.penalty;
+    }
     return data;
 }
 
-QMap<QString, int> Salary_Model::getNormalDaysData(short int id, int month, int year)
+QMap<QString, int> Salary_Model::getNormalDaysData(User* user, int month, int year)
 {
-    Q_UNUSED(month)
-    Q_UNUSED(year)
-    // Dummy implementation
     QMap<QString, int> data;
 
     QSqlDatabase openData = Database::getInstance()->getDbConnect();
     QSqlQuery query(openData);
-    QDate currentDate = QDate::currentDate();
-    pair<QDate, QDate> monthRange = {QDate(01, currentDate.month(), currentDate.year()), currentDate};
+
+    QDate startDate(year, month, 1);
+    QDate endDate = startDate.addMonths(1).addDays(-1);
+
     query.prepare("SELECT * FROM SHIFT WHERE idEmployee = :id AND workDate BETWEEN :start AND :end");
-    query.bindValue(":id", id);
-    query.bindValue(":start", monthRange.first);
-    query.bindValue(":end", monthRange.second);
+    query.bindValue(":id", user->getIdEmployee());
+    query.bindValue(":start", startDate);
+    query.bindValue(":end", endDate);
+
     if (!query.exec())
         return data;
     while (query.next())
     {
-        QDate date = query.value("workDate").toDate();
-        Shift *newShift = new Shift(query.value("idEmployee").toInt(), date,
-                                    query.value("startTime").toTime(), query.value("endTime").toTime());
-        int dayInWeek = weekRange.first.daysTo(date); // monday: 0, sunday: 6
-        if (dayInWeek >= 0 && dayInWeek < 7)
-        {
-            this->shiftList[dayInWeek].append(newShift);
-            this->numberOfShift++;
-        }
-    }
+        QString date = query.value("workDate").toString();
+        if (data.find(date) == data.end())  data[date] = 0;
+        data[date] += query.value("startTime").toTime().secsTo(query.value("endTime").toTime()) / 3600;
 
-    data["01/05"] = 8;
-    data["02/05"] = 8;
-    data["03/05"] = 8;
-    data["04/05"] = 4;
+    }
     return data;
 }
 
-QMap<QString, int> Salary_Model::getHolidayDaysData(int month, int year)
+QMap<QString, int> Salary_Model::getHolidayDaysData(User* user, int month, int year)
 {
+    Q_UNUSED(user)
     Q_UNUSED(month)
     Q_UNUSED(year)
     // Dummy implementation
@@ -73,5 +84,5 @@ QMap<QString, int> Salary_Model::getHolidayDaysData(int month, int year)
 
 QString Salary_Model::getBaseSalary()
 {
-    return "25.000 VNĐ"; // Assuming hourly rate or fixed LCB
+    return "25.000 VNĐ";
 }

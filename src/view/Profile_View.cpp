@@ -64,7 +64,8 @@ void Profile_View::loadUserData(SessionManager* currentSession) {
 
     qDebug() << this->getController()->getUser()->getName();
     ui->lblProfileName->setText(this->getController()->getUser()->getName());
-    ui->lblProfileRole->setText(this->getController()->getUser()->getRole());
+    if (this->getController()->getUser()->getRole() == "Manager") ui->lblProfileRole->setText("Quản lý");
+    else if (this->getController()->getUser()->getRole() == "Staff") ui->lblProfileRole->setText("Nhân viên");
     ui->lblVal_Id->setText(QString::number(this->getController()->getUser()->getIdEmployee()));
     ui->lblVal_DoB->setText(this->getController()->getUser()->getDOB());
     ui->lblVal_Address->setText(this->getController()->getUser()->getAddress());

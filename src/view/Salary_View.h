@@ -19,6 +19,7 @@ public:
     ~Salary_View();
 
     void setBaseSalary(const QString& salary);
+    void setRole(const QString& role);
     void populateNormalTable(const QMap<QString, int>& data);
     void populateHolidayTable(const QMap<QString, int>& data);
     void populateSummaryTable(const SalaryData& data);

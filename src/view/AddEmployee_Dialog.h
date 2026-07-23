@@ -17,6 +17,7 @@ public:
     QString getAddress()    const;
     QString getCitizenId()  const;
     QString getAvatarPath() const;
+    int getSalary()     const;
     // Auto-generated (not shown in UI): username = citizenId, password = default
     QString getUsername()   const;
     QString getPassword()   const;
@@ -38,6 +39,7 @@ private:
     QLineEdit *inpCitizenId;
     QLineEdit *inpUsername;
     QLineEdit *inpPassword;
+    QLineEdit *inpSalary;
     QComboBox *cmbRole;
     QComboBox *cmbGender;
 

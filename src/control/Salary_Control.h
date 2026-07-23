@@ -2,6 +2,7 @@
 #define SALARY_CONTROL_H
 
 #include "global.h"
+#include "utils/SessionManage.h"
 #include <QObject>
 #include "model/Salary_Model.h"
 #include "view/Salary_View.h"
@@ -16,7 +17,7 @@ private:
 public:
     explicit Salary_Control(QObject *parent = nullptr);
     ~Salary_Control();
-
+    SessionManager* currentSession;
     void setView(Salary_View* view);
     Salary_View* getView() const;
     

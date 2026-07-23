@@ -244,7 +244,7 @@ void Sidebar_Widget::loadUserData(SessionManager *session)
         QString displayText;
         QString pillStyle;
 
-        if (roleInternal == "Manage")
+        if (roleInternal == "Manager")
         {
             displayText = "Quản lý";
             // Purple pill — matches employee table Manager badge

@@ -3,7 +3,7 @@
 #include "view/Profile_View.h"
 
 Profile_Control::Profile_Control(QObject *parent)
-    :QObject(parent), view(nullptr), currentSession(nullptr){
+    :QObject(parent), view(nullptr), currentSession(SessionManager::getInstance()){
 }
 Profile_Control::~Profile_Control() {
     if (view) delete view;

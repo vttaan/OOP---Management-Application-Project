@@ -15,41 +15,72 @@
   </property>
   <property name="styleSheet">
    <string notr="true">QWidget#Salary_View {
-    background-color: #ffffff;
+    background-color: #F8FAFC;
 }
 QLabel {
-    color: #000000;
+    color: #0F172A;
 }
 QComboBox {
-    background-color: #f8fafc;
-    color: #000000;
-    border: 1px solid #cbd5e1;
-    border-radius: 6px;
-    padding: 5px;
+    background-color: #ffffff;
+    color: #0F172A;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    padding: 5px 12px;
+}
+QComboBox:hover {
+    border-color: #93C5FD;
+    background-color: #F1F5F9;
 }
 QComboBox QAbstractItemView {
     background-color: #ffffff;
-    color: #000000;
-    selection-background-color: #3b82f6;
-    selection-color: #ffffff;
+    color: #0F172A;
+    selection-background-color: #EFF6FF;
+    selection-color: #0F172A;
+    outline: none;
+    border: 1px solid #E2E8F0;
+}
+QComboBox QAbstractItemView::item:hover {
+    background-color: #F0F9FF;
+    color: #0F172A;
+}
+QComboBox QAbstractItemView::item:selected {
+    background-color: #EFF6FF;
+    color: #0F172A;
 }
 QTableWidget {
     background-color: #ffffff;
-    color: #000000;
-    gridline-color: #cbd5e1;
-    border: 1px solid #cbd5e1;
-    border-radius: 6px;
+    color: #0F172A;
+    gridline-color: transparent;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    outline: none;
+}
+QTableWidget::item {
+    border-bottom: 1px solid #F1F5F9;
+    padding: 6px;
+    color: #0F172A;
+}
+QTableWidget::item:hover {
+    background-color: #F0F9FF;
+    color: #0F172A;
+}
+QTableWidget::item:selected {
+    background-color: #EFF6FF;
+    color: #0F172A;
 }
 QHeaderView::section {
-    background-color: #f8fafc;
-    color: #000000;
-    padding: 5px;
-    border: 1px solid #cbd5e1;
-    font-weight: bold;
+    background-color: #F8FAFC;
+    color: #64748B;
+    padding: 8px;
+    border: none;
+    border-bottom: 2px solid #E2E8F0;
+    font-weight: 700;
+    font-size: 11px;
 }
 QTableCornerButton::section {
-    background-color: #f8fafc;
-    border: 1px solid #cbd5e1;
+    background-color: #F8FAFC;
+    border: none;
+    border-bottom: 2px solid #E2E8F0;
 }</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -129,7 +160,7 @@ QTableCornerButton::section {
           </font>
          </property>
          <property name="styleSheet">
-          <string>background-color: #e2e8f0; color: #000000; padding: 5px; border-radius: 4px;</string>
+          <string>background-color: #E0F2FE; color: #0369A1; padding: 6px; border-radius: 6px; font-weight: bold;</string>
          </property>
          <property name="text">
           <string>Ngày thường</string>
@@ -145,7 +176,7 @@ QTableCornerButton::section {
           <bool>true</bool>
          </property>
          <property name="styleSheet">
-          <string notr="true">background-color: #f8f9fa;</string>
+          <string notr="true"></string>
          </property>
          <property name="horizontalScrollBarPolicy">
           <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOn</enum>
@@ -165,7 +196,7 @@ QTableCornerButton::section {
           </font>
          </property>
          <property name="styleSheet">
-          <string>background-color: #e2e8f0; color: #000000; padding: 5px; border-radius: 4px;</string>
+          <string>background-color: #E0F2FE; color: #0369A1; padding: 6px; border-radius: 6px; font-weight: bold;</string>
          </property>
          <property name="text">
           <string>Ngày lễ</string>
@@ -181,7 +212,7 @@ QTableCornerButton::section {
           <bool>true</bool>
          </property>
          <property name="styleSheet">
-          <string notr="true">background-color: #f8f9fa;</string>
+          <string notr="true"></string>
          </property>
          <property name="horizontalScrollBarPolicy">
           <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOn</enum>
