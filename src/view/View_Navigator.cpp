@@ -29,11 +29,11 @@ View_Navigator::View_Navigator(Control_Navigator* controller, QWidget *parent)
 
 
     // Set the views on the controllers
-    controller->loginController->setView(loginPage);
+    /*controller->loginController->setView(loginPage);
     controller->profileController->setView(profilePage);
     controller->dashboardController->setView(dashboardPage);
     controller->employeeController->setView(employeePage);
-    controller->scheduleController->setView(schedulePage);
+    controller->scheduleController->setView(schedulePage);*/
     // add pages
     // index note for each page
     ui->stackedWidget->addWidget(loginPage); // index 0
@@ -43,7 +43,7 @@ View_Navigator::View_Navigator(Control_Navigator* controller, QWidget *parent)
     ui->stackedWidget->addWidget(schedulePage); // index 4
     //ui->stackedWidget->addWidget(schedulePage);
     // default : login page
-    ui->stackedWidget->setCurrentIndex(0);
+    //ui->stackedWidget->setCurrentIndex(0);
 
     // Navigation is managed directly by Control_Navigator now.
 

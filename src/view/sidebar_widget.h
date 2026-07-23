@@ -23,6 +23,7 @@ public:
     void setPermission(const bool &permitted);
     void updateButtonStyles(int mainIndex);
 
+    void hideSubMenuInSchedule();
 signals:
     void menuClicked(int pageIndex);
     void logoutClicked();

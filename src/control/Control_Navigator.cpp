@@ -26,7 +26,11 @@ Control_Navigator::Control_Navigator()
     this->scheduleController = new Schedule_Control(this);
 
     this->viewWindow = new View_Navigator(this); // Initialize viewWindow AFTER controllers
-
+    loginController->setView(this->viewWindow->loginPage);
+    dashboardController->setView(this->viewWindow->dashboardPage);
+    profileController->setView(this->viewWindow->profilePage);
+    employeeController->setView(this->viewWindow->employeePage);
+    scheduleController->setView(this->viewWindow->schedulePage);
     // switch tab side bar do all
     if(this->viewWindow->getSideBar()) {
         // switch tab
@@ -105,14 +109,18 @@ void Control_Navigator::switchTab(int index) {
         if(currentSession->checkPermission("Manage")) this->employeeController->init();
         break;
     case 4:
-        this->scheduleController->setEmployeeId(currentSession->getCurrentUser()->getIdEmployee());
-        this->scheduleController->load();
+        if(currentSession->checkPermission("Staff")) {
+            this->scheduleController->setEmployeeId(currentSession->getCurrentUser()->getIdEmployee());
+            this->scheduleController->load();
+        }
         break;
     }
 
     // show view tab
     if (this->viewWindow) {
         this->viewWindow->setPageIndex(index);
+        // hide sub menu in schedule each switch tap
+        if(index != 4) this->viewWindow->getSideBar()->hideSubMenuInSchedule();
         // put pointer of side bar follow index
         this->viewWindow->getSideBar()->updateButtonStyles(index);
     }
