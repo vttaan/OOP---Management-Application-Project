@@ -33,14 +33,14 @@ void Salary_Control::loadData(int month, int year)
 {
     if(!view) return;
     
-    // Fetch data from model
     User* currentUser = currentSession->getCurrentUser();
     SalaryData summary = model->getSalarySummary(currentUser, month, year);
     QMap<QString, int> normalDays = model->getNormalDaysData(currentUser, month, year);
     QMap<QString, int> holidayDays = model->getHolidayDaysData(currentUser, month, year);
     QString baseSalary = QString::number(currentUser->getSalary());
     
-    // Update view
+    //qDebug() << month << ' ' << year << "!!!";
+
     view->setRole(currentUser->getRole());
     view->setBaseSalary(baseSalary);
     view->populateNormalTable(normalDays);

@@ -53,6 +53,7 @@ void Employee_Control::init()
 void Employee_Control::handleLoadEmployees()
 {
     m_model->loadData();
+    //qDebug() << "list: " << m_model->getListEmployee().size();
     if (m_view) {
           m_view->loadEmployees(m_model->getListEmployee());
     }

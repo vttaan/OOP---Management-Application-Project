@@ -104,7 +104,7 @@ void Control_Navigator::switchTab(int index) {
         this->profileController->init();
         break;
     case 3:
-        if(currentSession->checkPermission("Manage")) this->employeeController->init();
+        if(currentSession->checkPermission("Manager")) this->employeeController->init();
         break;
     case 4:
     case 5:

@@ -51,11 +51,13 @@ QMap<QString, int> Salary_Model::getNormalDaysData(User* user, int month, int ye
     QSqlQuery query(openData);
 
     QDate startDate(year, month, 1);
-    QDate endDate = QDate::currentDate();
+    QDate endDate = QDate(year, month + 1, 1).addDays(-1);
+    if (endDate > QDate::currentDate()) endDate = QDate::currentDate();
 
-    qDebug() << "id: " << user->getIdEmployee();
+    //qDebug() << "id: " << user->getIdEmployee();
 
-    query.prepare("SELECT * FROM SHIFT WHERE idEmployee = :id AND workDate BETWEEN :start AND :end");
+    query.prepare("SELECT * FROM SHIFT WHERE idEmployee = :id "
+                  "AND workDate BETWEEN :start AND :end AND status = 1 AND isHoliday = 0");
     query.bindValue(":id", user->getIdEmployee());
     query.bindValue(":start", startDate);
     query.bindValue(":end", endDate);
@@ -74,13 +76,32 @@ QMap<QString, int> Salary_Model::getNormalDaysData(User* user, int month, int ye
 
 QMap<QString, int> Salary_Model::getHolidayDaysData(User* user, int month, int year)
 {
-    Q_UNUSED(user)
-    Q_UNUSED(month)
-    Q_UNUSED(year)
-    // Dummy implementation
     QMap<QString, int> data;
-    data["30/04"] = 8;
-    data["01/05"] = 8;
+
+    QSqlDatabase openData = Database::getInstance()->getDbConnect();
+    QSqlQuery query(openData);
+
+    QDate startDate(year, month, 1);
+    QDate endDate = QDate(year, month + 1, 1).addDays(-1);
+    if (endDate > QDate::currentDate()) endDate = QDate::currentDate();
+
+    //qDebug() << "id: " << user->getIdEmployee();
+
+    query.prepare("SELECT * FROM SHIFT WHERE idEmployee = :id "
+                  "AND workDate BETWEEN :start AND :end AND status = 1 AND isHoliday = 1");
+    query.bindValue(":id", user->getIdEmployee());
+    query.bindValue(":start", startDate);
+    query.bindValue(":end", endDate);
+
+    if (!query.exec())
+        return data;
+    while (query.next())
+    {
+        QString date = query.value("workDate").toString();
+        if (data.find(date) == data.end())  data[date] = 0;
+        data[date] += query.value("startTime").toTime().secsTo(query.value("endTime").toTime()) / 3600;
+
+    }
     return data;
 }
 

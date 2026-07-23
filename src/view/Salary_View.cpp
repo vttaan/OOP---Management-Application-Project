@@ -26,11 +26,32 @@ Salary_View::Salary_View(QWidget *parent) :
     ui(new Ui::Salary_View)
 {
     ui->setupUi(this);
-    setupUI();
-    setupConnections();
     
     QDate current = QDate::currentDate();
-    ui->monthYearComboBox->setCurrentText(QString("%1/%2").arg(current.month(), 2, 10, QChar('0')).arg(current.year()));
+    
+    for (int m = 1; m <= 12; ++m) {
+        ui->monthComboBox->addItem(QString("Tháng %1").arg(m, 2, 10, QChar('0')), m);
+    }
+    
+    int endYear = 2027;
+    for (int y = 2020; y <= endYear; ++y) {
+        ui->yearComboBox->addItem(QString::number(y), y);
+    }
+    
+    ui->monthComboBox->blockSignals(true);
+    ui->yearComboBox->blockSignals(true);
+    
+    int monthIndex = ui->monthComboBox->findData(current.month());
+    if (monthIndex != -1) ui->monthComboBox->setCurrentIndex(monthIndex);
+    
+    int yearIndex = ui->yearComboBox->findData(current.year());
+    if (yearIndex != -1) ui->yearComboBox->setCurrentIndex(yearIndex);
+    
+    ui->monthComboBox->blockSignals(false);
+    ui->yearComboBox->blockSignals(false);
+
+    setupUI();
+    setupConnections();
 }
 
 Salary_View::~Salary_View()
@@ -46,7 +67,7 @@ void Salary_View::setupUI()
     ui->normalTable->horizontalHeader()->setVisible(false);
     ui->normalTable->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     ui->normalTable->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    ui->normalTable->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    ui->normalTable->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     
     ui->holidayTable->setRowCount(2);
     ui->holidayTable->setVerticalHeaderItem(0, new QTableWidgetItem("Ngày"));
@@ -54,7 +75,7 @@ void Salary_View::setupUI()
     ui->holidayTable->horizontalHeader()->setVisible(false);
     ui->holidayTable->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     ui->holidayTable->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    ui->holidayTable->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    ui->holidayTable->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 
     ui->summaryTable->setRowCount(4);
     ui->summaryTable->setColumnCount(2);
@@ -75,12 +96,13 @@ void Salary_View::setupUI()
 
 void Salary_View::setupConnections()
 {
-    connect(ui->monthYearComboBox, &QComboBox::currentTextChanged, this, [=](const QString& text){
-        QStringList parts = text.split("/");
-        if(parts.size() == 2) {
-            emit monthYearChanged(parts[0].toInt(), parts[1].toInt());
-        }
-    });
+    auto onSelectionChanged = [=](){
+        int month = ui->monthComboBox->currentData().toInt();
+        int year = ui->yearComboBox->currentData().toInt();
+        emit monthYearChanged(month, year);
+    };
+    connect(ui->monthComboBox, &QComboBox::currentTextChanged, this, [=](const QString&){ onSelectionChanged(); });
+    connect(ui->yearComboBox, &QComboBox::currentTextChanged, this, [=](const QString&){ onSelectionChanged(); });
 }
 
 void Salary_View::setBaseSalary(const QString& salary)
@@ -111,10 +133,16 @@ void Salary_View::populateNormalTable(const QMap<QString, int>& data)
 {
     ui->normalTable->setColumnCount(data.size());
     ui->normalTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    ui->normalTable->horizontalHeader()->setMinimumSectionSize(60);
     int col = 0;
     for(auto it = data.begin(); it != data.end(); ++it) {
-        ui->normalTable->setItem(0, col, new QTableWidgetItem(it.key()));
-        ui->normalTable->setItem(1, col, new QTableWidgetItem(QString::number(it.value())));
+        QTableWidgetItem* dateItem = new QTableWidgetItem(it.key());
+        dateItem->setTextAlignment(Qt::AlignCenter);
+        ui->normalTable->setItem(0, col, dateItem);
+
+        QTableWidgetItem* hoursItem = new QTableWidgetItem(QString::number(it.value()));
+        hoursItem->setTextAlignment(Qt::AlignCenter);
+        ui->normalTable->setItem(1, col, hoursItem);
         col++;
     }
 }
@@ -123,10 +151,16 @@ void Salary_View::populateHolidayTable(const QMap<QString, int>& data)
 {
     ui->holidayTable->setColumnCount(data.size());
     ui->holidayTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    ui->holidayTable->horizontalHeader()->setMinimumSectionSize(60);
     int col = 0;
     for(auto it = data.begin(); it != data.end(); ++it) {
-        ui->holidayTable->setItem(0, col, new QTableWidgetItem(it.key()));
-        ui->holidayTable->setItem(1, col, new QTableWidgetItem(QString::number(it.value())));
+        QTableWidgetItem* dateItem = new QTableWidgetItem(it.key());
+        dateItem->setTextAlignment(Qt::AlignCenter);
+        ui->holidayTable->setItem(0, col, dateItem);
+
+        QTableWidgetItem* hoursItem = new QTableWidgetItem(QString::number(it.value()));
+        hoursItem->setTextAlignment(Qt::AlignCenter);
+        ui->holidayTable->setItem(1, col, hoursItem);
         col++;
     }
 }
@@ -152,3 +186,5 @@ void Salary_View::populateSummaryTable(const SalaryData& data)
     totalItem->setTextAlignment(Qt::AlignCenter);
     ui->summaryTable->setItem(3, 0, totalItem);
 }
+
+
