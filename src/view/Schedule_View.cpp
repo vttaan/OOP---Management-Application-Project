@@ -8,7 +8,7 @@ Schedule_View::Schedule_View(QWidget *parent)
 {
     ui->setupUi(this);
     setUpUI();
-
+    connect(ui->btnGenSchedule, &QPushButton::clicked, this, &Schedule_View::requestGenSchedule);
     connect(ui->ButtonThem, &QPushButton::clicked, this, &Schedule_View::buttonAddClicked);
     connect(ui->buttonLuu, &QPushButton::clicked, this, &Schedule_View::buttonSaveClicked);
 }
@@ -37,6 +37,11 @@ void Schedule_View::setUpUI() {
     ui->buttonLuu->setStyleSheet(
         "QPushButton { background-color: #219653; color: white; border-radius: 6px; padding: 8px 30px; font-weight: bold; font-size: 14px; } "
         "QPushButton:hover { background-color: #1E824C; }"
+        );
+
+    ui->btnGenSchedule->setStyleSheet(
+        "QPushButton { background-color: #9B51E0; color: white; border-radius: 6px; padding: 8px 30px; font-weight: bold; font-size: 14px; } "
+        "QPushButton:hover { background-color: #8244C3; }"
         );
 
     QString tableStyle =
@@ -124,5 +129,17 @@ void Schedule_View::resetInputTable() {
         startTime->setCurrentIndex(0);
         endTime->setCurrentIndex(0);
     }
+}
+void Schedule_View::showSuccess(const QString& msg) {
+    QMessageBox::information(this, "Xếp lịch thành công", msg);
+}
+void Schedule_View::showWarnings(const QStringList& warnings) {
+    QMessageBox dlg(this);
+    dlg.setWindowTitle("Cảnh báo lịch làm việc");
+    dlg.setIcon(QMessageBox::Warning);
+    dlg.setText(QString("Xếp lịch hoàn tất nhưng có %1 cảnh báo:")
+                    .arg(warnings.size()));
+    dlg.setDetailedText(warnings.join("\n"));
+    dlg.exec();
 }
 

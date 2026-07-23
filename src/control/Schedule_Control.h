@@ -55,6 +55,8 @@ private slots:
 
     // Fired by view when the user presses "Lưu" (Save)
     void onSaveShiftRequested();
+signals:
+    void scheduleGenerated(bool success, int assignedCount,  const QStringList& warnings);
 };
 
 #endif // SCHEDULE_CONTROL_H

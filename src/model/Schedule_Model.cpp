@@ -119,3 +119,86 @@ Schedule_Model::~Schedule_Model()
         qDeleteAll(dayShifts);
     }
 }
+QVector<ShiftRegistration>
+Schedule_Model::fetchPendingShifts(const QDate& weekStart, const QDate& weekEnd) {
+    QVector<ShiftRegistration> regs;
+    QSqlQuery q(Database::getInstance()->getDbConnect());
+    q.prepare("SELECT rowid, idEmployee, workDate, startTime, endTime "
+              "FROM SHIFT "
+              "WHERE status = 0 "
+              "  AND workDate >= :start "
+              "  AND workDate <= :end");
+    q.bindValue(":start", weekStart.toString(Qt::ISODate));
+    q.bindValue(":end",   weekEnd.toString(Qt::ISODate));
+    if (!q.exec()) return regs;
+    while (q.next()) {
+        ShiftRegistration r;
+        r.rowId      = q.value(0).toInt();
+        r.employeeId = q.value(1).toInt();
+        r.date       = QDate::fromString(q.value(2).toString(), Qt::ISODate);
+        r.startTime  = QTime::fromString(q.value(3).toString(), "H:mm");
+        r.endTime    = QTime::fromString(q.value(4).toString(), "H:mm");
+        regs.push_back(r);
+    }
+    return regs;
+}
+QVector<EmployeeInfo>
+Schedule_Model::fetchAllEmployeeInfos(const QDate& weekStart) {
+    QVector<int> allIds;
+    {
+        QSqlQuery q(Database::getInstance()->getDbConnect());
+        q.prepare("SELECT DISTINCT idEmployee FROM PROFILES");
+        if (q.exec())
+            while (q.next()) allIds.push_back(q.value(0).toInt());
+    }
+    // 2. Tính tổng phút đã làm (status=1) trước tuần này
+    QMap<int, int> minutesMap;
+    {
+        QSqlQuery q(Database::getInstance()->getDbConnect());
+        q.prepare("SELECT idEmployee, startTime, endTime "
+                  "FROM SHIFT "
+                  "WHERE status = 1 AND workDate < :weekStart");
+        q.bindValue(":weekStart", weekStart.toString(Qt::ISODate));
+        if (q.exec()) {
+            while (q.next()) {
+                int   id    = q.value(0).toInt();
+                QTime start = QTime::fromString(q.value(1).toString(), "H:mm");
+                QTime end   = QTime::fromString(q.value(2).toString(), "H:mm");
+                if (start.isValid() && end.isValid())
+                    minutesMap[id] += start.secsTo(end) / 60;
+            }
+        }
+    }
+    QVector<EmployeeInfo> infos;
+    infos.reserve(allIds.size());
+    for (int id : allIds)
+        infos.push_back({id, minutesMap.value(id, 0)});
+    return infos;
+}
+OptimizerOutput Schedule_Model::generateSchedule() {
+    QDate today     = QDate::currentDate();
+    QDate weekStart = today.addDays(1 - today.dayOfWeek());
+    QDate weekEnd   = weekStart.addDays(6);
+    OptimizerInput input;
+    input.registrations = fetchPendingShifts(weekStart, weekEnd);
+    input.employees     = fetchAllEmployeeInfos(weekStart);
+    input.minPerShift   = 5;
+    input.minDaysPerEmp = 4;
+    Optimizer opt;
+    OptimizerOutput output = opt.solve(input);
+    if (output.feasible && !output.assignments.isEmpty()) {
+        QSqlDatabase db = Database::getInstance()->getDbConnect();
+        db.transaction();
+        QSqlQuery q(db);
+        q.prepare("UPDATE SHIFT SET status = :status WHERE rowid = :rowid");
+        for (const auto& a : output.assignments) {
+            q.bindValue(":status", a.newStatus);
+            q.bindValue(":rowid",  a.rowId);
+            if (!q.exec())
+                output.warnings << QString("[DB Error] rowid=%1: %2")
+                                       .arg(a.rowId).arg(q.lastError().text());
+        }
+        db.commit();
+    }
+    return output;
+}
