@@ -22,24 +22,25 @@ set(PROJECT_SOURCES
         src/core/User.h
         src/core/Staff.h
         src/core/Manager.h
+        src/core/Optimizer.h
         src/core/UserFactory.h
         # CPP
         src/core/User.cpp
         src/core/Staff.cpp
         src/core/Manager.cpp
         src/core/UserFactory.cpp
+        src/core/Optimizer.cpp
 
     # file in Utils
         # HEADER
         src/utils/Database.h
         src/utils/SessionManage.h
         src/utils/Security.h
-        src/utils/Optimizer.h
         # CPP
         src/utils/Database.cpp
         src/utils/SessionManage.cpp
         src/utils/Security.cpp
-        src/utils/Optimizer.cpp
+
 
     # file in Model
         # HEADER
@@ -126,7 +127,7 @@ qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
     src/view/overview_view.h src/view/overview_view.cpp src/view/overview_view.ui
     src/control/overview_control.h src/control/overview_control.cpp
     src/model/Validator.h src/model/Validator.cpp
-    src/utils/Optimizer.h src/utils/Optimizer.cpp)
+    src/core/Optimizer.h src/core/Optimizer.cpp)
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core Qt6::Widgets Qt6::Sql)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_precompile_headers(${PROJECT_NAME} PRIVATE src/global.h)
