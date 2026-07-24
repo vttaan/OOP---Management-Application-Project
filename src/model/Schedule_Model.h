@@ -4,7 +4,7 @@
 #include "global.h"
 #include "core/Shift.h"
 #include "utils/Database.h"
-#include "utils/Optimizer.h"
+#include "core/Optimizer.h"
 class Schedule_Model
 {
 private:

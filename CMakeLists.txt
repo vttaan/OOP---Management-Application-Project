@@ -23,11 +23,13 @@ set(PROJECT_SOURCES
         src/core/Staff.h
         src/core/Manager.h
         src/core/UserFactory.h
+        src/core/Optimizer.h
         # CPP
         src/core/User.cpp
         src/core/Staff.cpp
         src/core/Manager.cpp
         src/core/UserFactory.cpp
+        src/core/Optimizer.cpp
 
     # file in Utils
         # HEADER
@@ -35,7 +37,6 @@ set(PROJECT_SOURCES
         src/utils/SessionManage.h
         src/utils/Security.h
         src/utils/Config.h
-        src/utils/Optimizer.h
         # CPP
         src/utils/Database.cpp
         src/utils/SessionManage.cpp
@@ -138,7 +139,7 @@ qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
     src/control/Salary_Control.h src/control/Salary_Control.cpp
     src/view/Salary_View.h src/view/Salary_View.cpp src/view/Salary_View.ui
     #src/utils/Config.h
-    src/utils/Optimizer.h src/utils/Optimizer.cpp)
+    src/core/Optimizer.h src/core/Optimizer.cpp)
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core Qt6::Widgets Qt6::Sql)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_precompile_headers(${PROJECT_NAME} PRIVATE src/global.h)
