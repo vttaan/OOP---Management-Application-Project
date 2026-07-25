@@ -1,6 +1,6 @@
 #include "global.h"
 #include "AddEmployee_Dialog.h"
-#include "model/Employee_Model.h"
+
 AddEmployee_Dialog::AddEmployee_Dialog(QWidget *parent)
     : QDialog(parent)
 {
@@ -157,8 +157,8 @@ void AddEmployee_Dialog::setupUi()
         QString dob = inpDob->text().trimmed();
 
         // update user's password
-        if (!name.isEmpty() && dob.length() == 10) {
-            QString autoPass = Employee_Model::generateAutoPassword(name, dob);
+        if (!name.isEmpty() && dob.length() == 10 && passwordGeneratorDelegate) {
+            QString autoPass = passwordGeneratorDelegate(name, dob);
             if (!autoPass.isEmpty()) {
                 inpPassword->setText(autoPass);
             }
@@ -166,11 +166,9 @@ void AddEmployee_Dialog::setupUi()
             inpPassword->setText("Đang chờ nhập đủ tên và ngày sinh...");
         }
         // update username
-        if (!name.isEmpty()) {
+        if (!name.isEmpty() && usernameGeneratorDelegate) {
             QString role = getRole(); // (Manage // Staff)
-            int nextId = Employee_Model::getNextId(role);
-
-            QString autoUser = Employee_Model::generateAutoUsername(nextId, role);
+            QString autoUser = usernameGeneratorDelegate(role);
             inpUsername->setText(autoUser);
         } else {
             inpUsername->setText("Vui lòng nhập đủ thông tin cá nhân");

@@ -55,7 +55,7 @@ void Login_Control::handleLoginSubmission(const QString &username, const QString
     }
     else
     {
-        QMessageBox::critical(view, "Login Failed", "Wrong username or Password!");
+        QMessageBox::critical(view, "Login Failed", "Sai tài khoản hoặc mật khẩu!");
         if (view)
             view->clearPassword();
     }

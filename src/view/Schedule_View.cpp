@@ -57,7 +57,7 @@ void Schedule_View::setUpUI() {
 
     QString tableStyle =
         "QTableWidget { border: none; background-color: white; gridline-color: #EFEFEF; } "
-        "QHeaderView::section { background-color: #F8F9FA; border: none; border-bottom: 2px solid #E5E7EB; padding: 8px; font-weight: bold; color: black; text-transform: uppercase; } "
+        "QHeaderView::section { background-color: #E0F2FE; border: none; border-bottom: 2px solid #BAE6FD; padding: 8px; font-weight: bold; color: #0c4a6e; text-transform: uppercase; } "
         "QHeaderView::section:vertical { background-color: #E5E7EB; color: black; border: none; font-weight: bold; }";
 
     ui->tableDangKy->setStyleSheet(tableStyle);
