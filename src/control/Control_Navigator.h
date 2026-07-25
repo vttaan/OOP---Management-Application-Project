@@ -24,6 +24,7 @@ public:
     View_Navigator *viewWindow = nullptr;
     SessionManager *currentSession = SessionManager::getInstance();
     ViewSchedule_Control *viewScheduleController = nullptr;
+
     Control_Navigator();
     void switchTab(int index);
 

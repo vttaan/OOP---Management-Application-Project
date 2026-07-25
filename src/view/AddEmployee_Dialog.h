@@ -1,7 +1,9 @@
 #pragma once
 
 #include "global.h"
-#include<functional>
+#include <functional>
+#include <QPair>
+
 class AddEmployee_Dialog : public QDialog {
     Q_OBJECT
 
@@ -21,7 +23,9 @@ public:
     // Auto-generated (not shown in UI): username = citizenId, password = default
     QString getUsername()   const;
     QString getPassword()   const;
-    std::function<QString(const AddEmployee_Dialog*)> validatorDelegate;
+    std::function<QString(AddEmployee_Dialog*)> validatorDelegate;
+    std::function<QString(const QString& name, const QString& dob)> passwordGeneratorDelegate;
+    std::function<QString(const QString& role)> usernameGeneratorDelegate;
 private slots:
     void onConfirm();
 

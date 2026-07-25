@@ -16,11 +16,7 @@ ViewSchedule_View::ViewSchedule_View(QWidget *parent) :
     connect(ui->btnNextWeek, &QPushButton::clicked, this, &ViewSchedule_View::onBtnNextClicked);
     connect(ui->btnCurrentWeek, &QPushButton::clicked, this, &ViewSchedule_View::onBtnCurrentClicked);
     connect(ui->tableSchedule, &QTableWidget::cellClicked, this, [this](int row, int col) {
-        QTableWidgetItem* item = ui->tableSchedule->item(row, col);
-        if (item) {
-            if (item->text() == "Trống" || item->text() == "Không đạt" || item->text().isEmpty()) return;
-            emit shiftClicked(row, col);
-        }
+        emit shiftClicked(row, col);
     });
 }
 
@@ -33,21 +29,13 @@ void ViewSchedule_View::setUpUI()
 {
     this->setStyleSheet("background-color: #FFFFFF;");
 
-    // UI Button styles
-    QString btnStyle =
-        "QPushButton { background-color: #F3F4F6; color: #374151; border: 1px solid #D1D5DB; border-radius: 6px; padding: 6px 15px; font-weight: bold; } "
-        "QPushButton:hover { background-color: #E5E7EB; }";
-
-    ui->btnPrevWeek->setStyleSheet(btnStyle);
-    ui->btnNextWeek->setStyleSheet(btnStyle);
-    ui->btnCurrentWeek->setStyleSheet(
-        "QPushButton { background-color: #2F80ED; color: white; border-radius: 6px; padding: 6px 15px; font-weight: bold; } "
-        "QPushButton:hover { background-color: #1C64F2; }"
-        );
+    ui->btnPrevWeek->setStyleSheet(ScheduleStyle::BtnNormal);
+    ui->btnNextWeek->setStyleSheet(ScheduleStyle::BtnNormal);
+    ui->btnCurrentWeek->setStyleSheet(ScheduleStyle::BtnHighlight);
     
     // Table styles
     ui->tableSchedule->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    ui->tableSchedule->setSelectionMode(QAbstractItemView::NoSelection);
+    ui->tableSchedule->setSelectionMode(QAbstractItemView::SingleSelection);
     ui->tableSchedule->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->tableSchedule->setFocusPolicy(Qt::NoFocus);
     
@@ -58,10 +46,7 @@ void ViewSchedule_View::setUpUI()
         }
     }
     
-    QString tableStyle =
-        "QTableWidget { border: 1px solid #E5E7EB; background-color: white; gridline-color: #E5E7EB; } "
-        "QHeaderView::section { background-color: #E0F2FE; border: none; border-right: 1px solid #E5E7EB; border-bottom: 2px solid #E5E7EB; padding: 8px; font-weight: bold; color: black; text-transform: uppercase; }";
-    ui->tableSchedule->setStyleSheet(tableStyle);
+    ui->tableSchedule->setProperty("role", "staff");
 
     // Create Splitter and Bottom Layout
     ui->verticalLayout->removeWidget(ui->tableSchedule);
@@ -74,17 +59,15 @@ void ViewSchedule_View::setUpUI()
     QHBoxLayout* bottomLayout = new QHBoxLayout(bottomWidget);
     bottomLayout->setContentsMargins(0, 10, 0, 0);
     
-    QString titleStyle = "font-size: 14px; font-weight: bold; color: black; padding-bottom: 5px;";
-
     QVBoxLayout* leftLayout = new QVBoxLayout();
     QLabel* lblMissing = new QLabel("CA LÀM THIẾU NHÂN VIÊN", bottomWidget);
-    lblMissing->setStyleSheet(titleStyle);
+    lblMissing->setStyleSheet(ScheduleStyle::Title);
     
     tableMissingStaff = new QTableWidget(this);
     tableMissingStaff->setColumnCount(2);
     tableMissingStaff->setHorizontalHeaderLabels({"CA LÀM VIỆC THIẾU NGƯỜI", "SL HIỆN CÓ / YÊU CẦU"});
     tableMissingStaff->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    tableMissingStaff->setStyleSheet(tableStyle);
+    tableMissingStaff->setProperty("role", "manager-dark");
     tableMissingStaff->setSelectionMode(QAbstractItemView::NoSelection);
     tableMissingStaff->setEditTriggers(QAbstractItemView::NoEditTriggers);
     tableMissingStaff->setFocusPolicy(Qt::NoFocus);
@@ -94,7 +77,7 @@ void ViewSchedule_View::setUpUI()
     
     QVBoxLayout* rightLayout = new QVBoxLayout();
     QLabel* lblDetails = new QLabel("THÔNG TIN NHÂN VIÊN TRONG CA LÀM", bottomWidget);
-    lblDetails->setStyleSheet(titleStyle);
+    lblDetails->setStyleSheet(ScheduleStyle::Title);
 
     tableShiftDetails = new QTableWidget(this);
     tableShiftDetails->setColumnCount(5);
@@ -102,7 +85,7 @@ void ViewSchedule_View::setUpUI()
     tableShiftDetails->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     tableShiftDetails->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     tableShiftDetails->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
-    tableShiftDetails->setStyleSheet(tableStyle);
+    tableShiftDetails->setProperty("role", "manager-dark");
     tableShiftDetails->setSelectionMode(QAbstractItemView::NoSelection);
     tableShiftDetails->setEditTriggers(QAbstractItemView::NoEditTriggers);
     tableShiftDetails->setFocusPolicy(Qt::NoFocus);
@@ -132,6 +115,7 @@ void ViewSchedule_View::updateTable(const QMap<int, QList<QString>>& weeklyData)
         for(int j = 0; j < shift.size(); j++) {
             QTableWidgetItem* item = new QTableWidgetItem(shift[j]);
             item->setTextAlignment(Qt::AlignCenter);
+            item->setForeground(QBrush(Qt::black));
 
             item->setBackground(QColor(0xF3, 0xF4, 0xF6));
             item->setForeground(QColor(0x37, 0x41, 0x51));
@@ -152,11 +136,8 @@ void ViewSchedule_View::updateManagerTable(const QList<QString>& timeSlots, cons
     ui->tableSchedule->setVerticalHeaderLabels(timeSlots);
     ui->tableSchedule->verticalHeader()->setVisible(true);
 
-    // Style vertical headers similar to horizontal
-    ui->tableSchedule->setStyleSheet(
-        "QTableWidget { border: none; background-color: white; gridline-color: #EFEFEF; } "
-        "QHeaderView::section { background-color: #E0F2FE; border: none; border-bottom: 2px solid #E5E7EB; border-right: 2px solid #E5E7EB; padding: 8px; font-weight: bold; color: black; text-transform: uppercase; } "
-    );
+    // Style vertical headers similar to horizontal (Pastel Purple for Manager)
+    // (Handled by QSS property now)
 
     // Populate data
     for (int col = 0; col < 7; ++col) {
@@ -198,6 +179,9 @@ void ViewSchedule_View::updateDateRange(const QString& dateRangeText)
 
 void ViewSchedule_View::highlightToday(int currentDayIndex)
 {
+    bool isManager = (ui->tableSchedule->property("role").toString() == "manager");
+    QColor defaultTextColor = isManager ? Qt::white : Qt::black;
+
     // Reset all headers to default first
     for(int i = 0; i < 7; ++i) {
         QTableWidgetItem* headerItem = ui->tableSchedule->horizontalHeaderItem(i);
@@ -205,8 +189,8 @@ void ViewSchedule_View::highlightToday(int currentDayIndex)
             headerItem = new QTableWidgetItem();
             ui->tableSchedule->setHorizontalHeaderItem(i, headerItem);
         }
-        headerItem->setBackground(QBrush(Qt::NoBrush));
-        headerItem->setForeground(QColor(Qt::black));
+        headerItem->setBackground(QBrush());
+        headerItem->setForeground(defaultTextColor);
         QFont f = headerItem->font();
         f.setBold(true);
         headerItem->setFont(f);
@@ -216,8 +200,8 @@ void ViewSchedule_View::highlightToday(int currentDayIndex)
         QTableWidgetItem* todayItem = ui->tableSchedule->horizontalHeaderItem(currentDayIndex);
         if(todayItem) {
 
-            todayItem->setBackground(QColor(0xBA, 0xE6, 0xFD)); // Xanh biển nhạt
-            todayItem->setForeground(QColor(Qt::black)); // Đổi thành chữ đen theo yêu cầu mới
+            todayItem->setBackground(QColor(0xBA, 0xE6, 0xFD));
+            todayItem->setForeground(QColor(Qt::black));
             QFont f = todayItem->font();
             f.setBold(true);
             todayItem->setFont(f);
@@ -233,38 +217,37 @@ void ViewSchedule_View::highlightToday(int currentDayIndex)
     }
 }
 
-void ViewSchedule_View::updateMissingStaff(const QList<QString>& missingShifts)
+void ViewSchedule_View::updateUnqualifiedShifts(const QList<QPair<QString, int>>& unqualifiedShifts)
 {
-    tableMissingStaff->setRowCount(missingShifts.size());
+    tableMissingStaff->setRowCount(unqualifiedShifts.size());
     tableMissingStaff->clearContents();
     
-    for (int i = 0; i < missingShifts.size(); ++i) {
-        QStringList parts = missingShifts[i].split("|");
-        if (parts.size() == 2) {
-            QTableWidgetItem* itemCa = new QTableWidgetItem(parts[0]);
-            itemCa->setTextAlignment(Qt::AlignCenter);
-            QFont f1 = itemCa->font(); f1.setBold(true); itemCa->setFont(f1);
-            
-            QTableWidgetItem* itemCount = new QTableWidgetItem(parts[1] + " / " + QString::number(Config::getMinStaffPerShift()));
-            itemCount->setTextAlignment(Qt::AlignCenter);
-            QFont f = itemCount->font(); f.setBold(true); itemCount->setFont(f);
-            
-            int count = parts[1].toInt();
-            if (count == 0) { // Empty -> Pastel Red
-                itemCa->setBackground(QColor(0xFE, 0xE2, 0xE2)); 
-                itemCa->setForeground(QColor(0x99, 0x1B, 0x1B)); 
-                itemCount->setBackground(QColor(0xFE, 0xE2, 0xE2));
-                itemCount->setForeground(QColor(0x99, 0x1B, 0x1B));
-            } else { // Understaffed -> Pastel Yellow
-                itemCa->setBackground(QColor(0xFE, 0xF9, 0xC3)); 
-                itemCa->setForeground(QColor(0x85, 0x4D, 0x0E)); 
-                itemCount->setBackground(QColor(0xFE, 0xF9, 0xC3)); 
-                itemCount->setForeground(QColor(0x85, 0x4D, 0x0E));
-            }
+    for (int i = 0; i < unqualifiedShifts.size(); ++i) {
+        QString shiftName = unqualifiedShifts[i].first;
+        int count = unqualifiedShifts[i].second;
 
-            tableMissingStaff->setItem(i, 0, itemCa);
-            tableMissingStaff->setItem(i, 1, itemCount);
+        QTableWidgetItem* itemCa = new QTableWidgetItem(shiftName);
+        itemCa->setTextAlignment(Qt::AlignCenter);
+        QFont f1 = itemCa->font(); f1.setBold(true); itemCa->setFont(f1);
+        
+        QTableWidgetItem* itemCount = new QTableWidgetItem(QString::number(count) + " / " + QString::number(Config::getMinStaffPerShift()));
+        itemCount->setTextAlignment(Qt::AlignCenter);
+        QFont f = itemCount->font(); f.setBold(true); itemCount->setFont(f);
+        
+        if (count == 0) { // Empty -> Pastel Red
+            itemCa->setBackground(QColor(0xFE, 0xE2, 0xE2)); 
+            itemCa->setForeground(QColor(0x99, 0x1B, 0x1B)); 
+            itemCount->setBackground(QColor(0xFE, 0xE2, 0xE2));
+            itemCount->setForeground(QColor(0x99, 0x1B, 0x1B));
+        } else { // Understaffed -> Pastel Yellow
+            itemCa->setBackground(QColor(0xFE, 0xF9, 0xC3)); 
+            itemCa->setForeground(QColor(0x85, 0x4D, 0x0E)); 
+            itemCount->setBackground(QColor(0xFE, 0xF9, 0xC3)); 
+            itemCount->setForeground(QColor(0x85, 0x4D, 0x0E));
         }
+
+        tableMissingStaff->setItem(i, 0, itemCa);
+        tableMissingStaff->setItem(i, 1, itemCount);
     }
 }
 
@@ -278,18 +261,23 @@ void ViewSchedule_View::updateShiftDetails(const QList<User*>& employees, const 
         
         QTableWidgetItem* itemSTT = new QTableWidgetItem(QString::number(i + 1));
         itemSTT->setTextAlignment(Qt::AlignCenter);
+        itemSTT->setForeground(QBrush(Qt::black));
         
         QTableWidgetItem* itemID = new QTableWidgetItem(QString::number(emp->getIdEmployee()));
         itemID->setTextAlignment(Qt::AlignCenter);
+        itemID->setForeground(QBrush(Qt::black));
         
         QTableWidgetItem* itemName = new QTableWidgetItem(emp->getName());
         itemName->setTextAlignment(Qt::AlignCenter);
+        itemName->setForeground(QBrush(Qt::black));
         
         QTableWidgetItem* itemRole = new QTableWidgetItem(emp->getRole());
         itemRole->setTextAlignment(Qt::AlignCenter);
+        itemRole->setForeground(QBrush(Qt::black));
         
         QTableWidgetItem* itemPhone = new QTableWidgetItem(emp->getPhoneNum());
         itemPhone->setTextAlignment(Qt::AlignCenter);
+        itemPhone->setForeground(QBrush(Qt::black));
 
         QFont f = itemSTT->font(); f.setBold(true);
         itemSTT->setFont(f);
@@ -313,5 +301,18 @@ void ViewSchedule_View::onBtnCurrentClicked() { emit requestCurrentWeek(); }
 void ViewSchedule_View::setManagerFeaturesVisible(bool visible) {
     if (bottomWidget) {
         bottomWidget->setVisible(visible);
+    }
+
+
+    ui->tableSchedule->setProperty("role", visible ? "manager" : "staff");
+    ui->tableSchedule->style()->unpolish(ui->tableSchedule);
+    ui->tableSchedule->style()->polish(ui->tableSchedule);
+    
+    ui->tableSchedule->horizontalHeader()->style()->unpolish(ui->tableSchedule->horizontalHeader());
+    ui->tableSchedule->horizontalHeader()->style()->polish(ui->tableSchedule->horizontalHeader());
+    
+    if (ui->tableSchedule->verticalHeader()) {
+        ui->tableSchedule->verticalHeader()->style()->unpolish(ui->tableSchedule->verticalHeader());
+        ui->tableSchedule->verticalHeader()->style()->polish(ui->tableSchedule->verticalHeader());
     }
 }

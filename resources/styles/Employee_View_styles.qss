@@ -46,6 +46,17 @@
     border: none;
 }
 
+#AddEmployee_Dialog QComboBox QAbstractItemView, 
+#EditEmployee_Dialog QComboBox QAbstractItemView {
+    color: #0F172A; /* Đen đậm */
+    selection-color: #000000; /* Đen tuyền khi được chọn */
+    selection-background-color: #E2E8F0; /* Nền xám nhạt thay vì xanh hệ thống */
+    background: #FFFFFF;
+    border: 1px solid #CBD5E1;
+    border-radius: 4px;
+    outline: none; /* Bỏ viền focus đứt nét của Windows */
+}
+
 #AddEmployee_Dialog QLabel#lblAccount {
     font-size: 11px;
     color: #94A3B8;

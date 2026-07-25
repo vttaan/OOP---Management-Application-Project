@@ -66,29 +66,37 @@ Schedule_View* Schedule_Control::getView() const
 
 void Schedule_Control::load()
 {
+    if (!view) return;
+    
+    bool isManager = SessionManager::getInstance()->checkPermission("Manager");
+    view->setManagerMode(isManager);
 
-    if (!view || currentEmployeeId < 0) {
-        qDebug() << "Schedule_Control::load() — view or employeeId not set.";
-        return;
+    if (isManager) {
+        QDate today = QDate::currentDate();
+        // Quản lý sẽ xem và xếp lịch cho TUẦN SAU
+        QDate monday = today.addDays(8 - today.dayOfWeek());
+        
+        QMap<int, QMap<int, ShiftBlock*>> grid = model->getManagerWeeklyGrid(monday, 0);
+        view->updateManagerPendingGrid(grid);
+        view->updateTableHeaders(monday);
+        
+    } else {
+        if (currentEmployeeId < 0) return;
+        
+        QDate today = QDate::currentDate();
+        bool registrationOpen = (today.dayOfWeek() == Config::getDayOpenRegisShift());
+        
+        view->enableRegistration(registrationOpen);
+        if (!registrationOpen) return;
+        
+        QDate monday = today.addDays(8 - today.dayOfWeek());
+        view->setUpDataInputTable(monday, Config::getOpenHour(), Config::getCloseHour());
+        
+        // Employee view table shows the NEXT week to match registration
+        view->updateTableHeaders(monday);
+        model->getSchedule(currentEmployeeId, monday);
+        view->updateSumTable(model->getWeeklySummaryStrings());
     }
-    // 1. Determine if registration is currently allowed.
-    //    Business rule: registration opens on Monday of each week.
-    //    Adjust this logic as needed (e.g. read from DB config).
-    QDate today = QDate::currentDate();
-    bool registrationOpen = (today.dayOfWeek() == Config::getDayOpenRegisShift());
-    view->enableRegistration(registrationOpen);
-    if(!registrationOpen) return;
-
-    // 2. Set up the input table with days and allowed hours.
-    view->setUpDataInputTable(listDays, Config::getOpenHour(), Config::getCloseHour());
-
-    // 3. Fetch this week's shifts from DB into the model.
-    model->getSchedule(currentEmployeeId);
-
-    // 4. Build the weekly summary and push it to the view's read-only table.
-    view->updateSumTable(model->getWeeklySummaryStrings());
-
-    qDebug() << "Schedule_Control::load() — loaded schedule for employee" << currentEmployeeId;
 }
 
 // ─────────────────────────────────────────────
@@ -130,7 +138,9 @@ void Schedule_Control::onAddShiftRequested(const QString& day,
     }
 
     // Success: reload the in-memory list from DB and refresh summary table
-    model->getSchedule(currentEmployeeId);
+    // Fetch schedule for the NEXT week (the week that was just registered for)
+    QDate monday = QDate::currentDate().addDays(8 - QDate::currentDate().dayOfWeek());
+    model->getSchedule(currentEmployeeId, monday);
     view->updateSumTable(model->getWeeklySummaryStrings());
     view->resetInputTable();
 
@@ -163,22 +173,15 @@ void Schedule_Control::handleSaveSchedule()
 void Schedule_Control::handleGenSchedule()
 {
     if (!model || !view) return;
-    OptimizerOutput result = model->generateSchedule();
-    int assignedCount = 0;
-    for (const auto& a : result.assignments)
-        if (a.newStatus == 1) ++assignedCount;
-    if (result.feasible) {
-        view->showSuccess(
-            QString("Xếp lịch thành công! %1 ca được phân công.")
-                .arg(assignedCount));
-    } else {
-        view->showError("Không tìm được lịch khả thi. "
-                        "Kiểm tra lại số lượng đăng ký.");
+    QStringList warnings = model->generateSchedule();
+    
+    view->showSuccess("Xếp lịch tự động hoàn tất!");
+    if (!warnings.isEmpty()) {
+        view->showError(warnings.join("\n"));
     }
-    if (!result.warnings.isEmpty()) {
-        view->showWarnings(result.warnings);
-    }
-    emit scheduleGenerated(result.feasible, assignedCount, result.warnings);
+    
+    // Refresh the grid
+    load();
 }
 
 void Schedule_Control::search()
@@ -207,11 +210,17 @@ void Schedule_Control::handleChangeAlgorithm()
 
 QDate Schedule_Control::dayStringToDate(const QString& day) const
 {
-    // Find the index of this day in listDays (0 = Monday)
-    int idx = listDays.indexOf(day);
+    // Find the index of this day by matching prefix with listDays (0 = Monday)
+    int idx = -1;
+    for (int i = 0; i < listDays.size(); ++i) {
+        if (day.startsWith(listDays[i])) {
+            idx = i;
+            break;
+        }
+    }
     if (idx < 0) return QDate(); // invalid
 
-    // Get Monday of the current week
-    QDate monday = QDate::currentDate().addDays(-(QDate::currentDate().dayOfWeek() - 1));
+    // Nhân viên đăng ký lịch làm là cho TUẦN SAU
+    QDate monday = QDate::currentDate().addDays(8 - QDate::currentDate().dayOfWeek());
     return monday.addDays(idx);
 }

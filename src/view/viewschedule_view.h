@@ -8,6 +8,19 @@ class QSplitter;
 class ShiftBlock;
 class User;
 
+namespace ScheduleStyle {
+    const QString BtnNormal = 
+        "QPushButton { background-color: #F3F4F6; color: #374151; border: 1px solid #D1D5DB; border-radius: 6px; padding: 6px 15px; font-weight: bold; } "
+        "QPushButton:hover { background-color: #E5E7EB; }";
+
+    const QString BtnHighlight = 
+        "QPushButton { background-color: #2F80ED; color: white; border-radius: 6px; padding: 6px 15px; font-weight: bold; } "
+        "QPushButton:hover { background-color: #1C64F2; }";
+
+    const QString Title = "font-size: 14px; font-weight: bold; color: black; padding-bottom: 5px;";
+
+}
+
 class ViewSchedule_View : public QWidget
 {
     Q_OBJECT
@@ -20,7 +33,7 @@ public:
     void highlightToday(int currentDayIndex);
     
     // New methods for bottom pane
-    void updateMissingStaff(const QList<QString>& missingShifts);
+    void updateUnqualifiedShifts(const QList<QPair<QString, int>>& unqualifiedShifts);
     void updateShiftDetails(const QList<User*>& employees, const QString& timeLabel);
     void setManagerFeaturesVisible(bool visible);
     

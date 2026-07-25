@@ -8,10 +8,29 @@
 #include "view/employeeswidget.h"
 #include "view/Profile_View.h"
 #include "view/viewschedule_view.h"
+
 View_Navigator::View_Navigator(Control_Navigator *controller, QWidget *parent)
-    : QMainWindow(parent), ui(new Ui::View_Navigator), controller(controller), loginPage(new Login_View(controller->loginController)), dashboardPage(new Dashboard_View()), profilePage(new Profile_View(controller->profileController)), employeePage(new EmployeesWidget()), schedulePage(new Schedule_View()), viewSchedulePage(new ViewSchedule_View()), salaryPage(new Salary_View())
+    : QMainWindow(parent)
+    , ui(new Ui::View_Navigator)
+    , controller(controller)
+    , loginPage(new Login_View(controller->loginController))
+    , dashboardPage(new Dashboard_View())
+    , profilePage(new Profile_View(controller->profileController))
+    , employeePage(new EmployeesWidget())
+    , schedulePage(new Schedule_View())
+    , viewSchedulePage(new ViewSchedule_View())
+    , salaryPage(new Salary_View())
 {
     ui->setupUi(this);
+
+    // Ẩn thanh Menu và Status bar mặc định của Qt để Full màn hình 100%
+    if (ui->menubar) ui->menubar->hide();
+    if (ui->statusbar) ui->statusbar->hide();
+
+    // Xóa khoảng trắng (margins) thừa ở 4 lề của layout chính
+    if (this->centralWidget() && this->centralWidget()->layout()) {
+        this->centralWidget()->layout()->setContentsMargins(0, 0, 0, 0);
+    }
 
     // Remove default placeholder pages created by Qt Designer
     while (ui->stackedWidget->count() > 0)
@@ -29,6 +48,7 @@ View_Navigator::View_Navigator(Control_Navigator *controller, QWidget *parent)
     controller->scheduleController->setView(schedulePage);
     controller->viewScheduleController->setView(viewSchedulePage);
     controller->salaryController->setView(salaryPage);
+
     // add pages
     // index note for each page
     ui->stackedWidget->addWidget(loginPage);        // index 0
@@ -37,9 +57,8 @@ View_Navigator::View_Navigator(Control_Navigator *controller, QWidget *parent)
     ui->stackedWidget->addWidget(employeePage);     // index 3
     ui->stackedWidget->addWidget(schedulePage);     // index 4
     ui->stackedWidget->addWidget(viewSchedulePage); // index 5
-    ui->stackedWidget->addWidget(salaryPage);       // index 5
-    // ui->stackedWidget->addWidget(schedulePage);
-    //  default : login page
+    ui->stackedWidget->addWidget(salaryPage);       // index 6
+    // default : login page
     ui->stackedWidget->setCurrentIndex(0);
 
     // Navigation is managed directly by Control_Navigator now.
@@ -69,7 +88,11 @@ void View_Navigator::setPageIndex(int index)
         }
         else if (index == 7)
         {
-            stackedIndex = 5; // Salary page
+            stackedIndex = 5; // ViewSchedule page
+        }
+        else if (index == 8 || index == 9)
+        {
+            stackedIndex = 6; // Salary page
         }
         ui->stackedWidget->setCurrentIndex(stackedIndex);
         // login and profile can not show side bar

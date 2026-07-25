@@ -669,3 +669,59 @@ Updated `normalStyle` and `activeStyle` constants:
 
 ### AI Tool Used
 Antigravity (Google DeepMind) — Claude Sonnet 4.6 Thinking
+
+---
+
+## Session 14 — Merge Conflict Resolution: "Thynhhh" Branch (2026-07-25 ~ 19:17)
+
+### Task: Resolve all merge conflicts from merging `origin/Thynhhh` into `hwng`
+
+**Context:**
+A `git merge origin/Thynhhh` was in progress on branch `hwng` with 9 files in conflicted state (plus 1 binary). The Thynhhh branch introduced a refactored `Optimizer` (now using `Shift*`-based APIs in `utils/Optimizer.h`) and added new fields to the `Config` class (`minStaffPerShift`, `maxStaffPerShift`) along with reformatted code. HEAD (`hwng`) had a slightly different Optimizer model using struct-based types (`ShiftRegistration`, `EmployeeInfo`, `OptimizerInput/Output`).
+
+**Conflicting Files:**
+| File | Type |
+|---|---|
+| `CMakeLists.txt` | No markers in file; staged as-is (both optimizers already present) |
+| `database/Systems.db` | Binary — resolved with `git checkout --ours` (kept HEAD version) |
+| `src/control/Control_Navigator.h` | Text conflict |
+| `src/control/Control_Navigator.cpp` | Text conflict (severe — destructor inside switchTab, duplicate case labels, stray merge marker line) |
+| `src/model/Schedule_Model.h` | Text conflict |
+| `src/model/Schedule_Model.cpp` | Text conflict (6 conflict regions) |
+| `src/utils/Config.h` | Text conflict |
+| `src/view/View_Navigator.h` | Text conflict |
+| `src/view/View_Navigator.cpp` | Text conflict |
+
+### Conflict Decisions
+
+| File | Decision | Rationale |
+|---|---|---|
+| `Control_Navigator.h` | **HEAD wins** | Kept HEAD's member ordering (ViewSchedule before SessionManager) and pointer style |
+| `Control_Navigator.cpp` | **Both — manual fix** | Removed stray `>>>>>>>` merge-marker line, moved destructor out of `switchTab`, removed 3 duplicate `case 5:` and 2 duplicate `case 8:` labels; kept `targetPageIndex` logic from HEAD, used Thynn's reformatted brace style |
+| `Config.h` | **Thynhhh wins** | Kept `Qt::Saturday` (Thynn) and took new `minStaffPerShift`/`maxStaffPerShift` constants needed by the Optimizer |
+| `Schedule_Model.h` | **Thynhhh wins** | Used `utils/Optimizer.h` (matches CMakeLists), `QVector<Shift*>` for pending shifts, `QMap<User*,int>` for employee info, `QStringList generateSchedule()` — all required by the new Optimizer API |
+| `Schedule_Model.cpp` | **Thynhhh wins** | All 6 conflict regions taken from Thynn: `getManagerWeeklyGrid` with `status` param, `UserFactory` call with `Salary` arg, `fetchPendingShifts` returning `Shift*` with `setShiftId`, `fetchAllEmployeeInfos` returning `QMap<User*,int>`, and `generateSchedule()` using the new Optimizer API |
+| `View_Navigator.h` | **HEAD wins** | Kept HEAD's namespace brace formatting |
+| `View_Navigator.cpp` | **Both** | Used Thynn's multi-line constructor initializer list style; kept HEAD's `index 6` comment for salaryPage and full `setPageIndex()` mapping logic with page ranges |
+| `database/Systems.db` | **HEAD wins** | Binary file — cannot text-merge; kept HEAD version |
+
+### Additional Notes
+- `Control_Navigator.cpp` had a severely malformed merge output: the `~Control_Navigator()` destructor body was embedded inside `switchTab()`'s function body, and `case 5:` appeared three times in the same `switch` statement. This was manually restructured.
+- The `switchTab` logic was cleaned: removed cases 4/5 duplication; cases 4 (schedule registration) and 5 (view schedule) are now distinct.
+
+### Files Modified
+| File | Action |
+|---|---|
+| `src/control/Control_Navigator.h` | Conflict resolved — HEAD style |
+| `src/control/Control_Navigator.cpp` | Conflict resolved — manual fix of severe breakage |
+| `src/model/Schedule_Model.h` | Conflict resolved — Thynn API |
+| `src/model/Schedule_Model.cpp` | Conflict resolved — Thynn API (6 regions) |
+| `src/utils/Config.h` | Conflict resolved — Thynn version (added min/maxStaff) |
+| `src/view/View_Navigator.h` | Conflict resolved — HEAD namespace style |
+| `src/view/View_Navigator.cpp` | Conflict resolved — both branches merged |
+| `CMakeLists.txt` | Staged as-is (no text markers present) |
+| `database/Systems.db` | Binary conflict resolved with `--ours` |
+| `ai-logs/25127052_AIUsageLog.md` | Updated this log |
+
+### AI Tool Used
+Antigravity (Google DeepMind) — Claude Sonnet 4.6 Thinking

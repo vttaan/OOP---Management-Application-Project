@@ -64,16 +64,33 @@ void Employee_Control::handleAddEmployee()
     if (!m_view) return;
     AddEmployee_Dialog dlg(m_view);
     // ==========================================================
-    // CONTROLLER TIÊM LOGIC KIỂM TRA VÀO HỘP THOẠI TRƯỚC KHI MỞ
+    // CONTROLLER TIÊM LOGIC KIỂM TRA VÀ TẠO TÀI KHOẢN
     // ==========================================================
     dlg.validatorDelegate = [](const AddEmployee_Dialog* d) -> QString {
 
         QString s = "";
         if (d->getName().isEmpty()) s += "⚠ Nhập đúng họ và tên đầy đủ.\n";
         if (d->getUsername().isEmpty()) s+="⚠ Nhập tên đăng nhập hợp lệ.\n";
+        
         if (!Validator::isValidCitizenId(d->getCitizenId()))
             s+= "⚠ Căn cước công dân phải bao gồm đúng 12 chữ số.\n";
+            
+        if (!Validator::isValidPhoneNumber(d->getPhone()))
+            s += "⚠ Số điện thoại phải bao gồm đúng 10 chữ số.\n";
+            
         return s; // if return "" it means that no error.
+    };
+
+    dlg.passwordGeneratorDelegate = [](const QString& name, const QString& dob) -> QString {
+        QString n = name;
+        QString d = dob;
+        return Employee_Model::generateAutoPassword(n, d);
+    };
+
+    dlg.usernameGeneratorDelegate = [this](const QString& role) -> QString {
+        QString r = role;
+        int nextId = m_model->getNextId(r);
+        return Employee_Model::generateAutoUsername(nextId, r);
     };
     // ==========================================================
 

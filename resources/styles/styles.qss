@@ -1,9 +1,22 @@
 Login_View {
     background-color: white;
+    font-family: "Inter", sans-serif;
 }
 
 QMainWindow, QStackedWidget, QWidget#centralwidget {
     background-color: #F8FAFC;
+}
+
+QComboBox, QSpinBox, QDateEdit, QTimeEdit, QDateTimeEdit {
+    color: #1e293b;
+    background-color: white;
+}
+
+QComboBox QAbstractItemView {
+    background-color: white;
+    color: #1e293b;
+    selection-background-color: #3b82f6;
+    selection-color: white;
 }
 
 
@@ -24,40 +37,39 @@ QFrame#frmLoginRight {
 }
 
 QLabel#lblTitle {
-    color: #104c91;
-    font-family: Arial;
-    font-size: 46px;
-    font-weight: 800;
-    letter-spacing: 2px;
-    padding-bottom: 25px;
+    color: #1a73e8; /* Màu xanh sáng (Google Blue) */
+    font-size: 48px; /* Nhỏ lại một chút xíu (trước đó là 52) */
+    font-weight: 900; /* Dày nhất có thể */
+    letter-spacing: 1.5px;
+    padding-bottom: 28px;
 }
 
 QLabel#lblUsername,
 QLabel#lblPassword {
-    color: #334155;
-    font-family: Arial;
-    font-size: 16px;
-    font-weight: 700;
+    color: #1e293b;
+    font-size: 17px; /* Nhỏ lại một xíu (trước đó 19) */
+    font-weight: bold; /* In đậm */
     letter-spacing: 0.5px;
-    padding-left: 4px;
+    padding-left: 5px;
     padding-top: 8px;
+    padding-bottom: 5px;
 }
 
 QLineEdit#txtLoginUsername,
 QLineEdit#txtLoginPassword {
-    background-color: #ffffff;
+    background-color: #f8fafc;
 
-    min-height: 52px;
-    font-size: 16px;
+    min-height: 52px; /* Giảm chiều cao */
+    font-size: 16px;  /* Giảm chữ gõ vào (trước đó 17) */
+    font-weight: 500;
 
-    color: #1e293b;
-    font-family: Arial;
+    color: #0f172a;
 
-    border: 1px solid #cbd5e1;
+    border: 1.5px solid #e2e8f0;
     border-radius: 12px;
 
     padding: 0px 40px 0px 18px;
-    selection-background-color: #1a6ad4;
+    selection-background-color: #2563eb;
     selection-color: #ffffff;
 }
 
@@ -92,22 +104,20 @@ QLineEdit QToolButton {
 QPushButton#btnLogin {
     background: qlineargradient(
         x1:0, y1:0, x2:1, y2:0,
-        stop:0   #2563eb,
-        stop:0.5 #3b82f6,
-        stop:1   #60a5fa
+        stop:0   #3b82f6,
+        stop:1   #2563eb
     );
     color: #ffffff;
-    font-family: Arial;
-    font-size: 18px;
-    font-weight: 700;
-    letter-spacing: 2px;
+    font-size: 18px; /* Giảm lại nút (trước đó 20) */
+    font-weight: bold;
+    letter-spacing: 1px;
 
     border: none;
     border-radius: 12px;
     min-width: 160px;
-    min-height: 54px;
+    min-height: 52px; /* Thấp lại */
     padding: 10px 0px;
-    margin-top: 15px;
+    margin-top: 20px;
 }
 
 
@@ -668,4 +678,69 @@ EmployeesWidget QLabel#userAvatar {
     border-radius: 18px;
     font-size: 12px;
     font-weight: bold;
+}
+/* ========================================= */
+/* STYLE CHO BẢNG LỊCH LÀM VIỆC (TABLE)      */
+/* ========================================= */
+
+/* 1. Mặc định cho Nhân Viên (role="staff") */
+QTableWidget[role="staff"] {
+    border: none;
+    background-color: white;
+    gridline-color: #EFEFEF;
+    selection-background-color: #3b82f6;
+    selection-color: white;
+}
+QTableWidget[role="staff"] QHeaderView::section {
+    background-color: #E0F2FE;
+    border: none;
+    border-bottom: 2px solid #BAE6FD;
+    padding: 8px;
+    font-weight: bold;
+    color: #0c4a6e;
+    text-transform: uppercase;
+}
+QTableWidget[role="staff"] QHeaderView::section:vertical {
+    background-color: #E5E7EB;
+    color: black;
+    border: none;
+    font-weight: bold;
+}
+
+/* 2. Dành cho Quản Lý (role="manager") */
+QTableWidget[role="manager"] {
+    border: none;
+    background-color: white;
+    gridline-color: #EFEFEF;
+    selection-background-color: #3b82f6;
+    selection-color: white;
+}
+QTableWidget[role="manager"] QHeaderView::section {
+    background-color: #A855F7; /* Đổi màu nền tím ở đây */
+    border: none;
+    border-bottom: 2px solid #9333EA;
+    border-right: 1px solid #9333EA;
+    padding: 8px;
+    font-weight: bold;
+    color: white; /* Màu chữ trắng ở đây */
+    text-transform: uppercase;
+}
+
+/* 3. Dành cho Quản Lý (Các bảng nhỏ bên dưới - role="manager-dark") */
+QTableWidget[role="manager-dark"] {
+    border: 1px solid #E5E7EB;
+    background-color: white;
+    gridline-color: #E5E7EB;
+    selection-background-color: #3b82f6;
+    selection-color: white;
+}
+QTableWidget[role="manager-dark"] QHeaderView::section {
+    background-color: #9333EA;
+    border: none;
+    border-right: 1px solid #E5E7EB;
+    border-bottom: 2px solid #E5E7EB;
+    padding: 8px;
+    font-weight: bold;
+    color: white;
+    text-transform: uppercase;
 }

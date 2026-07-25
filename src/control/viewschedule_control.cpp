@@ -44,9 +44,8 @@ void ViewSchedule_Control::loadData() {
         return;
     }
     
-    QString currentRole = this->currentSession->getCurrentUser()->getRole();
-    
-    if (currentRole == "Manage" || currentRole == "Admin") {
+    if (this->currentSession->checkPermission("Manager") || 
+        this->currentSession->checkPermission("Admin")) {
         loadManagerSchedule();
     } else {
         loadStaffSchedule();
@@ -88,7 +87,7 @@ void ViewSchedule_Control::loadManagerSchedule() {
         timeSlots.append(start + " - " + end);
     }
 
-    QList<QString> missingShifts;
+    QList<QPair<QString, int>> unqualifiedShifts;
     QStringList daysOfWeek = {"Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ Nhật"};
 
     for (int col = 0; col < 7; ++col) {
@@ -98,14 +97,13 @@ void ViewSchedule_Control::loadManagerSchedule() {
             ShiftBlock* block = scheduleGrid[col][row];
             if (block && (block->getStatus() == ShiftStatus::Understaffed || block->getStatus() == ShiftStatus::Empty)) {
                 QString shiftName = QString("%1: %2").arg(daysOfWeek[col]).arg(timeSlots[row]);
-                QString countStr = QString::number(block->getStaffCount());
-                missingShifts.append(shiftName + "|" + countStr);
+                unqualifiedShifts.append(qMakePair(shiftName, block->getStaffCount()));
             }
         }
     }
 
     view->updateManagerTable(timeSlots, scheduleGrid);
-    view->updateMissingStaff(missingShifts);
+    view->updateUnqualifiedShifts(unqualifiedShifts);
     updateDateRangeLabel();
     view->highlightToday(-1); 
 }
@@ -118,6 +116,9 @@ void ViewSchedule_Control::onShiftClicked(int row, int dayIndex) {
 
     if (!block->isEmpty()) {
         view->updateShiftDetails(block->getEmployees(), block->getTimeString());
+
+    } else {
+        view->updateShiftDetails(QList<User*>(), "");
     }
 }
 

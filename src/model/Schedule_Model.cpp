@@ -28,14 +28,7 @@ Shift *Schedule_Model::getPreviewShift(short int id, QDate date, QTime start, QT
     return new Shift(id, date, start, end);
 }
 
-pair<QDate, QDate> Schedule_Model::getRangeOfWeek()
-{
-    QDate monday = QDate::currentDate().addDays(-QDate::currentDate().dayOfWeek() + 1);
-    QDate sunday = monday.addDays(6);
-    return {monday, sunday};
-}
-
-void Schedule_Model::getSchedule(short int id)
+void Schedule_Model::getSchedule(short int id, QDate monday)
 {
     for (int i = 0; i < 7; i++)
     {
@@ -44,11 +37,11 @@ void Schedule_Model::getSchedule(short int id)
     }
     QSqlDatabase openData = Database::getInstance()->getDbConnect();
     QSqlQuery query(openData);
-    pair<QDate, QDate> weekRange = getRangeOfWeek();
+    QDate sunday = monday.addDays(6);
     query.prepare("SELECT * FROM SHIFT WHERE idEmployee = :id AND workDate BETWEEN :start AND :end");
     query.bindValue(":id", id);
-    query.bindValue(":start", weekRange.first);
-    query.bindValue(":end", weekRange.second);
+    query.bindValue(":start", monday);
+    query.bindValue(":end", sunday);
     if (!query.exec())
         return;
     while (query.next())
@@ -56,7 +49,7 @@ void Schedule_Model::getSchedule(short int id)
         QDate date = query.value("workDate").toDate();
         Shift *newShift = new Shift(query.value("idEmployee").toInt(), date,
                                     query.value("startTime").toTime(), query.value("endTime").toTime());
-        int dayInWeek = weekRange.first.daysTo(date); // monday: 0, sunday: 6
+        int dayInWeek = monday.daysTo(date); // monday: 0, sunday: 6
         if (dayInWeek >= 0 && dayInWeek < 7)
         {
             this->shiftList[dayInWeek].append(newShift);
@@ -112,6 +105,7 @@ Shift *Schedule_Model::handleAddShiftSubmission(short int id, QDate date, QTime 
     Shift *newShift = new Shift(id, date, start, end);
     return newShift;
 }
+
 void Schedule_Model::getAcceptedSchedule(short int id, QDate monday)
 {
     for (int i = 0; i < 7; i++)
@@ -126,8 +120,8 @@ void Schedule_Model::getAcceptedSchedule(short int id, QDate monday)
 
     query.prepare("SELECT * FROM SHIFT WHERE idEmployee = :id AND status = 1 AND workDate BETWEEN :start AND :end");
     query.bindValue(":id", id);
-    query.bindValue(":start", monday.toString("yyyy-MM-dd"));
-    query.bindValue(":end", sunday.toString("yyyy-MM-dd"));
+    query.bindValue(":start", monday);
+    query.bindValue(":end", sunday);
 
     if (!query.exec())
         return;
@@ -148,7 +142,7 @@ void Schedule_Model::getAcceptedSchedule(short int id, QDate monday)
     }
 }
 
-QMap<int, QMap<int, ShiftBlock *>> Schedule_Model::getManagerWeeklyGrid(QDate monday)
+QMap<int, QMap<int, ShiftBlock *>> Schedule_Model::getManagerWeeklyGrid(QDate monday, int status)
 {
     qDeleteAll(currentWeeklyUsers);
     currentWeeklyUsers.clear();
@@ -173,9 +167,10 @@ QMap<int, QMap<int, ShiftBlock *>> Schedule_Model::getManagerWeeklyGrid(QDate mo
 
     query.prepare("SELECT S.*, P.* FROM SHIFT S "
                   "JOIN PROFILES P ON S.idEmployee = P.idEmployee "
-                  "WHERE S.status = 1 AND S.workDate BETWEEN :start AND :end");
-    query.bindValue(":start", monday.toString("yyyy-MM-dd"));
-    query.bindValue(":end", sunday.toString("yyyy-MM-dd"));
+                  "WHERE S.status = :status AND S.workDate BETWEEN :start AND :end");
+    query.bindValue(":status", status);
+    query.bindValue(":start", monday);
+    query.bindValue(":end", sunday);
 
     if (!query.exec())
     {
@@ -194,7 +189,9 @@ QMap<int, QMap<int, ShiftBlock *>> Schedule_Model::getManagerWeeklyGrid(QDate mo
             query.value("dob").toString(),
             query.value("address").toString(),
             query.value("phoneNum").toString(),
-            query.value("Gender").toString());
+            query.value("Gender").toString(),
+            query.value("Salary").toInt()
+        );
         currentWeeklyUsers.append(user);
 
         QDate workDate = query.value("workDate").toDate();
@@ -217,6 +214,7 @@ QMap<int, QMap<int, ShiftBlock *>> Schedule_Model::getManagerWeeklyGrid(QDate mo
     }
     return grid;
 }
+
 Schedule_Model::~Schedule_Model()
 {
     qDeleteAll(currentWeeklyUsers);
@@ -243,10 +241,11 @@ QMap<int, QList<QString>> Schedule_Model::getWeeklySummaryStrings() const
     }
     return weeklyData;
 }
-QVector<ShiftRegistration>
+
+QVector<Shift *>
 Schedule_Model::fetchPendingShifts(const QDate &weekStart, const QDate &weekEnd)
 {
-    QVector<ShiftRegistration> regs;
+    QVector<Shift *> regs;
     QSqlQuery q(Database::getInstance()->getDbConnect());
     q.prepare("SELECT rowid, idEmployee, workDate, startTime, endTime "
               "FROM SHIFT "
@@ -254,33 +253,26 @@ Schedule_Model::fetchPendingShifts(const QDate &weekStart, const QDate &weekEnd)
               "  AND workDate >= :start "
               "  AND workDate <= :end");
     q.bindValue(":start", weekStart.toString(Qt::ISODate));
-    q.bindValue(":end", weekEnd.toString(Qt::ISODate));
-    if (!q.exec())
-        return regs;
-    while (q.next())
-    {
-        ShiftRegistration r;
-        r.rowId = q.value(0).toInt();
-        r.employeeId = q.value(1).toInt();
-        r.date = QDate::fromString(q.value(2).toString(), Qt::ISODate);
-        r.startTime = QTime::fromString(q.value(3).toString(), "H:mm");
-        r.endTime = QTime::fromString(q.value(4).toString(), "H:mm");
-        regs.push_back(r);
+    q.bindValue(":end",   weekEnd.toString(Qt::ISODate));
+    if (!q.exec()) return regs;
+    while (q.next()) {
+        int shiftId  = q.value(0).toInt();
+        int empId    = q.value(1).toInt();
+        QDate date   = QDate::fromString(q.value(2).toString(), Qt::ISODate);
+        QTime startT = QTime::fromString(q.value(3).toString(), "H:mm");
+        QTime endT   = QTime::fromString(q.value(4).toString(), "H:mm");
+        Shift *s = new Shift(empId, date, startT, endT);
+        s->setShiftId(shiftId);
+        regs.push_back(s);
     }
     return regs;
 }
-QVector<EmployeeInfo>
+
+QMap<User *, int>
 Schedule_Model::fetchAllEmployeeInfos(const QDate &weekStart)
 {
-    QVector<int> allIds;
-    {
-        QSqlQuery q(Database::getInstance()->getDbConnect());
-        q.prepare("SELECT DISTINCT idEmployee FROM PROFILES");
-        if (q.exec())
-            while (q.next())
-                allIds.push_back(q.value(0).toInt());
-    }
-    // 2. Tính tổng phút đã làm (status=1) trước tuần này
+    QMap<User *, int> employeeMinutesWorked;
+
     QMap<int, int> minutesMap;
     {
         QSqlQuery q(Database::getInstance()->getDbConnect());
@@ -300,40 +292,69 @@ Schedule_Model::fetchAllEmployeeInfos(const QDate &weekStart)
             }
         }
     }
-    QVector<EmployeeInfo> infos;
-    infos.reserve(allIds.size());
-    for (int id : allIds)
-        infos.push_back({id, minutesMap.value(id, 0)});
-    return infos;
-}
-OptimizerOutput Schedule_Model::generateSchedule()
-{
-    QDate today = QDate::currentDate();
-    QDate weekStart = today.addDays(1 - today.dayOfWeek());
-    QDate weekEnd = weekStart.addDays(6);
-    OptimizerInput input;
-    input.registrations = fetchPendingShifts(weekStart, weekEnd);
-    input.employees = fetchAllEmployeeInfos(weekStart);
-    input.minPerShift = 5;
-    input.minDaysPerEmp = 4;
-    Optimizer opt;
-    OptimizerOutput output = opt.solve(input);
-    if (output.feasible && !output.assignments.isEmpty())
+
     {
+        qDeleteAll(currentWeeklyUsers);
+        currentWeeklyUsers.clear();
+        QSqlQuery q(Database::getInstance()->getDbConnect());
+        q.prepare("SELECT * FROM PROFILES");
+        if (q.exec()) {
+            while (q.next()) {
+                User *user = UserFactory::createContainsUser(
+                    q.value("role").toString(),
+                    q.value("idEmployee").toInt(),
+                    q.value("avatarPath").toString(),
+                    q.value("IdCitizenIdentity").toString(),
+                    q.value("name").toString(),
+                    q.value("dob").toString(),
+                    q.value("address").toString(),
+                    q.value("phoneNum").toString(),
+                    q.value("Gender").toString(),
+                    q.value("Salary").toInt()
+                );
+                currentWeeklyUsers.append(user);
+                employeeMinutesWorked[user] = minutesMap.value(user->getIdEmployee(), 0);
+            }
+        }
+    }
+    return employeeMinutesWorked;
+}
+
+QStringList Schedule_Model::generateSchedule()
+{
+    QDate today     = QDate::currentDate();
+    // Thuật toán sẽ luôn chạy cho tuần SAU (Next Week)
+    QDate weekStart = today.addDays(8 - today.dayOfWeek());
+    QDate weekEnd   = weekStart.addDays(6);
+
+    QVector<Shift *> pendingShifts = fetchPendingShifts(weekStart, weekEnd);
+    QMap<User *, int> employeeMinutes = fetchAllEmployeeInfos(weekStart);
+
+    Optimizer opt(pendingShifts, employeeMinutes);
+    opt.solve();
+
+    QStringList warnings = opt.getWarnings();
+
+    if (opt.isFeasible() && !pendingShifts.isEmpty()) {
         QSqlDatabase db = Database::getInstance()->getDbConnect();
         db.transaction();
         QSqlQuery q(db);
         q.prepare("UPDATE SHIFT SET status = :status WHERE rowid = :rowid");
-        for (const auto &a : output.assignments)
-        {
-            q.bindValue(":status", a.newStatus);
-            q.bindValue(":rowid", a.rowId);
-            if (!q.exec())
-                output.warnings << QString("[DB Error] rowid=%1: %2")
-                                       .arg(a.rowId)
-                                       .arg(q.lastError().text());
+        for (Shift *s : pendingShifts) {
+            // Chỉ cập nhật nếu status đã được thay đổi (thuật toán xét duyệt)
+            if (s->getStatus() != 0) {
+                q.bindValue(":status", s->getStatus());
+                q.bindValue(":rowid",  s->getShiftId());
+                if (!q.exec())
+                    warnings << QString("[DB Error] rowid=%1: %2")
+                                           .arg(s->getShiftId()).arg(q.lastError().text());
+            }
         }
         db.commit();
     }
-    return output;
+
+    qDeleteAll(pendingShifts);
+    pendingShifts.clear();
+
+    return warnings;
 }

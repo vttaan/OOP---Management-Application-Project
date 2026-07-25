@@ -8,6 +8,7 @@
 #include "utils/SessionManage.h"
 #include "view/employeeswidget.h"
 #include "ViewSchedule_Control.h"
+
 Control_Navigator::Control_Navigator()
 {
     // this->currentSession = new SessionManager();
@@ -99,6 +100,8 @@ Control_Navigator::Control_Navigator()
 
 void Control_Navigator::switchTab(int index)
 {
+    int targetPageIndex = index;
+
     // load data before switch tab
     switch (index)
     {
@@ -115,33 +118,42 @@ void Control_Navigator::switchTab(int index)
         if (currentSession->checkPermission("Manager"))
             this->employeeController->init();
         break;
+
     case 4:
-    case 5:
-        this->viewScheduleController->setEmployeeId(currentSession->getCurrentUser()->getIdEmployee());
-        this->viewScheduleController->load();
-    case 6:
         if (currentSession && currentSession->getCurrentUser())
         {
             this->scheduleController->setEmployeeId(currentSession->getCurrentUser()->getIdEmployee());
             this->scheduleController->load();
         }
+        targetPageIndex = 4; // Schedule_View for employee registration / manager scheduling
         break;
+
+    case 5:
+        this->viewScheduleController->setEmployeeId(currentSession->getCurrentUser()->getIdEmployee());
+        this->viewScheduleController->load();
+        targetPageIndex = 5; // ViewSchedule_View for viewing schedule
+        break;
+
+    case 6:
     case 7:
         this->salaryController->init();
+        targetPageIndex = 6;
         break;
-    default:
-        break;
+
     case 8:
         // Xem lịch làm - Chưa có controller, chỉ chuyển UI
     case 9:
         // this->settingsController->init();
+        break;
+
+    default:
         break;
     }
 
     // show view tab
     if (this->viewWindow)
     {
-        this->viewWindow->setPageIndex(index);
+        this->viewWindow->setPageIndex(targetPageIndex);
         // put pointer of side bar follow index
         this->viewWindow->getSideBar()->updateButtonStyles(index);
     }

@@ -142,6 +142,7 @@ qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
     src/control/Salary_Control.h src/control/Salary_Control.cpp
     src/view/Salary_View.h src/view/Salary_View.cpp src/view/Salary_View.ui
     src/utils/Optimizer.h src/utils/Optimizer.cpp
+    src/core/Optimizer.h src/core/Optimizer.cpp
     src/utils/Config.h
     )
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core Qt6::Widgets Qt6::Sql)

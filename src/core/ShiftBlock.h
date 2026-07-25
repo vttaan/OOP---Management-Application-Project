@@ -52,7 +52,7 @@ public:
 
     // 4. View Text
     QString getDisplayText() const {
-        if (getStatus() == ShiftStatus::Empty) return "Trống";
+        if (getStatus() == ShiftStatus::Empty) return "Không đạt";
         return QString("%1 nhân viên").arg(getStaffCount());
     }
 

@@ -17,7 +17,7 @@ private:
     QString saveAvatarLocally(int empId, const QString &sourcePath);
 
     //--------REMOVE ACCENT FOR SEARCH
-    QString removeAccent(const QString &input);
+    static QString removeAccent(const QString &input);
     //-----------------------------------
     QList<User *> searchInEmployee(QList<User *> inputList, QString contentSearch);
     QList<User *> filterInEmployee(QList<User *> inputList, QList<QString> contentFilter);

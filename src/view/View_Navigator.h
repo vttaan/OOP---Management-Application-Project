@@ -9,6 +9,7 @@
 #include "view/sidebar_widget.h"
 #include "view/viewschedule_view.h"
 #include "view/Salary_View.h"
+
 namespace Ui
 {
     class View_Navigator;
