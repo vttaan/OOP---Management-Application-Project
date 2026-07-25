@@ -10,6 +10,10 @@
 #include "utils/SessionManage.h"
 #include "core/User.h"
 
+void Sidebar_Widget::hideSubMenuInSchedule() {
+    ui->subMenu_Schedule->hide();
+}
+
 Sidebar_Widget::Sidebar_Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Sidebar_Widget)
 {
     ui->setupUi(this);

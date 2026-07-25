@@ -58,7 +58,7 @@ View_Navigator::View_Navigator(Control_Navigator* controller, QWidget *parent)
     ui->stackedWidget->addWidget(salaryPage); //index 6
     //ui->stackedWidget->addWidget(schedulePage);
     // default : login page
-    ui->stackedWidget->setCurrentIndex(0);
+    //ui->stackedWidget->setCurrentIndex(0);
 
     // Navigation is managed directly by Control_Navigator now.
 
