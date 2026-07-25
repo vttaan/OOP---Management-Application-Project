@@ -725,3 +725,42 @@ A `git merge origin/Thynhhh` was in progress on branch `hwng` with 9 files in co
 
 ### AI Tool Used
 Antigravity (Google DeepMind) — Claude Sonnet 4.6 Thinking
+
+---
+
+## Session 15 — Merge Conflict Resolution: "Tin" Branch (2026-07-25 ~ 19:27)
+
+### Task: Resolve all merge conflicts from merging `origin/Tin` into `hwng`
+
+**Context:**
+After completing the Thynhhh merge, a `git merge Tin` was in progress on branch `hwng` with 3 remaining conflicted files. The Tin branch had reformatted the codebase (lambda brace style), used `"Manage"` instead of `"Manager"` for permission checks, stripped out `viewScheduleController`/`salaryController`/`case 5-9` from `switchTab`, used `Qt::Tuesday` for shift registration day, and partially commented out the `setView` block in `View_Navigator`.
+
+**Conflicting Files:**
+| File | Type |
+|---|---|
+| `src/control/Control_Navigator.cpp` | Text conflict |
+| `src/utils/Config.h` | Text conflict |
+| `src/view/View_Navigator.cpp` | Text conflict |
+
+### Conflict Decisions
+
+| File | Decision | Rationale |
+|---|---|---|
+| `Control_Navigator.cpp` | **HEAD wins + Tin addition** | Kept HEAD's full `switchTab` (all cases 0–9, `viewScheduleController`, `targetPageIndex`). Adopted Tin's `hideSubMenuInSchedule()` call in the view-update block and activated `dashboardController->profilePageClicked` connection (which Tin had uncommented) |
+| `Config.h` | **HEAD wins** | Kept HEAD's `Qt::Saturday` and `minStaffPerShift`/`maxStaffPerShift` from the prior Thynhhh merge. Tin used `Qt::Tuesday` and had no staff-per-shift constants, which would break the Optimizer |
+| `View_Navigator.cpp` | **HEAD wins** | Kept the full `setView` block for all 7 controllers. Tin had partially commented out `viewScheduleController->setView` and `salaryController->setView`, which would have broken those features |
+
+### Additional Notes
+- Tin branch used `"Manage"` (without 'r') for permission checks — kept HEAD's `"Manager"` to stay consistent with the rest of the codebase and database role values.
+- Tin's stripped `switchTab` removed `case 5` (view schedule) and `case 6/7` (salary) entirely — these were preserved from HEAD.
+
+### Files Modified
+| File | Action |
+|---|---|
+| `src/control/Control_Navigator.cpp` | Conflict resolved — HEAD logic + Tin's `hideSubMenuInSchedule()` and `profilePageClicked` connection |
+| `src/utils/Config.h` | Conflict resolved — HEAD version retained |
+| `src/view/View_Navigator.cpp` | Conflict resolved — HEAD's full setView block retained |
+| `ai-logs/25127052_AIUsageLog.md` | Updated this log |
+
+### AI Tool Used
+Antigravity (Google DeepMind) — Claude Sonnet 4.6 Thinking

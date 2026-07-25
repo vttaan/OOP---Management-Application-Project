@@ -68,13 +68,12 @@ Control_Navigator::Control_Navigator()
                          //  the whole app's session is updated
                      });
 
-    // QObject::connect(this->dashboardController, &Dashboard_Control::profilePageClicked,
-    //                  this->viewWindow, [this]() {
-    //     this->switchTab(2); // Switch to Profile (index 2)
-    //     //this->profileController->hand
-    //     //qDebug() << this->profileController->currentSession->getCurrentUser()->getName();
-    //     // no need to load user data for profile since its session already pointed to the whole app's session
-    // });
+    QObject::connect(this->dashboardController, &Dashboard_Control::profilePageClicked,
+                     this->viewWindow, [this]() {
+        this->switchTab(2); // Switch to Profile (index 2)
+        // qDebug() << this->profileController->currentSession->getCurrentUser()->getName();
+        // no need to load user data for profile since its session already pointed to the whole app's session
+    });
 
     // switch from profile back previous
     QObject::connect(this->profileController, &Profile_Control::backToPrevious,
@@ -154,6 +153,9 @@ void Control_Navigator::switchTab(int index)
     if (this->viewWindow)
     {
         this->viewWindow->setPageIndex(targetPageIndex);
+        // hide sub menu in schedule each switch tap
+        if (index != 4)
+            this->viewWindow->getSideBar()->hideSubMenuInSchedule();
         // put pointer of side bar follow index
         this->viewWindow->getSideBar()->updateButtonStyles(index);
     }

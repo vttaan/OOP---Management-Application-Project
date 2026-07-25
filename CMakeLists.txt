@@ -117,7 +117,7 @@ set(PROJECT_SOURCES
         src/view/Salary_View.ui
 )
 
-qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
+qt_add_executable(${PROJECT_NAME} ${PROJECT_SOURCES}
     src/view/Dashboard_View.h src/view/Dashboard_View.cpp src/view/Dashboard_View.ui
     src/view/employeecard.h src/view/employeecard.cpp src/view/employeecard.ui
 
@@ -141,7 +141,6 @@ qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
     src/model/Salary_Model.h src/model/Salary_Model.cpp
     src/control/Salary_Control.h src/control/Salary_Control.cpp
     src/view/Salary_View.h src/view/Salary_View.cpp src/view/Salary_View.ui
-    src/utils/Optimizer.h src/utils/Optimizer.cpp
     src/core/Optimizer.h src/core/Optimizer.cpp
     src/utils/Config.h
     )

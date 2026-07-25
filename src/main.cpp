@@ -1,7 +1,4 @@
 #include "global.h"
-#include <QApplication>
-#include <QFontDatabase>
-#include <QIcon>
 
 #include "control/Control_Navigator.h"
 #include "view/View_Navigator.h"
