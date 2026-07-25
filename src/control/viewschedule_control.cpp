@@ -44,7 +44,7 @@ void ViewSchedule_Control::loadData() {
         return;
     }
     
-    if (this->currentSession->checkPermission("Manage") || 
+    if (this->currentSession->checkPermission("Manager") || 
         this->currentSession->checkPermission("Admin")) {
         loadManagerSchedule();
     } else {
@@ -116,6 +116,7 @@ void ViewSchedule_Control::onShiftClicked(int row, int dayIndex) {
 
     if (!block->isEmpty()) {
         view->updateShiftDetails(block->getEmployees(), block->getTimeString());
+
     } else {
         view->updateShiftDetails(QList<User*>(), "");
     }

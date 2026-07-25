@@ -15,26 +15,25 @@ private:
     int numberOfShift;
     QList<User*> currentWeeklyUsers;
 
-    QVector<ShiftRegistration> fetchPendingShifts(const QDate& weekStart, const QDate& weekEnd);
-    // Lấy tổng số phút đã làm của từng nhân viên
-    QVector<EmployeeInfo> fetchAllEmployeeInfos(const QDate& weekStart);
+    QVector<Shift*> fetchPendingShifts(const QDate& weekStart, const QDate& weekEnd);
+    // Lay tong so phut da lam cua tung nhan vien
+    QMap<User*, int> fetchAllEmployeeInfos(const QDate& weekStart);
 public:
     Schedule_Model();
     bool checkOverlapping(short int id, QDate date, QTime start, QTime end);
     Shift *getPreviewShift(short int id, QDate date, QTime start, QTime end);
     Shift *handleAddShiftSubmission(short int id, QDate date, QTime start, QTime end);
-    void getSchedule(short int id);
-    pair<QDate, QDate> getRangeOfWeek();
+    void getSchedule(short int id, QDate monday);
 
     // Returns the in-memory weekly shift list (index 0=Mon, 6=Sun)
     const QList<QList<Shift *>>& getShiftList() const { return shiftList; }
 
 
     void getAcceptedSchedule(short int id, QDate monday);
-    QMap<int, QMap<int, ShiftBlock*>> getManagerWeeklyGrid(QDate monday);
+    QMap<int, QMap<int, ShiftBlock*>> getManagerWeeklyGrid(QDate monday, int status = 1);
     QMap<int, QList<QString>> getWeeklySummaryStrings() const;
 
-     OptimizerOutput generateSchedule();
+     QStringList generateSchedule();
 
     ~Schedule_Model();
 };

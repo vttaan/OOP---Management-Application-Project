@@ -80,14 +80,9 @@ Ui::View_Navigator* View_Navigator::getUI() { return ui; }
 
 void View_Navigator::setPageIndex(int index) {
     if(ui && ui->stackedWidget) {
-        int stackedIndex = index;
-        if (index >= 4 && index <= 6) {
-            stackedIndex = 4; // Schedule page
-        } else if (index == 7) {
-            stackedIndex = 5; // Salary page
-        }
-        ui->stackedWidget->setCurrentIndex(stackedIndex);
-        // login and profile can not show side bar
+        ui->stackedWidget->setCurrentIndex(index);
+        
+
         if(index == 0 || index == 2) ui->widget->hide();
         else ui->widget->show();
     }

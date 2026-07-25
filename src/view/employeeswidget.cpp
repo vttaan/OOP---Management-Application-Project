@@ -438,6 +438,7 @@ void EmployeesWidget::renderTable(const QList<User *> &employees)
     QLabel *nameLabel = new QLabel(emp->getName());
     nameLabel->setObjectName("empNameLabel");
     nameLabel->setFont(QFont("Segoe UI", 10, QFont::DemiBold));
+    nameLabel->setStyleSheet("color: black;");
     nameLayout->addWidget(nameLabel);
     nameLayout->addStretch();
     employeesTable->setCellWidget(row, 1, nameWidget);

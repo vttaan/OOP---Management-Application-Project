@@ -90,6 +90,8 @@ Control_Navigator::Control_Navigator()
 }
 
 void Control_Navigator::switchTab(int index) {
+    int targetPageIndex = index; // Biến này để ép nhảy đúng trang UI
+
     // load data before switch tab
     switch(index) {
     case 0:
@@ -104,33 +106,42 @@ void Control_Navigator::switchTab(int index) {
     case 3:
         if(currentSession->checkPermission("Manager")) this->employeeController->init();
         break;
+        
     case 4:
-    case 5:
     case 6:
         if (currentSession && currentSession->getCurrentUser()) {
             this->scheduleController->setEmployeeId(currentSession->getCurrentUser()->getIdEmployee());
             this->scheduleController->load();
         }
+        targetPageIndex = 4; // Dùng chung trang Schedule_View cho Đăng ký (nhân viên) và Xếp lịch (quản lý)
         break;
-    case 7:
-        this->salaryController->init();
-        break;
-    default:
-        break;
-    case 8:
-     // Xem lịch làm - Chưa có controller, chỉ chuyển UI
-    case 9:
-    // this->settingsController->init();
-        break;
+
     case 5:
         this->viewScheduleController->setEmployeeId(currentSession->getCurrentUser()->getIdEmployee());
         this->viewScheduleController->load();
+        targetPageIndex = 5; // Trang ViewSchedule_View cho Xem lịch làm
+        break;
+
+
+
+
+    case 7: 
+    case 8:
+        this->salaryController->init();
+        targetPageIndex = 6;
+        break;
+        
+    case 9:
+    // this->settingsController->init();
+        break;
+        
+    default:
         break;
     }
 
     // show view tab
     if (this->viewWindow) {
-        this->viewWindow->setPageIndex(index);
+        this->viewWindow->setPageIndex(targetPageIndex); // <-- Dùng targetPageIndex ở đây
         // put pointer of side bar follow index
         this->viewWindow->getSideBar()->updateButtonStyles(index);
     }

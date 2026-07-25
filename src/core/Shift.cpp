@@ -26,6 +26,8 @@ QTime Shift::getTotalHourWork()
 }
 
 void Shift::setID(short int id) { this->EmployeeID = id; }
+int Shift::getShiftId() const { return shiftId; }
+void Shift::setShiftId(int id) { this->shiftId = id; }
 void Shift::setTime(QTime start, QTime end)
 {
     // if (not overlap) {

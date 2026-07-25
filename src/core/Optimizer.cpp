@@ -65,26 +65,32 @@ int Optimizer::minCostFlow(int s,int t,int maxFlow,int &outCost){
     }
     return flow;
 }
-OptimizerOutput Optimizer::solve(const OptimizerInput&input){
-    OptimizerOutput out;
-    if(input.registrations.isEmpty()||input.employees.isEmpty()){
-        out.warnings << " Khong co du lieu dang ki hoac danh sach dang rong ";
-        return out;
+
+#include "utils/Config.h"
+
+Optimizer::Optimizer(const QVector<Shift*>& shifts, const QMap<User*, int>& userMinutes) 
+    : shifts(shifts), userMinutes(userMinutes) {}
+
+bool Optimizer::solve(){
+    if(shifts.isEmpty()||userMinutes.isEmpty()){
+        warnings << " Khong co du lieu dang ki hoac danh sach dang rong ";
+        return false;
     }
-    QMap<int,int>empIdx;
-    for(int i = 0;i<input.employees.size();++i)
-        empIdx[input.employees[i].employeeId]=i;
-    const int E=input.employees.size();
+    QMap<User*,int>empIdx;
+    QVector<User*> empList = userMinutes.keys().toVector();
+    for(int i = 0;i<empList.size();++i)
+        empIdx[empList[i]]=i;
+    const int E=empList.size();
 
     QMap<QString,int>slotIdx;
     QVector<QString> slotKeys;
-    auto makeSlotKey =[](const ShiftRegistration&r){
-        return r.date.toString(Qt::ISODate) + "|"
-               + r.startTime.toString("HH:mm") + "|"
-               + r.endTime.toString("HH:mm");
+    auto makeSlotKey =[](Shift* r){
+        return r->getDate().toString(Qt::ISODate) + "|"
+               + r->getStartTime().toString("HH:mm") + "|"
+               + r->getEndTime().toString("HH:mm");
 
 };
-for (const auto& r : input.registrations) {
+for (Shift* r : shifts) {
     QString key = makeSlotKey(r);
     if (!slotIdx.contains(key)) {
         slotIdx[key] = slotKeys.size();
@@ -101,10 +107,16 @@ init(2 + 8 * E + K);
 QMap<int,int> empRegCount;
 QMap<QPair<int,int>,int> dayRegCount;
 QMap<int,int> slotRegCount;
-for( const auto&r:input.registrations){
-    if (!empIdx.contains(r.employeeId)) continue;
-    int ei = empIdx[r.employeeId];
-    int d  = r.date.dayOfWeek() - 1;
+for(Shift* r : shifts){
+    User* currentUser = nullptr;
+    for (User* u : empList) {
+        if (u->getIdEmployee() == r->getEmployeeID()) {
+            currentUser = u; break;
+        }
+    }
+    if (!currentUser) continue;
+    int ei = empIdx[currentUser];
+    int d  = r->getDate().dayOfWeek() - 1;
     int si = slotIdx[makeSlotKey(r)];
     empRegCount[ei]++;
     dayRegCount[{ei, d}]++;
@@ -128,35 +140,50 @@ struct RegEdge {
     int dayOfWeek;
 };
 QVector<RegEdge> regEdges;
-regEdges.reserve(input.registrations.size());
-for (const auto& r : input.registrations) {
-    if (!empIdx.contains(r.employeeId)) continue;
-    int ei = empIdx[r.employeeId];
-    int d  = r.date.dayOfWeek() - 1;
+regEdges.reserve(shifts.size());
+for (Shift* r : shifts) {
+    User* currentUser = nullptr;
+    for (User* u : empList) {
+        if (u->getIdEmployee() == r->getEmployeeID()) {
+            currentUser = u; break;
+        }
+    }
+    if (!currentUser) continue;
+    int ei = empIdx[currentUser];
+    int d  = r->getDate().dayOfWeek() - 1;
     int si = slotIdx[makeSlotKey(r)];
     // Priority cost: ít giờ làm lịch sử → cost thấp → ưu tiên cao
     bool isWeekend = (d >= 5);
-    int  cost = input.employees[ei].totalMinutesWorked / HOUR_SCALE
+    int  cost = userMinutes[currentUser] / HOUR_SCALE
                + (isWeekend ? 0 : WEEKDAY_PENALTY);
     int eid = m_edges.size();
     addEdge(nDay(ei, d), nSlot(si), 1, cost);
-    regEdges.push_back({r.rowId, eid, ei, si, d});
+    regEdges.push_back({r->getShiftId(), eid, ei, si, d});
 }
 for (int j = 0; j < K; ++j) {
     int cap = slotRegCount.value(j, 0);
     if (cap > 0)
-        addEdge(nSlot(j), T, cap, 0);
+        addEdge(nSlot(j), T, qMin(cap, (int)Config::getMaxStaffPerShift()), 0);
 }
-int totalCost = 0;
-int totalFlow = minCostFlow(S, T, INF, totalCost);
-out.feasible  = (totalFlow > 0);
-out.totalFlow = totalFlow;
-out.totalCost = totalCost;
+int totalCostLocal = 0;
+int flow = minCostFlow(S, T, INF, totalCostLocal);
+this->feasible  = (flow > 0);
+this->totalFlow = flow;
+this->totalCost = totalCostLocal;
 QMap<int, int>      assignedPerSlot;
 QMap<int, QSet<int>> empDaysAssigned;
-for (const auto& re : regEdges) {
+for (int i = 0; i < regEdges.size(); ++i) {
+    const auto& re = regEdges[i];
     bool assigned = (m_edges[re.edgeIdx].flow == 1);
-    out.assignments.push_back({re.rowId, assigned ? 1 : -1});
+    
+    // Tìm Shift tương ứng để update trực tiếp (Vì regEdges và shifts không khớp 1-1 do skip !currentUser)
+    for (Shift* s : shifts) {
+        if (s->getShiftId() == re.rowId) {
+            s->setStatus(assigned ? 1 : -1);
+            break;
+        }
+    }
+    
     if (assigned) {
         assignedPerSlot[re.slotIdx]++;
         empDaysAssigned[re.empIdx].insert(re.dayOfWeek);
@@ -166,22 +193,22 @@ for (int j = 0; j < K; ++j) {
     int cnt = assignedPerSlot.value(j, 0);
     const QStringList parts = slotKeys[j].split("|");
     if (cnt == 0) {
-        out.warnings << QString("[Cảnh báo] Ca %1 (%2 - %3): Không có nhân viên nào được xếp.")
+        warnings << QString("[Cảnh báo] Ca %1 (%2 - %3): Không có nhân viên nào được xếp.")
                             .arg(parts[0]).arg(parts[1]).arg(parts[2]);
-    } else if (cnt < input.minPerShift) {
-        out.warnings << QString("[Cảnh báo] Ca %1 (%2 - %3): Chỉ xếp được %4/%5 nhân viên.")
+    } else if (cnt < Config::getMinStaffPerShift()) {
+        warnings << QString("[Cảnh báo] Ca %1 (%2 - %3): Chỉ xếp được %4/%5 nhân viên.")
                             .arg(parts[0]).arg(parts[1]).arg(parts[2])
-                            .arg(cnt).arg(input.minPerShift);
+                            .arg(cnt).arg(Config::getMinStaffPerShift());
     }
 }
 // Cảnh báo tiêu chí 5: nhân viên có ít hơn minDaysPerEmp ngày được xếp
 for (int i = 0; i < E; ++i) {
     int days = empDaysAssigned.value(i).size();
-    if (days > 0 && days < input.minDaysPerEmp) {
-        out.warnings << QString("[Cảnh báo] Nhân viên ID %1: Chỉ được xếp %2/%3 ngày trong tuần.")
-                            .arg(input.employees[i].employeeId)
-                            .arg(days).arg(input.minDaysPerEmp);
+    if (days > 0 && days < Config::getMinDaysPerEmp()) {
+        warnings << QString("[Cảnh báo] Nhân viên ID %1: Chỉ được xếp %2/%3 ngày trong tuần.")
+                            .arg(empList[i]->getIdEmployee())
+                            .arg(days).arg(Config::getMinDaysPerEmp());
     }
 }
-return out;
+return this->feasible;
 }

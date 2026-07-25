@@ -7,6 +7,18 @@ QMainWindow, QStackedWidget, QWidget#centralwidget {
     background-color: #F8FAFC;
 }
 
+QComboBox, QSpinBox, QDateEdit, QTimeEdit, QDateTimeEdit {
+    color: #1e293b;
+    background-color: white;
+}
+
+QComboBox QAbstractItemView {
+    background-color: white;
+    color: #1e293b;
+    selection-background-color: #3b82f6;
+    selection-color: white;
+}
+
 
 QFrame#frmLoginLeft {
     background-color: #f4f8fc;
@@ -666,4 +678,69 @@ EmployeesWidget QLabel#userAvatar {
     border-radius: 18px;
     font-size: 12px;
     font-weight: bold;
+}
+/* ========================================= */
+/* STYLE CHO BẢNG LỊCH LÀM VIỆC (TABLE)      */
+/* ========================================= */
+
+/* 1. Mặc định cho Nhân Viên (role="staff") */
+QTableWidget[role="staff"] {
+    border: none;
+    background-color: white;
+    gridline-color: #EFEFEF;
+    selection-background-color: #3b82f6;
+    selection-color: white;
+}
+QTableWidget[role="staff"] QHeaderView::section {
+    background-color: #E0F2FE;
+    border: none;
+    border-bottom: 2px solid #BAE6FD;
+    padding: 8px;
+    font-weight: bold;
+    color: #0c4a6e;
+    text-transform: uppercase;
+}
+QTableWidget[role="staff"] QHeaderView::section:vertical {
+    background-color: #E5E7EB;
+    color: black;
+    border: none;
+    font-weight: bold;
+}
+
+/* 2. Dành cho Quản Lý (role="manager") */
+QTableWidget[role="manager"] {
+    border: none;
+    background-color: white;
+    gridline-color: #EFEFEF;
+    selection-background-color: #3b82f6;
+    selection-color: white;
+}
+QTableWidget[role="manager"] QHeaderView::section {
+    background-color: #A855F7; /* Đổi màu nền tím ở đây */
+    border: none;
+    border-bottom: 2px solid #9333EA;
+    border-right: 1px solid #9333EA;
+    padding: 8px;
+    font-weight: bold;
+    color: white; /* Màu chữ trắng ở đây */
+    text-transform: uppercase;
+}
+
+/* 3. Dành cho Quản Lý (Các bảng nhỏ bên dưới - role="manager-dark") */
+QTableWidget[role="manager-dark"] {
+    border: 1px solid #E5E7EB;
+    background-color: white;
+    gridline-color: #E5E7EB;
+    selection-background-color: #3b82f6;
+    selection-color: white;
+}
+QTableWidget[role="manager-dark"] QHeaderView::section {
+    background-color: #9333EA;
+    border: none;
+    border-right: 1px solid #E5E7EB;
+    border-bottom: 2px solid #E5E7EB;
+    padding: 8px;
+    font-weight: bold;
+    color: white;
+    text-transform: uppercase;
 }

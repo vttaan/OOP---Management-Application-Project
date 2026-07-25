@@ -35,7 +35,7 @@ void ViewSchedule_View::setUpUI()
     
     // Table styles
     ui->tableSchedule->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    ui->tableSchedule->setSelectionMode(QAbstractItemView::NoSelection);
+    ui->tableSchedule->setSelectionMode(QAbstractItemView::SingleSelection);
     ui->tableSchedule->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->tableSchedule->setFocusPolicy(Qt::NoFocus);
     
@@ -46,8 +46,7 @@ void ViewSchedule_View::setUpUI()
         }
     }
     
-    // Main table style uses StaffHeader initially (can be updated dynamically)
-    ui->tableSchedule->setStyleSheet(ScheduleStyle::getTableStyle(ScheduleStyle::ColorStaffHeader));
+    ui->tableSchedule->setProperty("role", "staff");
 
     // Create Splitter and Bottom Layout
     ui->verticalLayout->removeWidget(ui->tableSchedule);
@@ -68,7 +67,7 @@ void ViewSchedule_View::setUpUI()
     tableMissingStaff->setColumnCount(2);
     tableMissingStaff->setHorizontalHeaderLabels({"CA LÀM VIỆC THIẾU NGƯỜI", "SL HIỆN CÓ / YÊU CẦU"});
     tableMissingStaff->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    tableMissingStaff->setStyleSheet(ScheduleStyle::getTableStyle(ScheduleStyle::ColorManagerBottomHeader));
+    tableMissingStaff->setProperty("role", "manager-dark");
     tableMissingStaff->setSelectionMode(QAbstractItemView::NoSelection);
     tableMissingStaff->setEditTriggers(QAbstractItemView::NoEditTriggers);
     tableMissingStaff->setFocusPolicy(Qt::NoFocus);
@@ -86,7 +85,7 @@ void ViewSchedule_View::setUpUI()
     tableShiftDetails->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     tableShiftDetails->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     tableShiftDetails->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
-    tableShiftDetails->setStyleSheet(ScheduleStyle::getTableStyle(ScheduleStyle::ColorManagerBottomHeader));
+    tableShiftDetails->setProperty("role", "manager-dark");
     tableShiftDetails->setSelectionMode(QAbstractItemView::NoSelection);
     tableShiftDetails->setEditTriggers(QAbstractItemView::NoEditTriggers);
     tableShiftDetails->setFocusPolicy(Qt::NoFocus);
@@ -116,6 +115,7 @@ void ViewSchedule_View::updateTable(const QMap<int, QList<QString>>& weeklyData)
         for(int j = 0; j < shift.size(); j++) {
             QTableWidgetItem* item = new QTableWidgetItem(shift[j]);
             item->setTextAlignment(Qt::AlignCenter);
+            item->setForeground(QBrush(Qt::black));
 
             item->setBackground(QColor(0xF3, 0xF4, 0xF6));
             item->setForeground(QColor(0x37, 0x41, 0x51));
@@ -137,7 +137,7 @@ void ViewSchedule_View::updateManagerTable(const QList<QString>& timeSlots, cons
     ui->tableSchedule->verticalHeader()->setVisible(true);
 
     // Style vertical headers similar to horizontal (Pastel Purple for Manager)
-    ui->tableSchedule->setStyleSheet(ScheduleStyle::getVerticalTableStyle(ScheduleStyle::ColorManagerHeader));
+    // (Handled by QSS property now)
 
     // Populate data
     for (int col = 0; col < 7; ++col) {
@@ -179,6 +179,9 @@ void ViewSchedule_View::updateDateRange(const QString& dateRangeText)
 
 void ViewSchedule_View::highlightToday(int currentDayIndex)
 {
+    bool isManager = (ui->tableSchedule->property("role").toString() == "manager");
+    QColor defaultTextColor = isManager ? Qt::white : Qt::black;
+
     // Reset all headers to default first
     for(int i = 0; i < 7; ++i) {
         QTableWidgetItem* headerItem = ui->tableSchedule->horizontalHeaderItem(i);
@@ -186,8 +189,8 @@ void ViewSchedule_View::highlightToday(int currentDayIndex)
             headerItem = new QTableWidgetItem();
             ui->tableSchedule->setHorizontalHeaderItem(i, headerItem);
         }
-        headerItem->setBackground(QBrush(Qt::NoBrush));
-        headerItem->setForeground(QColor(Qt::black));
+        headerItem->setBackground(QBrush());
+        headerItem->setForeground(defaultTextColor);
         QFont f = headerItem->font();
         f.setBold(true);
         headerItem->setFont(f);
@@ -258,18 +261,23 @@ void ViewSchedule_View::updateShiftDetails(const QList<User*>& employees, const 
         
         QTableWidgetItem* itemSTT = new QTableWidgetItem(QString::number(i + 1));
         itemSTT->setTextAlignment(Qt::AlignCenter);
+        itemSTT->setForeground(QBrush(Qt::black));
         
         QTableWidgetItem* itemID = new QTableWidgetItem(QString::number(emp->getIdEmployee()));
         itemID->setTextAlignment(Qt::AlignCenter);
+        itemID->setForeground(QBrush(Qt::black));
         
         QTableWidgetItem* itemName = new QTableWidgetItem(emp->getName());
         itemName->setTextAlignment(Qt::AlignCenter);
+        itemName->setForeground(QBrush(Qt::black));
         
         QTableWidgetItem* itemRole = new QTableWidgetItem(emp->getRole());
         itemRole->setTextAlignment(Qt::AlignCenter);
+        itemRole->setForeground(QBrush(Qt::black));
         
         QTableWidgetItem* itemPhone = new QTableWidgetItem(emp->getPhoneNum());
         itemPhone->setTextAlignment(Qt::AlignCenter);
+        itemPhone->setForeground(QBrush(Qt::black));
 
         QFont f = itemSTT->font(); f.setBold(true);
         itemSTT->setFont(f);
@@ -295,7 +303,16 @@ void ViewSchedule_View::setManagerFeaturesVisible(bool visible) {
         bottomWidget->setVisible(visible);
     }
 
-    // Đổi màu header dựa theo chức vụ
-    QString headerColor = visible ? ScheduleStyle::ColorManagerHeader : ScheduleStyle::ColorStaffHeader; 
-    ui->tableSchedule->setStyleSheet(ScheduleStyle::getTableStyle(headerColor));
+
+    ui->tableSchedule->setProperty("role", visible ? "manager" : "staff");
+    ui->tableSchedule->style()->unpolish(ui->tableSchedule);
+    ui->tableSchedule->style()->polish(ui->tableSchedule);
+    
+    ui->tableSchedule->horizontalHeader()->style()->unpolish(ui->tableSchedule->horizontalHeader());
+    ui->tableSchedule->horizontalHeader()->style()->polish(ui->tableSchedule->horizontalHeader());
+    
+    if (ui->tableSchedule->verticalHeader()) {
+        ui->tableSchedule->verticalHeader()->style()->unpolish(ui->tableSchedule->verticalHeader());
+        ui->tableSchedule->verticalHeader()->style()->polish(ui->tableSchedule->verticalHeader());
+    }
 }
