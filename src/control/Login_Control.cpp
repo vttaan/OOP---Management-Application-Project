@@ -4,7 +4,7 @@
 #include "Login_Control.h"
 
 Login_Control::Login_Control(QObject *parent)
-    : QObject(parent), view(nullptr), currentSession(nullptr)
+    : QObject(parent), view(nullptr), currentSession(SessionManager::getInstance())
 {
 }
 

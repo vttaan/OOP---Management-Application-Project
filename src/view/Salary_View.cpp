@@ -92,6 +92,9 @@ void Salary_View::setupUI()
     ui->summaryTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->normalTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->holidayTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    
+    ui->normalTable->setTextElideMode(Qt::ElideLeft);
+    ui->holidayTable->setTextElideMode(Qt::ElideLeft);
 }
 
 void Salary_View::setupConnections()
@@ -103,6 +106,22 @@ void Salary_View::setupConnections()
     };
     connect(ui->monthComboBox, &QComboBox::currentTextChanged, this, [=](const QString&){ onSelectionChanged(); });
     connect(ui->yearComboBox, &QComboBox::currentTextChanged, this, [=](const QString&){ onSelectionChanged(); });
+
+    connect(ui->normalTable, &QTableWidget::cellClicked, this, [=](int row, int col){
+        QTableWidgetItem* dateItem = ui->normalTable->item(0, col);
+        QTableWidgetItem* hoursItem = ui->normalTable->item(1, col);
+        if (dateItem && hoursItem) {
+            showDetailDialog(dateItem->text(), hoursItem->text(), "Ngày thường");
+        }
+    });
+
+    connect(ui->holidayTable, &QTableWidget::cellClicked, this, [=](int row, int col){
+        QTableWidgetItem* dateItem = ui->holidayTable->item(0, col);
+        QTableWidgetItem* hoursItem = ui->holidayTable->item(1, col);
+        if (dateItem && hoursItem) {
+            showDetailDialog(dateItem->text(), hoursItem->text(), "Ngày lễ");
+        }
+    });
 }
 
 void Salary_View::setBaseSalary(const QString& salary)
@@ -137,11 +156,11 @@ void Salary_View::populateNormalTable(const QMap<QString, int>& data)
     int col = 0;
     for(auto it = data.begin(); it != data.end(); ++it) {
         QTableWidgetItem* dateItem = new QTableWidgetItem(it.key());
-        dateItem->setTextAlignment(Qt::AlignCenter);
+        dateItem->setTextAlignment(Qt::AlignCenter | Qt::AlignVCenter);
         ui->normalTable->setItem(0, col, dateItem);
 
         QTableWidgetItem* hoursItem = new QTableWidgetItem(QString::number(it.value()));
-        hoursItem->setTextAlignment(Qt::AlignCenter);
+        hoursItem->setTextAlignment(Qt::AlignCenter | Qt::AlignVCenter);
         ui->normalTable->setItem(1, col, hoursItem);
         col++;
     }
@@ -155,11 +174,11 @@ void Salary_View::populateHolidayTable(const QMap<QString, int>& data)
     int col = 0;
     for(auto it = data.begin(); it != data.end(); ++it) {
         QTableWidgetItem* dateItem = new QTableWidgetItem(it.key());
-        dateItem->setTextAlignment(Qt::AlignCenter);
+        dateItem->setTextAlignment(Qt::AlignCenter | Qt::AlignVCenter);
         ui->holidayTable->setItem(0, col, dateItem);
 
         QTableWidgetItem* hoursItem = new QTableWidgetItem(QString::number(it.value()));
-        hoursItem->setTextAlignment(Qt::AlignCenter);
+        hoursItem->setTextAlignment(Qt::AlignCenter | Qt::AlignVCenter);
         ui->holidayTable->setItem(1, col, hoursItem);
         col++;
     }
@@ -185,6 +204,82 @@ void Salary_View::populateSummaryTable(const SalaryData& data)
     QTableWidgetItem* totalItem = new QTableWidgetItem(convertCurrency(QString::number(data.totalSalary)));
     totalItem->setTextAlignment(Qt::AlignCenter);
     ui->summaryTable->setItem(3, 0, totalItem);
+}
+
+void Salary_View::showDetailDialog(const QString& date, const QString& hours, const QString& type)
+{
+    QDialog dialog(this);
+    dialog.setWindowTitle("Chi tiết ngày công");
+    dialog.setMinimumWidth(320);
+    dialog.setStyleSheet(
+        "QDialog {"
+        "    background-color: #FFFFFF;"
+        "    border-radius: 12px;"
+        "}"
+        "QLabel#titleLabel {"
+        "    color: #0F172A;"
+        "    font-weight: bold;"
+        "    font-size: 16px;"
+        "}"
+        "QLabel#infoLabel {"
+        "    color: #475569;"
+        "    font-size: 14px;"
+        "}"
+        "QPushButton {"
+        "    background-color: #0284C7;"
+        "    color: white;"
+        "    border: none;"
+        "    border-radius: 6px;"
+        "    padding: 8px 16px;"
+        "    font-weight: bold;"
+        "}"
+        "QPushButton:hover {"
+        "    background-color: #0369A1;"
+        "}"
+    );
+
+    QVBoxLayout* layout = new QVBoxLayout(&dialog);
+    layout->setContentsMargins(24, 24, 24, 24);
+    layout->setSpacing(16);
+
+    QLabel* titleLabel = new QLabel("Chi tiết ngày công", &dialog);
+    titleLabel->setObjectName("titleLabel");
+    titleLabel->setAlignment(Qt::AlignCenter);
+    layout->addWidget(titleLabel);
+
+    QFrame* contentFrame = new QFrame(&dialog);
+    contentFrame->setStyleSheet(
+        "QFrame {"
+        "    background-color: #F8FAFC;"
+        "    border: 1px solid #E2E8F0;"
+        "    border-radius: 8px;"
+        "    padding: 12px;"
+        "}"
+    );
+    QVBoxLayout* contentLayout = new QVBoxLayout(contentFrame);
+    contentLayout->setSpacing(8);
+
+    QLabel* typeLabel = new QLabel(QString("<b>Loại ngày:</b> %1").arg(type), &dialog);
+    typeLabel->setObjectName("infoLabel");
+    contentLayout->addWidget(typeLabel);
+
+    QLabel* dateLabel = new QLabel(QString("<b>Ngày:</b> %1").arg(date), &dialog);
+    dateLabel->setObjectName("infoLabel");
+    contentLayout->addWidget(dateLabel);
+
+    QString unit = (currentRole == "Manager") ? "ngày" : "giờ";
+    QLabel* hoursLabel = new QLabel(QString("<b>Giờ công:</b> %1 %2").arg(hours, unit), &dialog);
+    hoursLabel->setObjectName("infoLabel");
+    contentLayout->addWidget(hoursLabel);
+
+    layout->addWidget(contentFrame);
+
+    QPushButton* closeBtn = new QPushButton("Đóng", &dialog);
+    closeBtn->setCursor(Qt::PointingHandCursor);
+    connect(closeBtn, &QPushButton::clicked, &dialog, &QDialog::accept);
+    layout->addWidget(closeBtn, 0, Qt::AlignCenter);
+
+    dialog.exec();
 }
 
 

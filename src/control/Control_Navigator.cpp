@@ -13,13 +13,10 @@ Control_Navigator::Control_Navigator()
     //this->currentSession = new SessionManager();
 
     this->dashboardController = new Dashboard_Control(this);
-    this->dashboardController->currentSession = this->currentSession;
 
     this->loginController = new Login_Control(this);
-    this->loginController->currentSession = this->currentSession;
 
     this->profileController = new Profile_Control(this);
-    this->profileController->currentSession = this->currentSession;
 
     this->employeeController = new Employee_Control(this);
 

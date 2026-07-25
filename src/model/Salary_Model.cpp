@@ -1,5 +1,6 @@
 #include "Salary_Model.h"
 
+const int PENALTY = 500000;
 
 Salary_Model::Salary_Model(QObject *parent) : QObject(parent)
 {
@@ -11,7 +12,7 @@ Salary_Model::~Salary_Model()
 
 SalaryData Salary_Model::getSalarySummary(User* user, int month, int year)
 {
-    SalaryData data = {0, 0, 0, 0, 0, 0};
+    SalaryData data = {0, 0, 0, 0, 0, 0}; // normal hours, holiday hours, normal salary, holiday salary, penalty, total
     QMap<QString, int> normalDays = getNormalDaysData(user, month, year);
     QMap<QString, int> holidayDays = getHolidayDaysData(user, month, year);
 
@@ -25,7 +26,7 @@ SalaryData Salary_Model::getSalarySummary(User* user, int month, int year)
         data.holidayHours = holidayDays.size();
         data.normalSalary = data.normalHours * user->getSalary();
         data.holidaySalary = data.holidayHours * (user->getSalary() * 2);
-        data.penalty = absentDays * 2000000;
+        data.penalty = absentDays * PENALTY;
 
         data.totalSalary = data.normalSalary + data.holidaySalary - data.penalty;
     } else if (user->getRole() == "Staff") {
@@ -37,7 +38,7 @@ SalaryData Salary_Model::getSalarySummary(User* user, int month, int year)
         }
         data.normalSalary = data.normalHours * user->getSalary();
         data.holidaySalary = data.holidayHours * (user->getSalary() * 2);
-        data.penalty = 50000;
+        data.penalty = PENALTY;
         data.totalSalary = data.normalSalary + data.holidaySalary - data.penalty;
     }
     return data;

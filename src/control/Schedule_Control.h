@@ -43,6 +43,7 @@ public:
     void chooseDate();
     void handleChangeAlgorithm();
 
+
     // View wiring
     void setView(Schedule_View* view);
     Schedule_View* getView() const;
