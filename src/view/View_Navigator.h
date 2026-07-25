@@ -8,6 +8,7 @@
 #include "view/Schedule_View.h"
 #include "view/sidebar_widget.h"
 #include "view/viewschedule_view.h"
+#include "view/Salary_View.h"
 namespace Ui {
 class View_Navigator;
 }
@@ -28,6 +29,7 @@ public:
     Profile_View* profilePage = nullptr;
     EmployeesWidget* employeePage = nullptr;
     Schedule_View* schedulePage = nullptr;
+    Salary_View* salaryPage = nullptr;
     Sidebar_Widget* sidebar = nullptr;
     ViewSchedule_View* viewSchedulePage = nullptr;
     Control_Navigator* getController();

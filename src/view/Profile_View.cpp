@@ -9,17 +9,14 @@ Profile_View::Profile_View(Profile_Control* controller, QWidget *parent)
 {
     ui->setupUi(this);
     ui->backButton->setIcon(QIcon(":/images/homeIcon.png"));
-    // Provide a default placeholder avatar if none is set yet
     setupAvatar(""); // default avt
 
-    // Connect to editprofile_widget & editpassword_widget out here in profile_view bc those two don't have control file.
-    // Create edit profile sliding widget
     editProfileWidget = new EditProfile_Widget(this);
     editProfileWidget->setGeometry(this->rect());
     
-    connect(editProfileWidget, &EditProfile_Widget::saveRequested, this, [this](const QString& name, const QString& dob, const QString& address, const QString& phone, const QString& citizenId, const QString& avatarPath) {
+    connect(editProfileWidget, &EditProfile_Widget::saveRequested, this, [this](const QString& name, const QString& dob, const QString& address, const QString& phone, const QString& citizenId, const QString& avatarPath, const QString& gender) {
         if (this->controller) {
-            bool success = this->controller->handleProfileUpdate(name, dob, address, phone, citizenId, avatarPath);
+            bool success = this->controller->handleProfileUpdate(name, dob, address, phone, citizenId, avatarPath, gender);
             if (success) {
                 editProfileWidget->slideOut();
             } else {
@@ -64,15 +61,16 @@ void Profile_View::loadUserData(SessionManager* currentSession) {
 
     qDebug() << this->getController()->getUser()->getName();
     ui->lblProfileName->setText(this->getController()->getUser()->getName());
-    ui->lblProfileRole->setText(this->getController()->getUser()->getRole());
+    if (this->getController()->getUser()->getRole() == "Manager") ui->lblProfileRole->setText("Quản lý");
+    else if (this->getController()->getUser()->getRole() == "Staff") ui->lblProfileRole->setText("Nhân viên");
     ui->lblVal_Id->setText(QString::number(this->getController()->getUser()->getIdEmployee()));
     ui->lblVal_DoB->setText(this->getController()->getUser()->getDOB());
     ui->lblVal_Address->setText(this->getController()->getUser()->getAddress());
     ui->lblVal_CitizenID->setText(this->getController()->getUser()->getIdentityID());
     ui->lblVal_Phone->setText(this->getController()->getUser()->getPhoneNum());
     setupAvatar(this->getController()->getUser()->getAvatarPath());
-    //ui->lblVal_Email->setText(this->getController()->getUser()->get...());
-    //ui->lblVal_Gender->setText(this->getController()->getUser()->get...());
+    //ui->lblVal_Email->setText(this->getController()->getUser()->g());
+    ui->lblVal_Gender->setText(this->getController()->getUser()->getGender());
 }
 
 void Profile_View::setupAvatar(const QString& imagePath)
@@ -154,7 +152,8 @@ void Profile_View::on_btnEditInfo_clicked()
         qDebug() << this->getController()->getUser()->getAvatarPath();
         editProfileWidget->setInitialData(this->getController()->getUser()->getName(), this->getController()->getUser()->getDOB(),
                                           this->getController()->getUser()->getAddress(), this->getController()->getUser()->getPhoneNum(),
-                                          this->getController()->getUser()->getIdentityID(), this->getController()->getUser()->getAvatarPath());
+                                          this->getController()->getUser()->getIdentityID(), this->getController()->getUser()->getAvatarPath(),
+                                          this->getController()->getUser()->getGender());
     }
     editProfileWidget->slideIn();
 }

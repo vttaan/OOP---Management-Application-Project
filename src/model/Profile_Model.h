@@ -7,7 +7,7 @@ class Profile_Model {
 public:
     bool updateProfile(short int idEmployee, const QString& name, const QString& dob,
                        const QString& address, const QString& phoneNum,
-                       const QString& citizenId, const QString& avatarPath);
+                       const QString& citizenId, const QString& avatarPath, const QString& gender);
 
     // Delegates to Change_password for verification, hashing, and DB update.
     // Returns a PasswordChangeResult so the controller can show precise error messages.

@@ -1,6 +1,5 @@
 #include "Schedule_Model.h"
 #include "core/UserFactory.h"
-
 Schedule_Model::Schedule_Model() : numberOfShift(0) {}
 
 bool Schedule_Model::checkOverlapping(short int id, QDate date, QTime start, QTime end)
@@ -69,6 +68,11 @@ void Schedule_Model::getSchedule(short int id)
 // only then the database will add approved shifts
 
 // flow in control: select shift -> model check overlapping -> return preview -> submit -> system handle -> add shift to database
+
+
+// temporary solution, might fix later o_O
+QList<QString> holidayList = {"01/01", "30/04", "01/05", "02/09"};
+
 Shift *Schedule_Model::handleAddShiftSubmission(short int id, QDate date, QTime start, QTime end)
 {
     // checkOverlapping returns true when the slot is FREE (no overlap), false when blocked
@@ -86,13 +90,17 @@ Shift *Schedule_Model::handleAddShiftSubmission(short int id, QDate date, QTime 
     }
     QSqlQuery query(openData);
     query.prepare(
-        "INSERT INTO SHIFT (idEmployee, workDate, startTime, endTime, status) "
-        "VALUES (:id,:date,:start,:end,:status)");
+        "INSERT INTO SHIFT (idEmployee, workDate, startTime, endTime, status, isHoliday) "
+        "VALUES (:id,:date,:start,:end,:status,:isHoliday)");
     query.bindValue(":id", id);
     query.bindValue(":date", date);
     query.bindValue(":start", start);
     query.bindValue(":end", end);
     query.bindValue(":status", 0);
+    query.bindValue(":isHoliday", 0);
+    if (holidayList.contains(QString::number(date.day()) + "/" + QString::number(date.month()))) {
+        query.bindValue("isHoliday", 1);
+    }
     if (!query.exec())
     {
         qDebug() << "Error adding shift" << query.lastError().text();
@@ -219,4 +227,87 @@ QMap<int, QList<QString>> Schedule_Model::getWeeklySummaryStrings() const {
         if (!labels.isEmpty()) weeklyData.insert(col, labels);
     }
     return weeklyData;
+}
+QVector<ShiftRegistration>
+Schedule_Model::fetchPendingShifts(const QDate& weekStart, const QDate& weekEnd) {
+    QVector<ShiftRegistration> regs;
+    QSqlQuery q(Database::getInstance()->getDbConnect());
+    q.prepare("SELECT rowid, idEmployee, workDate, startTime, endTime "
+              "FROM SHIFT "
+              "WHERE status = 0 "
+              "  AND workDate >= :start "
+              "  AND workDate <= :end");
+    q.bindValue(":start", weekStart.toString(Qt::ISODate));
+    q.bindValue(":end",   weekEnd.toString(Qt::ISODate));
+    if (!q.exec()) return regs;
+    while (q.next()) {
+        ShiftRegistration r;
+        r.rowId      = q.value(0).toInt();
+        r.employeeId = q.value(1).toInt();
+        r.date       = QDate::fromString(q.value(2).toString(), Qt::ISODate);
+        r.startTime  = QTime::fromString(q.value(3).toString(), "H:mm");
+        r.endTime    = QTime::fromString(q.value(4).toString(), "H:mm");
+        regs.push_back(r);
+    }
+    return regs;
+}
+QVector<EmployeeInfo>
+Schedule_Model::fetchAllEmployeeInfos(const QDate& weekStart) {
+    QVector<int> allIds;
+    {
+        QSqlQuery q(Database::getInstance()->getDbConnect());
+        q.prepare("SELECT DISTINCT idEmployee FROM PROFILES");
+        if (q.exec())
+            while (q.next()) allIds.push_back(q.value(0).toInt());
+    }
+    // 2. Tính tổng phút đã làm (status=1) trước tuần này
+    QMap<int, int> minutesMap;
+    {
+        QSqlQuery q(Database::getInstance()->getDbConnect());
+        q.prepare("SELECT idEmployee, startTime, endTime "
+                  "FROM SHIFT "
+                  "WHERE status = 1 AND workDate < :weekStart");
+        q.bindValue(":weekStart", weekStart.toString(Qt::ISODate));
+        if (q.exec()) {
+            while (q.next()) {
+                int   id    = q.value(0).toInt();
+                QTime start = QTime::fromString(q.value(1).toString(), "H:mm");
+                QTime end   = QTime::fromString(q.value(2).toString(), "H:mm");
+                if (start.isValid() && end.isValid())
+                    minutesMap[id] += start.secsTo(end) / 60;
+            }
+        }
+    }
+    QVector<EmployeeInfo> infos;
+    infos.reserve(allIds.size());
+    for (int id : allIds)
+        infos.push_back({id, minutesMap.value(id, 0)});
+    return infos;
+}
+OptimizerOutput Schedule_Model::generateSchedule() {
+    QDate today     = QDate::currentDate();
+    QDate weekStart = today.addDays(1 - today.dayOfWeek());
+    QDate weekEnd   = weekStart.addDays(6);
+    OptimizerInput input;
+    input.registrations = fetchPendingShifts(weekStart, weekEnd);
+    input.employees     = fetchAllEmployeeInfos(weekStart);
+    input.minPerShift   = 5;
+    input.minDaysPerEmp = 4;
+    Optimizer opt;
+    OptimizerOutput output = opt.solve(input);
+    if (output.feasible && !output.assignments.isEmpty()) {
+        QSqlDatabase db = Database::getInstance()->getDbConnect();
+        db.transaction();
+        QSqlQuery q(db);
+        q.prepare("UPDATE SHIFT SET status = :status WHERE rowid = :rowid");
+        for (const auto& a : output.assignments) {
+            q.bindValue(":status", a.newStatus);
+            q.bindValue(":rowid",  a.rowId);
+            if (!q.exec())
+                output.warnings << QString("[DB Error] rowid=%1: %2")
+                                       .arg(a.rowId).arg(q.lastError().text());
+        }
+        db.commit();
+    }
+    return output;
 }

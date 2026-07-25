@@ -46,10 +46,10 @@ bool Employee_Model::popUserInList(short idEmployee)
 
 bool Employee_Model::addEmployee(const QString &role, const QString &avatarPath, const QString &citizenId,
                                  const QString &name, const QString &dob, const QString &address,
-                                 const QString &phone, const QString &gender,
+                                 const QString &phone, const QString &gender, const int& baseSalary,
                                  const QString &username, const QString &password)
 {
-  User *emp = UserFactory::createNewUser(role, avatarPath, citizenId, name, dob, address, phone, gender);
+  User *emp = UserFactory::createNewUser(role, avatarPath, citizenId, name, dob, address, phone, gender, baseSalary);
     if (emp == nullptr) {
       qDebug() << "Create fail\n";
         return false;
@@ -235,9 +235,10 @@ void Employee_Model::loadData()
     QString curAddress = query.value("address").toString();
     QString curAvatarPath = query.value("avatarPath").toString();
     QString curGender = query.value("Gender").toString();
+    int curSalary = query.value("Salary").toInt();
     User *nowEmployee = UserFactory::createContainsUser(
         curRole, curID, curAvatarPath, curIdIndentity, curName, curDob,
-        curAddress, curPhone, curGender);
+        curAddress, curPhone, curGender, curSalary);
     this->listEmployee.append(nowEmployee);
   }
 }

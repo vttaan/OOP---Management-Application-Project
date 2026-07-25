@@ -10,22 +10,21 @@
 #include "ViewSchedule_Control.h"
 Control_Navigator::Control_Navigator()
 {
-    this->currentSession = new SessionManager();
+    //this->currentSession = new SessionManager();
 
     this->dashboardController = new Dashboard_Control(this);
-    this->dashboardController->currentSession = this->currentSession;
 
     this->loginController = new Login_Control(this);
-    this->loginController->currentSession = this->currentSession;
 
     this->profileController = new Profile_Control(this);
-    this->profileController->currentSession = this->currentSession;
 
     this->employeeController = new Employee_Control(this);
 
     this->scheduleController = new Schedule_Control(this);
     this->viewScheduleController = new ViewSchedule_Control(this);
     this->viewScheduleController->currentSession = this->currentSession;
+
+    this->salaryController = new Salary_Control(this);
     this->viewWindow = new View_Navigator(this); // Initialize viewWindow AFTER controllers
 
     // switch tab side bar do all
@@ -51,7 +50,7 @@ Control_Navigator::Control_Navigator()
     QObject::connect(this->loginController, &Login_Control::loginSuccessful,
                      this->viewWindow, [this]() {
         // set permission of side bar for display feature
-        this->viewWindow->getSideBar()->setPermission(currentSession->checkPermission("Manage"));
+        this->viewWindow->getSideBar()->setPermission(currentSession->checkPermission("Manager"));
         this->switchTab(1); // Switch to Dashboard (index 1)
         this->profileController->currentSession = this->currentSession;
         this->profileController->loadUserData();
@@ -62,13 +61,13 @@ Control_Navigator::Control_Navigator()
         // the whole app's session is updated
     });
 
-    QObject::connect(this->dashboardController, &Dashboard_Control::profilePageClicked,
-                     this->viewWindow, [this]() {
-        this->switchTab(2); // Switch to Profile (index 2)
-        //this->profileController->hand
-        //qDebug() << this->profileController->currentSession->getCurrentUser()->getName();
-        // no need to load user data for profile since its session already pointed to the whole app's session
-    });
+    // QObject::connect(this->dashboardController, &Dashboard_Control::profilePageClicked,
+    //                  this->viewWindow, [this]() {
+    //     this->switchTab(2); // Switch to Profile (index 2)
+    //     //this->profileController->hand
+    //     //qDebug() << this->profileController->currentSession->getCurrentUser()->getName();
+    //     // no need to load user data for profile since its session already pointed to the whole app's session
+    // });
 
     // switch from profile back previous
     QObject::connect(this->profileController, &Profile_Control::backToPrevious,
@@ -103,11 +102,25 @@ void Control_Navigator::switchTab(int index) {
         this->profileController->init();
         break;
     case 3:
-        if(currentSession->checkPermission("Manage")) this->employeeController->init();
+        if(currentSession->checkPermission("Manager")) this->employeeController->init();
         break;
     case 4:
-        this->scheduleController->setEmployeeId(currentSession->getCurrentUser()->getIdEmployee());
-        this->scheduleController->load();
+    case 5:
+    case 6:
+        if (currentSession && currentSession->getCurrentUser()) {
+            this->scheduleController->setEmployeeId(currentSession->getCurrentUser()->getIdEmployee());
+            this->scheduleController->load();
+        }
+        break;
+    case 7:
+        this->salaryController->init();
+        break;
+    default:
+        break;
+    case 8:
+     // Xem lịch làm - Chưa có controller, chỉ chuyển UI
+    case 9:
+    // this->settingsController->init();
         break;
     case 5:
         this->viewScheduleController->setEmployeeId(currentSession->getCurrentUser()->getIdEmployee());

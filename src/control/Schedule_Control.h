@@ -40,6 +40,7 @@ public:
     void chooseDate();
     void handleChangeAlgorithm();
 
+
     // View wiring
     void setView(Schedule_View* view);
     Schedule_View* getView() const;
@@ -52,6 +53,8 @@ private slots:
 
     // Fired by view when the user presses "Lưu" (Save)
     void onSaveShiftRequested();
+signals:
+    void scheduleGenerated(bool success, int assignedCount,  const QStringList& warnings);
 };
 
 #endif // SCHEDULE_CONTROL_H

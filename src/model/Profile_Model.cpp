@@ -3,17 +3,18 @@
 #include "utils/Database.h"
 #include "utils/Security.h"
 
-bool Profile_Model::updateProfile(short int idEmployee, const QString& name, const QString& dob, const QString& address, const QString& phoneNum, const QString& citizenId, const QString& avatarPath) {
+bool Profile_Model::updateProfile(short int idEmployee, const QString& name, const QString& dob, const QString& address, const QString& phoneNum, const QString& citizenId, const QString& avatarPath, const QString& gender) {
     QSqlDatabase openData = Database::getInstance()->getDbConnect();
     QSqlQuery query(openData);
     
-    query.prepare("UPDATE PROFILES SET name = :name, dob = :dob, address = :address, phoneNum = :phoneNum, IdCitizenIdentity = :citizenId, avatarPath = :avatarPath WHERE idEmployee = :id");
+    query.prepare("UPDATE PROFILES SET name = :name, dob = :dob, address = :address, phoneNum = :phoneNum, IdCitizenIdentity = :citizenId, avatarPath = :avatarPath, Gender = :gender WHERE idEmployee = :id");
     query.bindValue(":name", name);
     query.bindValue(":dob", dob);
     query.bindValue(":address", address);
     query.bindValue(":phoneNum", phoneNum);
     query.bindValue(":citizenId", citizenId);
     query.bindValue(":avatarPath", avatarPath);
+    query.bindValue(":gender", gender);
     query.bindValue(":id", idEmployee);
     
     if (!query.exec()) {

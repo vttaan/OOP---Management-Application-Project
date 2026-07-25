@@ -7,6 +7,7 @@
 #include "Profile_Control.h"
 #include "Employee_Control.h"
 #include "Schedule_Control.h"
+#include "Salary_Control.h"
 //#include "view/View_Navigator.h"
 #include "ViewSchedule_Control.h"
 class View_Navigator;
@@ -19,9 +20,10 @@ public:
     Dashboard_Control* dashboardController = nullptr;
     Employee_Control * employeeController = nullptr;
     Schedule_Control* scheduleController = nullptr;
+    Salary_Control* salaryController = nullptr;
     View_Navigator* viewWindow = nullptr;
-    SessionManager* currentSession = nullptr;
     ViewSchedule_Control* viewScheduleController = nullptr;
+    SessionManager* currentSession = SessionManager::getInstance();
     Control_Navigator();
     void switchTab(int index);
 

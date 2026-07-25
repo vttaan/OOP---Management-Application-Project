@@ -24,12 +24,12 @@ Sidebar_Widget::Sidebar_Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Si
         ui->subMenu_Schedule->setVisible(isHidden); });
 
     // main tab
-    connect(ui->btnProfile, &QPushButton::clicked, [this]()
-            { emit menuClicked(2); updateButtonStyles(2); });
-    connect(ui->btnMenu_Overview, &QPushButton::clicked, [this]()
-            { emit menuClicked(1); updateButtonStyles(1); });
-    connect(ui->btnMenu_HR, &QPushButton::clicked, [this]()
-            { emit menuClicked(3); updateButtonStyles(3); });
+    connect(ui->btnProfile, &QPushButton::clicked, [this]() { emit menuClicked(2); updateButtonStyles(2); });
+    connect(ui->btnMenu_Overview, &QPushButton::clicked, [this]() { emit menuClicked(1); updateButtonStyles(1); });
+    connect(ui->btnMenu_HR, &QPushButton::clicked, [this]() { emit menuClicked(3); updateButtonStyles(3); });
+   // connect(ui->btnMenu_Salary, &QPushButton::clicked, [this]() { emit menuClicked(7); updateButtonStyles(7); });
+    connect(ui->btnMenu_Salary, &QPushButton::clicked, [this]() { emit menuClicked(8); updateButtonStyles(8); });
+    connect(ui->btnMenu_Settings, &QPushButton::clicked, [this]() { emit menuClicked(9); updateButtonStyles(9); });
 
     // subTab in Schedule
     connect(ui->buttonRegistrationSchedule, &QPushButton::clicked, [this]()
@@ -38,8 +38,9 @@ Sidebar_Widget::Sidebar_Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Si
             { emit menuClicked(5); updateButtonStyles(5); });
     connect(ui->buttonArrangeSchedule, &QPushButton::clicked, [this]()
             { emit menuClicked(6); updateButtonStyles(6); });
-    // connect(ui->btnMenu_Salary, &QPushButton::clicked, [this]() { emit menuClicked(7); updateButtonStyles(7); });
-    // connect(ui->btnMenu_Report, &QPushButton::clicked, [this]() { emit menuClicked(8); updateButtonStyles(8); });
+    connect(ui->btnMenu_Salary, &QPushButton::clicked, [this]()
+            { emit menuClicked(7); updateButtonStyles(7); });
+    // connect(ui->btnMenu_Salary, &QPushButton::clicked, [this]() { emit menuClicked(8); updateButtonStyles(8); });
     // connect(ui->btnMenu_Settings, &QPushButton::clicked, [this]() { emit menuClicked(9); updateButtonStyles(9); });
 
     connect(ui->btnLogout, &QPushButton::clicked, [this]()
@@ -164,7 +165,7 @@ void Sidebar_Widget::initUI()
     applyIcon(ui->btnMenu_Overview, ":/images/dashboard-light.svg");
     applyIcon(ui->btnMenu_HR, ":/images/employee-light.svg");
     applyIcon(ui->buttonSchedule, ":/images/calendar-light.svg");
-    applyIcon(ui->btnMenu_Report, ":/images/report-white.svg");
+    applyIcon(ui->btnMenu_Salary, ":/images/report-white.svg");
     applyIcon(ui->btnMenu_Settings, ":/images/setting-light.svg");
     applyIcon(ui->btnLogout, ":/images/exit-light.svg");
 
@@ -192,7 +193,7 @@ void Sidebar_Widget::updateButtonStyles(int mainIndex)
     ui->btnMenu_Overview->setStyleSheet(normal);
     ui->btnMenu_HR->setStyleSheet(normal);
     ui->buttonSchedule->setStyleSheet(normal);
-    ui->btnMenu_Report->setStyleSheet(normal);
+    ui->btnMenu_Salary->setStyleSheet(normal);
     ui->btnMenu_Settings->setStyleSheet(normal);
     ui->buttonRegistrationSchedule->setStyleSheet(normal);
     ui->buttonArrangeSchedule->setStyleSheet(normal);
@@ -219,6 +220,15 @@ void Sidebar_Widget::updateButtonStyles(int mainIndex)
         ui->buttonSchedule->setStyleSheet(activeMain);
         ui->buttonArrangeSchedule->setStyleSheet(activeSub);
         break;
+    case 7:
+        ui->btnMenu_Salary->setStyleSheet(activeMain);
+        break;
+    case 8:
+        ui->btnMenu_Salary->setStyleSheet(activeMain);
+        break;
+    case 9:
+        ui->btnMenu_Settings->setStyleSheet(activeMain);
+        break;
     }
 }
 
@@ -240,7 +250,7 @@ void Sidebar_Widget::loadUserData(SessionManager *session)
         QString displayText;
         QString pillStyle;
 
-        if (roleInternal == "Manage")
+        if (roleInternal == "Manager")
         {
             displayText = "Quản lý";
             // Purple pill — matches employee table Manager badge
