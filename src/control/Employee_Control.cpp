@@ -53,6 +53,7 @@ void Employee_Control::init()
 void Employee_Control::handleLoadEmployees()
 {
     m_model->loadData();
+    //qDebug() << "list: " << m_model->getListEmployee().size();
     if (m_view) {
           m_view->loadEmployees(m_model->getListEmployee());
     }
@@ -78,7 +79,8 @@ void Employee_Control::handleAddEmployee()
 
     if (dlg.exec() != QDialog::Accepted) return;
     if(m_model->addEmployee(dlg.getRole(), dlg.getAvatarPath(), dlg.getCitizenId(), dlg.getName(),
-                             dlg.getDob(), dlg.getAddress(), dlg.getPhone(), dlg.getGender(), dlg.getUsername(), dlg.getPassword())) {
+                             dlg.getDob(), dlg.getAddress(), dlg.getPhone(), dlg.getGender(), dlg.getSalary(),
+                             dlg.getUsername(), dlg.getPassword())) {
         m_view->showSuccess(QString("THÊM NHÂN VIÊN %1 THÀNH CÔNG").arg(dlg.getName()));
         handleLoadEmployees();
     }

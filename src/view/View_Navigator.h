@@ -8,33 +8,36 @@
 #include "view/Schedule_View.h"
 #include "view/sidebar_widget.h"
 #include "view/viewschedule_view.h"
-namespace Ui {
-class View_Navigator;
+#include "view/Salary_View.h"
+namespace Ui
+{
+    class View_Navigator;
 }
 
 class View_Navigator : public QMainWindow
 {
     Q_OBJECT
 private:
+    QWidget *currentWindow;
 
-    QWidget* currentWindow;
+    Control_Navigator *controller;
 
-    Control_Navigator* controller;
 public:
-    View_Navigator(Control_Navigator* controller, QWidget *parent = nullptr);
-    Sidebar_Widget* getSideBar();
-    Login_View* loginPage = nullptr;
-    Dashboard_View* dashboardPage = nullptr;
-    Profile_View* profilePage = nullptr;
-    EmployeesWidget* employeePage = nullptr;
-    Schedule_View* schedulePage = nullptr;
-    Sidebar_Widget* sidebar = nullptr;
-    ViewSchedule_View* viewSchedulePage = nullptr;
-    Control_Navigator* getController();
-    QWidget* getWindow();
-    Ui::View_Navigator* getUI();
+    View_Navigator(Control_Navigator *controller, QWidget *parent = nullptr);
+    Sidebar_Widget *getSideBar();
+    Login_View *loginPage = nullptr;
+    Dashboard_View *dashboardPage = nullptr;
+    Profile_View *profilePage = nullptr;
+    EmployeesWidget *employeePage = nullptr;
+    Schedule_View *schedulePage = nullptr;
+    Salary_View *salaryPage = nullptr;
+    Sidebar_Widget *sidebar = nullptr;
+    ViewSchedule_View *viewSchedulePage = nullptr;
+    Control_Navigator *getController();
+    QWidget *getWindow();
+    Ui::View_Navigator *getUI();
     void setPageIndex(int index);
-    Ui::View_Navigator* ui;
+    Ui::View_Navigator *ui;
     ~View_Navigator();
 
 signals:

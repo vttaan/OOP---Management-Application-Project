@@ -234,3 +234,66 @@ Guided the student in building a custom profile widget in Qt C++, outlining the 
 | `Schedule_View.cpp` | Updated — UI font styling |
 | `employeeswidget.cpp/.h` | Updated — related widgets |
 | `sidebar_widget.cpp/.h/.ui` | Updated — layout padding and avatar scaling |
+
+---
+
+## Session 11 — Salary Page Foundation (~13:33, July 21)
+
+### Changes Made
+- Created the foundation for the Salary page, including MVC components.
+- Set up routing in `Control_Navigator` and `sidebar_widget`.
+
+### Files Modified
+| File | Action |
+|---|---|
+| `Salary_Model.h/.cpp` | [NEW] Created Model |
+| `Salary_View.h/.cpp/.ui` | [NEW] Created View |
+| `Salary_Control.h/.cpp` | [NEW] Created Control |
+| `Control_Navigator.cpp`, `View_Navigator.cpp` | Updated — navigation routing |
+| `sidebar_widget.cpp` | Updated — sidebar linkage |
+| `CMakeLists.txt` | Updated — included Salary files |
+
+---
+
+## Session 12 — Salary UI Styling Fix (~02:25, July 22)
+
+### Changes Made
+- Fixed UI text color from auto-theme adaptation to solid black (#000000).
+
+### Files Modified
+| File | Action |
+|---|---|
+| `Salary_View.ui` | Updated — text styling applied |
+
+---
+
+## Session 13 — Salary Role-based Logic & Table Fixes (~04:33, July 23)
+
+### Changes Made
+- Configured visibility logic for Employee vs Manager on the Salary page.
+- Fixed table stretching and layout constraints for the summary table.
+- Corrected hover text colors on table selections.
+
+### Files Modified
+| File | Action |
+|---|---|
+| `Salary_Model.h/.cpp` | Updated — data handling enhancements |
+| `Salary_Control.cpp` | Updated — role logic handling |
+| `Salary_View.h/.cpp/.ui` | Updated — table visibility and UI fixes |
+
+---
+
+## Session 14 — Salary Date Filtering & UI Scrollers (~11:58, July 23)
+
+### Changes Made
+- Split month/year selection into two separate combo boxes and populated years from 2020.
+- Implemented robust UI table resizing and dynamic scroller visibility depending on the number of records.
+- Changed scrollbar color to light blue to match branding.
+- Fixed navigation geometry layout error.
+
+### Files Modified
+| File | Action |
+|---|---|
+| `Salary_View.h/.cpp/.ui` | Updated — combo boxes and scroller setup |
+| `Control_Navigator.cpp`, `View_Navigator.ui` | Updated — geometry initialization fix |
+| `employeeswidget.cpp` | Updated — list loading fix |

@@ -83,9 +83,9 @@
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="btnMenu_Report">
+    <widget class="QPushButton" name="btnMenu_Salary">
      <property name="text">
-      <string>   Báo cáo</string>
+      <string>Lương</string>
      </property>
     </widget>
    </item>
@@ -95,7 +95,7 @@
       <enum>Qt::Orientation::Vertical</enum>
      </property>
      <property name="sizeType">
-      <enum>QSizePolicy::Expanding</enum>
+      <enum>QSizePolicy::Policy::Expanding</enum>
      </property>
      <property name="sizeHint" stdset="0">
       <size>

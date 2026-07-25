@@ -8,6 +8,7 @@
 #include "core/ShiftBlock.h"
 #include <QMap>
 #include "utils/Optimizer.h"
+#include "core/Optimizer.h"
 class Schedule_Model
 {
 private:

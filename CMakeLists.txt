@@ -24,11 +24,13 @@ set(PROJECT_SOURCES
         src/core/Manager.h
         src/core/UserFactory.h
         src/core/ShiftBlock.h
+        src/core/Optimizer.h
         # CPP
         src/core/User.cpp
         src/core/Staff.cpp
         src/core/Manager.cpp
         src/core/UserFactory.cpp
+        src/core/Optimizer.cpp
 
     # file in Utils
         # HEADER
@@ -41,7 +43,6 @@ set(PROJECT_SOURCES
         src/utils/Database.cpp
         src/utils/SessionManage.cpp
         src/utils/Security.cpp
-        src/utils/Optimizer.cpp
 
     # file in Model
         # HEADER
@@ -50,12 +51,14 @@ set(PROJECT_SOURCES
         src/model/Employee_Model.h
         src/model/Profile_Model.h
         src/model/validator.h
+        src/model/Salary_Model.h
         # CPP
         src/model/Login_Model.cpp
         src/model/Change_password.cpp
         src/model/Employee_Model.cpp
         src/model/Profile_Model.cpp
         src/model/validator.cpp
+        src/model/Salary_Model.cpp
 
     # file in Control
         # HEADER
@@ -64,12 +67,14 @@ set(PROJECT_SOURCES
         src/control/Control_Navigator.h
         src/control/Dashboard_Control.h
         src/control/Employee_Control.h
+        src/control/Salary_Control.h
         # CPP
         src/control/Login_Control.cpp
         src/control/Profile_Control.cpp
         src/control/Control_Navigator.cpp
         src/control/Dashboard_Control.cpp
         src/control/Employee_Control.cpp
+        src/control/Salary_Control.cpp
 
     # file in View
         # HEADER
@@ -85,6 +90,7 @@ set(PROJECT_SOURCES
         src/view/EditEmployee_Dialog.h
         src/view/Schedule_View.h
         src/view/sidebar_widget.h
+        src/view/Salary_View.h
         # CPP
         src/view/Login_View.cpp
         src/view/Dashboard_View.cpp
@@ -98,6 +104,7 @@ set(PROJECT_SOURCES
         src/view/EditEmployee_Dialog.cpp
         src/view/Schedule_View.cpp
         src/view/sidebar_widget.cpp
+        src/view/Salary_View.cpp
         # UI
         src/view/Login_View.ui
         src/view/Dashboard_View.ui
@@ -107,6 +114,7 @@ set(PROJECT_SOURCES
         src/view/employeecard.ui
         src/view/Schedule_View.ui
         src/view/sidebar_widget.ui
+        src/view/Salary_View.ui
 )
 
 qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
@@ -130,6 +138,9 @@ qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
     src/model/Validator.h src/model/Validator.cpp
     src/view/viewschedule_view.h src/view/viewschedule_view.cpp src/view/viewschedule_view.ui
     src/control/viewschedule_control.h src/control/viewschedule_control.cpp
+    src/model/Salary_Model.h src/model/Salary_Model.cpp
+    src/control/Salary_Control.h src/control/Salary_Control.cpp
+    src/view/Salary_View.h src/view/Salary_View.cpp src/view/Salary_View.ui
     src/utils/Optimizer.h src/utils/Optimizer.cpp
     src/utils/Config.h
     )
