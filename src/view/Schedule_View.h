@@ -28,7 +28,8 @@ public:
 
     // reset input table, controller call, when add shitf success
     void resetInputTable();
-
+    void showSuccess(const QString& msg);
+    void showWarnings(const QStringList& warnings);
 private:
     Ui::Schedule_View *ui;
     void setUpUI();
@@ -42,6 +43,7 @@ signals:
 
     // switch tab
     void profileClicked();
+    void requestGenSchedule();
 
 private slots:
     void buttonAddClicked();

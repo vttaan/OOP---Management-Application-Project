@@ -30,6 +30,11 @@ Sidebar_Widget::Sidebar_Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Si
             { emit menuClicked(1); updateButtonStyles(1); });
     connect(ui->btnMenu_HR, &QPushButton::clicked, [this]()
             { emit menuClicked(3); updateButtonStyles(3); });
+    // connect(ui->btnMenu_Salary, &QPushButton::clicked, [this]() { emit menuClicked(7); updateButtonStyles(7); });
+    connect(ui->btnMenu_Report, &QPushButton::clicked, [this]()
+            { emit menuClicked(8); updateButtonStyles(8); });
+    connect(ui->btnMenu_Settings, &QPushButton::clicked, [this]()
+            { emit menuClicked(9); updateButtonStyles(9); });
 
     // subTab in Schedule
     connect(ui->buttonRegistrationSchedule, &QPushButton::clicked, [this]()
@@ -218,6 +223,13 @@ void Sidebar_Widget::updateButtonStyles(int mainIndex)
     case 6:
         ui->buttonSchedule->setStyleSheet(activeMain);
         ui->buttonArrangeSchedule->setStyleSheet(activeSub);
+        break;
+    // case 7: ui->btnMenu_Salary->setStyleSheet(activeMain); break;
+    case 8:
+        ui->btnMenu_Report->setStyleSheet(activeMain);
+        break;
+    case 9:
+        ui->btnMenu_Settings->setStyleSheet(activeMain);
         break;
     }
 }

@@ -50,6 +50,9 @@ void Schedule_Control::setView(Schedule_View* v)
 
     connect(view, &Schedule_View::requestSaveShift,
             this, &Schedule_Control::onSaveShiftRequested);
+
+    connect(view, &Schedule_View::requestGenSchedule,
+            this, &Schedule_Control::handleGenSchedule);
 }
 
 Schedule_View* Schedule_Control::getView() const
@@ -159,8 +162,23 @@ void Schedule_Control::handleSaveSchedule()
 
 void Schedule_Control::handleGenSchedule()
 {
-    // TODO: auto-generate schedule using the selected algorithm
-    qDebug() << "Schedule_Control::handleGenSchedule() — not yet implemented.";
+    if (!model || !view) return;
+    OptimizerOutput result = model->generateSchedule();
+    int assignedCount = 0;
+    for (const auto& a : result.assignments)
+        if (a.newStatus == 1) ++assignedCount;
+    if (result.feasible) {
+        view->showSuccess(
+            QString("Xếp lịch thành công! %1 ca được phân công.")
+                .arg(assignedCount));
+    } else {
+        view->showError("Không tìm được lịch khả thi. "
+                        "Kiểm tra lại số lượng đăng ký.");
+    }
+    if (!result.warnings.isEmpty()) {
+        view->showWarnings(result.warnings);
+    }
+    emit scheduleGenerated(result.feasible, assignedCount, result.warnings);
 }
 
 void Schedule_Control::search()

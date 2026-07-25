@@ -7,13 +7,17 @@
 
 #include "core/ShiftBlock.h"
 #include <QMap>
+#include "utils/Optimizer.h"
 class Schedule_Model
 {
 private:
     QList<QList<Shift *>> shiftList{7}; // 7 days
-    // maybe add qlist temporary shift list
     int numberOfShift;
-    QList<User*> currentWeeklyUsers;
+    QList<User *> currentWeeklyUsers;
+
+    QVector<ShiftRegistration> fetchPendingShifts(const QDate &weekStart, const QDate &weekEnd);
+    // Lấy tổng số phút đã làm của từng nhân viên
+    QVector<EmployeeInfo> fetchAllEmployeeInfos(const QDate &weekStart);
 
 public:
     Schedule_Model();
@@ -24,11 +28,12 @@ public:
     pair<QDate, QDate> getRangeOfWeek();
 
     // Returns the in-memory weekly shift list (index 0=Mon, 6=Sun)
-    const QList<QList<Shift *>>& getShiftList() const { return shiftList; }
+    const QList<QList<Shift *>> &getShiftList() const { return shiftList; }
 
     void getAcceptedSchedule(short int id, QDate monday);
-    QMap<int, QMap<int, ShiftBlock*>> getManagerWeeklyGrid(QDate monday);
+    QMap<int, QMap<int, ShiftBlock *>> getManagerWeeklyGrid(QDate monday);
     QMap<int, QList<QString>> getWeeklySummaryStrings() const;
+    OptimizerOutput generateSchedule();
     ~Schedule_Model();
 };
 
