@@ -687,6 +687,7 @@ EmployeesWidget QLabel#userAvatar {
 QTableWidget[role="staff"] {
     border: none;
     background-color: white;
+    color: #0F172A;
     gridline-color: #EFEFEF;
     selection-background-color: #3b82f6;
     selection-color: white;
@@ -711,6 +712,7 @@ QTableWidget[role="staff"] QHeaderView::section:vertical {
 QTableWidget[role="manager"] {
     border: none;
     background-color: white;
+    color: #0F172A;
     gridline-color: #EFEFEF;
     selection-background-color: #3b82f6;
     selection-color: white;
@@ -730,6 +732,7 @@ QTableWidget[role="manager"] QHeaderView::section {
 QTableWidget[role="manager-dark"] {
     border: 1px solid #E5E7EB;
     background-color: white;
+    color: #0F172A;
     gridline-color: #E5E7EB;
     selection-background-color: #3b82f6;
     selection-color: white;

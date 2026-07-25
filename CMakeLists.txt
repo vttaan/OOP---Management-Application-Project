@@ -38,7 +38,6 @@ set(PROJECT_SOURCES
         src/utils/SessionManage.h
         src/utils/Security.h
         src/utils/Config.h
-        src/utils/Optimizer.h
         # CPP
         src/utils/Database.cpp
         src/utils/SessionManage.cpp
@@ -117,7 +116,7 @@ set(PROJECT_SOURCES
         src/view/Salary_View.ui
 )
 
-qt_add_executable(${PROJECT_NAME} ${PROJECT_SOURCES}
+qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
     src/view/Dashboard_View.h src/view/Dashboard_View.cpp src/view/Dashboard_View.ui
     src/view/employeecard.h src/view/employeecard.cpp src/view/employeecard.ui
 

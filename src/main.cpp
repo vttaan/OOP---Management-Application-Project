@@ -3,7 +3,11 @@
 #include "control/Control_Navigator.h"
 #include "view/View_Navigator.h"
 
+#ifdef _WIN32
+int qMain(int argc, char *argv[])
+#else
 int main(int argc, char *argv[])
+#endif
 {
     QApplication app(argc, argv);
 

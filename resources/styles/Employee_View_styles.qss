@@ -1,6 +1,7 @@
 
 #AddEmployee_Dialog, #EditEmployee_Dialog {
     background-color: #FFFFFF;
+    color: #0F172A;
 }
 
 #AddEmployee_Dialog QLabel#dlgTitle, #EditEmployee_Dialog QLabel#dlgTitle {
