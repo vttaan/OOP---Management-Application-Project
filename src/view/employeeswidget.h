@@ -1,32 +1,19 @@
+#include "global.h"
 #ifndef EMPLOYEESWIDGET_H
 #define EMPLOYEESWIDGET_H
 
-#include <QWidget>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QLabel>
-#include <QLineEdit>
-#include <QPushButton>
-#include <QCheckBox>
-#include <QTableWidget>
-#include <QTableWidgetItem>
-#include <QHeaderView>
-#include <QFrame>
-#include <QSizePolicy>
-#include <QFont>
-#include <QEvent>
 #include "model/Employee_Model.h"
+
+namespace Ui { class EmployeesWidget; }
 
 class EmployeesWidget : public QWidget
 {
     Q_OBJECT
 public:
     explicit EmployeesWidget(QWidget *parent = nullptr);
-    //EmployeesWidget();
     ~EmployeesWidget();
 
 signals:
-    void profileClicked();
     void backToDashboard();
     // Signals sent to the Controller — CRUD
     void requestAddEmployee();
@@ -44,9 +31,7 @@ signals:
 public slots:
     // Called by the Controller to push data to the view
     void loadEmployees(const QList<User *> &employees);
-    // Called once by the Controller with the FULL (unfiltered) list
-    // so that metric cards can show accurate totals.
-    void setFullEmployeeList(const QList<User *> &allEmployees);
+
     void showError(const QString &msg);
     void showSuccess(const QString &msg);
 
@@ -61,11 +46,10 @@ private slots:
     // Updates metric card values from m_allEmployees
     void updateMetricCards();
 
-protected:
-    bool eventFilter(QObject *watched, QEvent *event) override;
-
 private:
-    void setupUi();
+    // ---- ui pointer (owns all widgets declared in the .ui file) ----
+    Ui::EmployeesWidget *ui;
+
     void setupTableHeader();
     void setupConnections();
     void buildFilterDropdown();
@@ -75,7 +59,7 @@ private:
     void renderTable(const QList<User *> &employees);
 
     // --- Widget Factories ---
-    QLabel      *createAvatar(const QString &initials, const QString &bgColor);
+    QLabel      *createAvatar(const QString &avatarPath);
     QFrame      *createMetricCard(const QString &iconText,
                                   const QString &iconBg,
                                   const QString &iconColor,
@@ -86,25 +70,10 @@ private:
                                   const QString &badgeColor = QString());
     QLabel      *createStatusBadge(const QString &status);
     QLabel      *createRoleBadge(const QString &role);
+    QLabel      *createPayTypeBadge(const QString &payType);
     QPushButton *createActionButton(const QString &iconPath, const QString &tooltip);
 
-    // --- Profile Block (top-right) ---
-    QFrame *profileBlock;
-
-    // --- Metric Cards Row ---
-    QHBoxLayout *metricsLayout;
-
-    // --- Roster Card ---
-    QFrame       *rosterCard;
-    QLabel       *rosterSubtitle;   // kept as member for dynamic updates
-    QLineEdit    *searchRoster;
-    QPushButton  *filterBtn;
-    QPushButton  *sortBtn;
-    QPushButton  *addEmployeeBtn;
-    QTableWidget *employeesTable;
-    QLabel       *footerLabel;
-
-    // --- Metric Cards (kept for dynamic value updates) ---
+    // --- Metric Cards (kept for dynamic value updates; built in C++) ---
     QFrame *m_payrollCard  = nullptr;
     QFrame *m_staffCard    = nullptr;
     QFrame *m_absenceCard  = nullptr;
@@ -126,9 +95,6 @@ private:
     bool       m_sortOpen  = false;
     QString    m_sortField;  // "" | "id" | "name"
     int        m_sortDir   = 0; // 0=none, 1=asc, -1=desc
-
-    // --- Main Layout ---
-    QVBoxLayout *mainLayout;
 };
 
 #endif // EMPLOYEESWIDGET_H

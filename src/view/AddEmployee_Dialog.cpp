@@ -1,21 +1,20 @@
+#include "global.h"
 #include "AddEmployee_Dialog.h"
-#include <QMessageBox>
-#include <QFileDialog>
-#include <QPixmap>
-#include <QPainter>
-#include <QPainterPath>
-#include <QFile>
+
+#include "model/Employee_Model.h"
+#include <QScrollArea>
 
 AddEmployee_Dialog::AddEmployee_Dialog(QWidget *parent)
     : QDialog(parent)
 {
     setWindowTitle("Thêm nhân viên mới");
     setMinimumWidth(420);
+    setMinimumHeight(500);
+    resize(460, 650);
     setModal(true);
     m_avatarPath = "";
     setupUi();
 }
-
 
 // ============================================================
 // UI Setup
@@ -44,21 +43,32 @@ void AddEmployee_Dialog::setupUi()
     divider->setFrameShape(QFrame::HLine);
     mainLayout->addWidget(divider);
 
-    // Form
-    QFormLayout *form = new QFormLayout();
+    // Form Scroll Area
+    QScrollArea *scrollArea = new QScrollArea(this);
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setFrameShape(QFrame::NoFrame);
+    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    scrollArea->setStyleSheet("QScrollArea { background: transparent; border: none; }");
+
+    QWidget *scrollContent = new QWidget(scrollArea);
+    scrollContent->setObjectName("scrollContent");
+    scrollContent->setStyleSheet("QWidget#scrollContent { background: transparent; }");
+
+    QFormLayout *form = new QFormLayout(scrollContent);
     form->setSpacing(10);
     form->setLabelAlignment(Qt::AlignRight | Qt::AlignVCenter);
     form->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
 
-    auto makeInput = [](const QString &placeholder) -> QLineEdit* {
-        QLineEdit *inp = new QLineEdit();
+    auto makeInput = [scrollContent](const QString &placeholder) -> QLineEdit* {
+        QLineEdit *inp = new QLineEdit(scrollContent);
         inp->setPlaceholderText(placeholder);
         inp->setMinimumHeight(32);
         return inp;
     };
 
-    auto makeLabel = [](const QString &text) -> QLabel* {
-        QLabel *lbl = new QLabel(text);
+    auto makeLabel = [scrollContent](const QString &text) -> QLabel* {
+        QLabel *lbl = new QLabel(text, scrollContent);
         lbl->setObjectName("formLabel");
         return lbl;
     };
@@ -68,25 +78,26 @@ void AddEmployee_Dialog::setupUi()
     inpDob       = makeInput("YYYY-MM-DD");
     inpAddress   = makeInput("vd: 123 Lê Lợi, TP.HCM");
     inpCitizenId = makeInput("vd: 012345678901");
+    inpSalary    = makeInput("vd: 20000");
 
-    cmbRole = new QComboBox();
+    cmbRole = new QComboBox(scrollContent);
     cmbRole->addItem("Nhân viên");
     cmbRole->addItem("Quản lý");
     cmbRole->setMinimumHeight(32);
 
-    cmbGender = new QComboBox();
+    cmbGender = new QComboBox(scrollContent);
     cmbGender->addItem("Nam");
     cmbGender->addItem("Nữ");
     cmbGender->addItem("Khác");
     cmbGender->setMinimumHeight(32);
 
     // Avatar upload section
-    lblAvatarPreview = new QLabel("Chưa có ảnh");
+    lblAvatarPreview = new QLabel("Chưa có ảnh", scrollContent);
     lblAvatarPreview->setObjectName("lblAvatarPreview");
     lblAvatarPreview->setFixedSize(100, 100);
     lblAvatarPreview->setAlignment(Qt::AlignCenter);
 
-    btnUpload = new QPushButton("Chọn ảnh...");
+    btnUpload = new QPushButton("Chọn ảnh...", scrollContent);
     btnUpload->setObjectName("btnUpload");
     btnUpload->setCursor(Qt::PointingHandCursor);
 
@@ -139,21 +150,57 @@ void AddEmployee_Dialog::setupUi()
     form->addRow(makeLabel("Ngày sinh"),        inpDob);
     form->addRow(makeLabel("Địa chỉ"),          inpAddress);
     form->addRow(makeLabel("CCCD / CMND *"),    inpCitizenId);
+    form->addRow(makeLabel("Lương(VNĐ) *"),          inpSalary);
 
-    // Account credentials section
-    QLabel *lblAccount = new QLabel("— Thông tin tài khoản —");
+    QLabel *lblAccount = new QLabel("— Thông tin tài khoản (Tự động cấp) —", scrollContent);
     lblAccount->setObjectName("lblAccount");
     lblAccount->setAlignment(Qt::AlignCenter);
     form->addRow(lblAccount);
 
-    inpUsername = makeInput("Tên đăng nhập");
-    inpPassword = makeInput("Mật khẩu");
-    inpPassword->setEchoMode(QLineEdit::Password);
+    inpUsername = makeInput("");
+    inpUsername->setReadOnly(true);
+    inpUsername->setText("Chưa nhập đủ thông tin nhân viên");
+    inpUsername->setStyleSheet("color: gray; background-color: #f2f2f2;");
 
-    form->addRow(makeLabel("Tên đăng nhập *"), inpUsername);
-    form->addRow(makeLabel("Mật khẩu *"),      inpPassword);
+    inpPassword = makeInput("");
+    inpPassword->setReadOnly(true);
 
-    mainLayout->addLayout(form);
+    inpPassword->setText("Chưa nhập đủ thông tin nhân viên");
+    inpPassword->setStyleSheet("color: blue; background-color: #f2f2f2; font-weight: bold;");
+    form->addRow(makeLabel("Tên đăng nhập"), inpUsername);
+    form->addRow(makeLabel("Mật khẩu"),      inpPassword);
+
+    auto updateAutoCredentials = [=]() {
+        QString name = inpName->text().trimmed();
+        QString dob = inpDob->text().trimmed();
+
+        // update user's password
+        if (!name.isEmpty() && dob.length() == 10 && passwordGeneratorDelegate) {
+            QString autoPass = passwordGeneratorDelegate(name, dob);
+            if (!autoPass.isEmpty()) {
+                inpPassword->setText(autoPass);
+            }
+        } else {
+            inpPassword->setText("Đang chờ nhập đủ tên và ngày sinh...");
+        }
+        // update username
+        if (!name.isEmpty() && usernameGeneratorDelegate) {
+            QString role = getRole(); // (Manage // Staff)
+            QString autoUser = usernameGeneratorDelegate(role);
+            inpUsername->setText(autoUser);
+        } else {
+            inpUsername->setText("Vui lòng nhập đủ thông tin cá nhân");
+        }
+    };
+
+    connect(inpName, &QLineEdit::textChanged, this, updateAutoCredentials);
+    connect(inpDob, &QLineEdit::textChanged, this, updateAutoCredentials);
+
+
+    connect(cmbRole, &QComboBox::currentTextChanged, this, updateAutoCredentials);
+
+    scrollArea->setWidget(scrollContent);
+    mainLayout->addWidget(scrollArea);
 
     // Error label
     lblError = new QLabel();
@@ -197,30 +244,15 @@ void AddEmployee_Dialog::setupUi()
 // ============================================================
 bool AddEmployee_Dialog::validate()
 {
-    if (inpName->text().trimmed().isEmpty()) {
-        lblError->setText("⚠  Họ và tên là bắt buộc.");
-        lblError->setVisible(true);
-        inpName->setFocus();
-        return false;
+    if (validatorDelegate) {
+        QString errorMsg = validatorDelegate(this); // Gọi Controller kiểm tra
+        if (!errorMsg.isEmpty()) {
+            lblError->setText(errorMsg);
+            lblError->setVisible(true);
+            return false;
+        }
     }
-    if (inpCitizenId->text().trimmed().isEmpty()) {
-        lblError->setText("⚠  Số CCCD / CMND là bắt buộc.");
-        lblError->setVisible(true);
-        inpCitizenId->setFocus();
-        return false;
-    }
-    if (inpUsername->text().trimmed().isEmpty()) {
-        lblError->setText("⚠  Tên đăng nhập là bắt buộc.");
-        lblError->setVisible(true);
-        inpUsername->setFocus();
-        return false;
-    }
-    if (inpPassword->text().isEmpty()) {
-        lblError->setText("⚠  Mật khẩu là bắt buộc.");
-        lblError->setVisible(true);
-        inpPassword->setFocus();
-        return false;
-    }
+
     lblError->setVisible(false);
     return true;
 }
@@ -241,7 +273,7 @@ QString AddEmployee_Dialog::getName()       const { return inpName->text().trimm
 QString AddEmployee_Dialog::getRole()       const
 {
     QString vn = cmbRole->currentText();
-    if (vn == "Quản lý") return "Manage";
+    if (vn == "Quản lý") return "Manager";
     return "Staff";
 }
 
@@ -251,6 +283,7 @@ QString AddEmployee_Dialog::getDob()        const { return inpDob->text().trimme
 QString AddEmployee_Dialog::getAddress()    const { return inpAddress->text().trimmed(); }
 QString AddEmployee_Dialog::getCitizenId()  const { return inpCitizenId->text().trimmed(); }
 QString AddEmployee_Dialog::getAvatarPath() const { return m_avatarPath; }
+int AddEmployee_Dialog::getSalary() const { return inpSalary->text().trimmed().toInt(); }
 
 // Auto-generated credentials — username and password from real input fields
 QString AddEmployee_Dialog::getUsername()   const { return inpUsername->text().trimmed(); }

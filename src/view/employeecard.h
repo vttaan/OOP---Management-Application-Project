@@ -1,7 +1,6 @@
+#include "global.h"
 #ifndef EMPLOYEECARD_H
 #define EMPLOYEECARD_H
-
-#include <QWidget>
 
 namespace Ui {
 class EmployeeCard;

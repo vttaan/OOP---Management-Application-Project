@@ -1,12 +1,8 @@
 #pragma once
-#include <QDialog>
-#include <QLineEdit>
-#include <QComboBox>
-#include <QLabel>
-#include <QPushButton>
-#include <QFormLayout>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
+
+#include "global.h"
+#include <functional>
+#include <QPair>
 
 class AddEmployee_Dialog : public QDialog {
     Q_OBJECT
@@ -23,10 +19,13 @@ public:
     QString getAddress()    const;
     QString getCitizenId()  const;
     QString getAvatarPath() const;
+    int getSalary()     const;
     // Auto-generated (not shown in UI): username = citizenId, password = default
     QString getUsername()   const;
     QString getPassword()   const;
-
+    std::function<QString(AddEmployee_Dialog*)> validatorDelegate;
+    std::function<QString(const QString& name, const QString& dob)> passwordGeneratorDelegate;
+    std::function<QString(const QString& role)> usernameGeneratorDelegate;
 private slots:
     void onConfirm();
 
@@ -44,6 +43,7 @@ private:
     QLineEdit *inpCitizenId;
     QLineEdit *inpUsername;
     QLineEdit *inpPassword;
+    QLineEdit *inpSalary;
     QComboBox *cmbRole;
     QComboBox *cmbGender;
 
@@ -57,4 +57,5 @@ private:
 
     // Error label
     QLabel *lblError;
+
 };

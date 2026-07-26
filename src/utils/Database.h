@@ -1,10 +1,6 @@
 #pragma once
-#include <QSqlDatabase>
-#include <QString>
-#include <QSqlQuery>
-#include <QSqlError>
-#include <QCoreApplication>
-#include <QDir>
+
+#include "global.h"
 class Database {
 private:
 	static Database* instance;

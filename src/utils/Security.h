@@ -1,8 +1,6 @@
 #pragma once
-#include<QString>
-#include <QCryptographicHash>
-#include <QByteArray>
-
+
+#include "global.h"
 class Security {
 public:
 	static QString hashPassword(const QString& password);

@@ -1,6 +1,7 @@
-#pragma once
+#pragma once
+#include "global.h"
 #include "core/User.h"
-#include <qstring.h>
+
 class SessionManager
 {
 private:

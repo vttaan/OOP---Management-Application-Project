@@ -1,7 +1,6 @@
+#include "global.h"
 #include "model/Change_password.h"
 #include "utils/Security.h"
-#include <QDebug>
-#include <QSqlQuery>
 
 PasswordChangeResult Change_password::updatePassword(short int employeeId, 
                                                      const QString& oldPassword, 

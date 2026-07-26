@@ -1,9 +1,7 @@
 #pragma once
+#include "global.h"
 #include "utils/SessionManage.h"
 #include "model/Profile_Model.h"
-#include <QObject>
-#include <QMessageBox>
-#include <QDebug>
 
 class Profile_View;
 
@@ -25,12 +23,10 @@ public:
     bool checkIfMatchOldPassword(const QString& password);
     void loadUserData();
     User* getUser();
-    bool handleProfileUpdate(const QString& name, const QString& dob, const QString& address, const QString& phoneNum, const QString& citizenId, const QString& avatarPath);
-    bool handlePasswordUpdate(const QString& password);
+    bool handleProfileUpdate(const QString& name, const QString& dob, const QString& address, const QString& phoneNum, const QString& citizenId, const QString& avatarPath, const QString& gender);
+    PasswordChangeResult handlePasswordUpdate(const QString& oldPassword, const QString& newPassword);
     QString saveAvatarLocally(int empId, const QString &sourcePath);
 signals:
     void backToPrevious();
-    //void loginSuccessful(User* currentUser);
-private slots:
-    //void handleLoginSubmission(const QString& username, const QString& password);
+    void profileUpdated();
 };

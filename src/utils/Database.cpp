@@ -1,11 +1,12 @@
+#include "global.h"
 #include "utils/Database.h"
-#include <QDebug>
 
 Database* Database::instance = nullptr;
 
 Database::Database() {
     this->dbConnect = QSqlDatabase::addDatabase("QSQLITE");
-	dbConnect.setDatabaseName("database/Systems.db");
+    qDebug() << "FOLDER CONTAINS DATABASE\n" << QDir::currentPath() << '\n';
+    dbConnect.setDatabaseName("database/Systems.db");
 
     // isOpen -> open
     if (!dbConnect.open()) qDebug() << "ERROR CAN NOT OPEN DATABASE\n";

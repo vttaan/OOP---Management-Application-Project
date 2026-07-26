@@ -1,11 +1,9 @@
+#include "global.h"
 #ifndef MAIN_VIEW_H
 #define MAIN_VIEW_H
 
-#include <QWidget>
-#include <QEvent>
-#include <QGridLayout>
 namespace Ui {
-class Main_View;
+class Overview_view;
 }
 
 class Main_View : public QWidget
@@ -15,7 +13,7 @@ class Main_View : public QWidget
 public:
     explicit Main_View(QWidget *parent = nullptr);
     ~Main_View();
-
+    QWidget* getSidebar();
     void switchPage(int pageIndex);
 
     void clearEmployeeCards();
@@ -35,9 +33,9 @@ signals:
     void menuReportClicked();
     void menuSettingsClicked();
     void profileClicked();
-
+    void toggleSidebarClicked();
 private:
-    Ui::Main_View *ui;
+    Ui::Overview_view *ui;
 
     QGridLayout* gridLayoutEmployees;
     int currentRow;

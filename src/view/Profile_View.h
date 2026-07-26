@@ -1,10 +1,7 @@
+#include "global.h"
 #ifndef PROFILE_VIEW_H
 #define PROFILE_VIEW_H
 
-#include <QWidget>
-#include <QPixmap>
-#include <QPainter>
-#include <QPainterPath>
 #include "control/Profile_Control.h"
 #include "EditProfile_Widget.h"
 #include "EditPassword_Widget.h"

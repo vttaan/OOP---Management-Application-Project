@@ -1,25 +1,19 @@
 #pragma once
 
-#include <QWidget>
-#include <QLineEdit>
-#include <QPushButton>
-#include <QLabel>
-#include <QPropertyAnimation>
-#include <QVBoxLayout>
-#include <QMouseEvent>
-#include <QPainter>
-
+#include "global.h"
 class EditProfile_Widget : public QWidget {
     Q_OBJECT
 
 public:
     explicit EditProfile_Widget(QWidget *parent = nullptr);
-    void setInitialData(const QString& name, const QString& dob, const QString& address, const QString& phone, const QString& citizenId, const QString& avatarPath);
+    void setInitialData(const QString& name, const QString& dob, const QString& address,
+                        const QString& phone, const QString& citizenId, const QString& avatarPath, const QString& gender);
     void slideIn();
     void slideOut();
 
 signals:
-    void saveRequested(const QString& name, const QString& dob, const QString& address, const QString& phone, const QString& citizenId, const QString& avatarPath);
+    void saveRequested(const QString& name, const QString& dob, const QString& address,
+                       const QString& phone, const QString& citizenId, const QString& avatarPath, const QString& gender);
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -41,6 +35,7 @@ private:
     QLineEdit *txtAddress;
     QLineEdit *txtPhone;
     QLineEdit *txtCitizenId;
+    QComboBox *cmbGender;
     QLabel *lblAvatarPreview;
     QString currentAvatarPath;
     

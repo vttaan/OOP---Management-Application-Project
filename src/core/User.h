@@ -1,7 +1,6 @@
 #pragma once
-#include <QString>
 
-
+#include "global.h"
 class User {
 protected:
 	QString role;
@@ -28,6 +27,7 @@ public:
     QString getGender() const;
     QString getAnyAttributes(QString content) const;
 	void setRole(QString r);
+    void setGender(QString g);
 	void setIdEmployee(short int id);
 	void setAva(QString a);
 	void setIndentityID(QString idCit);

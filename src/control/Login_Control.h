@@ -1,9 +1,7 @@
-#pragma once
+#pragma once
+#include "global.h"
 #include "model/Login_Model.h"
 #include "utils/SessionManage.h"
-#include <QObject>
-#include <QMessageBox>
-#include <QDebug>
 
 class Login_View;
 
@@ -12,7 +10,6 @@ class Login_Control : public QObject {
 
 private:
     Login_View* view;
-
 
 public:
     SessionManager* currentSession;
@@ -26,5 +23,4 @@ signals:
 private slots:
     void handleLoginSubmission(const QString& username, const QString& password);
 };
-
 

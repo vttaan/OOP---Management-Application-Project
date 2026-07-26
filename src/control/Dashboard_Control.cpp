@@ -1,8 +1,9 @@
+#include "global.h"
 #include "Dashboard_Control.h"
 #include "view/Dashboard_View.h"
 
 Dashboard_Control::Dashboard_Control(QObject *parent)
-    :QObject(parent), view(nullptr), currentSession(nullptr){
+    :QObject(parent), view(nullptr), currentSession(SessionManager::getInstance()){
 
 }
 Dashboard_Control::~Dashboard_Control() {
@@ -10,7 +11,7 @@ Dashboard_Control::~Dashboard_Control() {
     // currentSession is owned by Control_Navigator, do not delete here
 }
 void Dashboard_Control::init(){
-    this->getView()->show();
+
 }
 
 Dashboard_View* Dashboard_Control::getView()  {
@@ -19,7 +20,7 @@ Dashboard_View* Dashboard_Control::getView()  {
 
 void Dashboard_Control::setView(Dashboard_View* view) {
     this->view = view;
-    if (this->view) {
-        this->view->setController(this);
-    }
+    if (!this->view) return;
+    QObject::connect(this->view, &Dashboard_View::profileClicked,
+                     this, &Dashboard_Control::profilePageClicked);
 }

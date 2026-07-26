@@ -1,3 +1,4 @@
+#include "global.h"
 #include "employeecard.h"
 #include "ui_employeecard.h"
 

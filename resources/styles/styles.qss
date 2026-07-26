@@ -1,16 +1,28 @@
-
 Login_View {
     background-color: white;
+    font-family: "Inter", sans-serif;
+}
+
+QMainWindow, QStackedWidget, QWidget#centralwidget {
+    background-color: #F8FAFC;
+}
+
+QComboBox, QSpinBox, QDateEdit, QTimeEdit, QDateTimeEdit {
+    color: #1e293b;
+    background-color: white;
+}
+
+QComboBox QAbstractItemView {
+    background-color: white;
+    color: #1e293b;
+    selection-background-color: #3b82f6;
+    selection-color: white;
 }
 
 
 QFrame#frmLoginLeft {
-    background-color: rgba(235, 245, 255, 95%);
-
-    border-top: 1px solid rgba(180, 210, 255, 30%);
-    border-left: 1px solid rgba(180, 210, 255, 30%);
-    border-bottom: 1px solid rgba(100, 160, 255, 15%);
-    border-right: none;
+    background-color: #f4f8fc;
+    border-right: 1px solid #e0e8f0;
 }
 
 
@@ -25,43 +37,39 @@ QFrame#frmLoginRight {
 }
 
 QLabel#lblTitle {
-    color: #1a6ad4;
-    font-family: "inter";
-    font-size: 70px;
-    font-weight: 700;
-    letter-spacing: 6px;
-    padding-bottom: 8px;
+    color: #1a73e8; /* Màu xanh sáng (Google Blue) */
+    font-size: 48px; /* Nhỏ lại một chút xíu (trước đó là 52) */
+    font-weight: 900; /* Dày nhất có thể */
+    letter-spacing: 1.5px;
+    padding-bottom: 28px;
 }
 
 QLabel#lblUsername,
 QLabel#lblPassword {
-    color: #254b6e;
-     font-family: "inter";
-    font-size: 17px;
-    font-weight: 600;
-    letter-spacing: 2px;
-    padding-left: 4px;
-
+    color: #1e293b;
+    font-size: 17px; /* Nhỏ lại một xíu (trước đó 19) */
+    font-weight: bold; /* In đậm */
+    letter-spacing: 0.5px;
+    padding-left: 5px;
+    padding-top: 8px;
+    padding-bottom: 5px;
 }
 
 QLineEdit#txtLoginUsername,
 QLineEdit#txtLoginPassword {
-    background-color: rgba(140, 190, 255, 10%);
+    background-color: #f8fafc;
 
-    min-height: 40px;
-    font-size: 20px;
+    min-height: 52px; /* Giảm chiều cao */
+    font-size: 16px;  /* Giảm chữ gõ vào (trước đó 17) */
+    font-weight: 500;
 
-    padding: 0px 40px 0px 15px;
-    color: #2c3e50;
+    color: #0f172a;
 
-    font-family: "Segoe UI", "Arial", sans-serif;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
 
-
-    border: 1px solid rgba(140, 200, 255, 28%);
-    border-radius: 8px;
-
-    padding: 9px 40px 9px 14px;
-    selection-background-color: #1a6ad4;
+    padding: 0px 40px 0px 18px;
+    selection-background-color: #2563eb;
     selection-color: #ffffff;
 }
 
@@ -96,28 +104,20 @@ QLineEdit QToolButton {
 QPushButton#btnLogin {
     background: qlineargradient(
         x1:0, y1:0, x2:1, y2:0,
-        stop:0   rgba(60, 130, 230, 75%),
-        stop:0.5 rgba(90, 170, 255, 80%),
-        stop:1   rgba(120, 210, 255, 75%)
+        stop:0   #3b82f6,
+        stop:1   #2563eb
     );
     color: #ffffff;
-    font-family: "Segoe UI", "Arial", sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 3px;
+    font-size: 18px; /* Giảm lại nút (trước đó 20) */
+    font-weight: bold;
+    letter-spacing: 1px;
 
-    border: 1px solid rgba(160, 220, 255, 35%);
-    border-radius: 8px;
-    padding: 11px 0px;
+    border: none;
+    border-radius: 12px;
     min-width: 160px;
-    min-height: 60px;
-        font-size: 25px;
-        padding: 10px 0px;
-        border-radius: 10px;
-
-        color: #ffffff;
-        font-weight: 700;
-        letter-spacing: 4px;
+    min-height: 52px; /* Thấp lại */
+    padding: 10px 0px;
+    margin-top: 20px;
 }
 
 
@@ -679,3 +679,73 @@ EmployeesWidget QLabel#userAvatar {
     font-size: 12px;
     font-weight: bold;
 }
+/* ========================================= */
+/* STYLE CHO BẢNG LỊCH LÀM VIỆC (TABLE)      */
+/* ========================================= */
+
+
+QTableWidget[role="staff"] {
+    border: none;
+    background-color: white;
+    color: #0F172A;
+    gridline-color: #EFEFEF;
+    selection-background-color: #3b82f6;
+    selection-color: white;
+}
+QTableWidget[role="staff"] QHeaderView::section {
+    background-color: #E0F2FE;
+    border: none;
+    border-bottom: 2px solid #BAE6FD;
+    padding: 8px;
+    font-weight: bold;
+    color: #0c4a6e;
+    text-transform: uppercase;
+}
+QTableWidget[role="staff"] QHeaderView::section:vertical {
+    background-color: #E5E7EB;
+    color: black;
+    border: none;
+    font-weight: bold;
+}
+
+
+QTableWidget[role="manager"] {
+    border: none;
+    background-color: white;
+    color: #0F172A;
+    gridline-color: #EFEFEF;
+    selection-background-color: #3b82f6;
+    selection-color: white;
+}
+QTableWidget[role="manager"] QHeaderView::section {
+    background-color: #A855F7; /* Đổi màu nền tím ở đây */
+    border: none;
+    border-bottom: 2px solid #9333EA;
+    border-right: 1px solid #9333EA;
+    padding: 8px;
+    font-weight: bold;
+    color: white; /* Màu chữ trắng ở đây */
+    text-transform: uppercase;
+}
+
+
+QTableWidget[role="manager-dark"] {
+    border: 1px solid #E5E7EB;
+    background-color: white;
+    color: #0F172A;
+    gridline-color: #E5E7EB;
+    selection-background-color: #3b82f6;
+    selection-color: white;
+}
+QTableWidget[role="manager-dark"] QHeaderView::section {
+    background-color: #9333EA;
+    border: none;
+    border-right: 1px solid #E5E7EB;
+    border-bottom: 2px solid #E5E7EB;
+    padding: 8px;
+    font-weight: bold;
+    color: white;
+    text-transform: uppercase;
+}
+
+

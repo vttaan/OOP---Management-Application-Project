@@ -1,9 +1,6 @@
+#include "global.h"
 #include "EditEmployee_Dialog.h"
-#include <QFileDialog>
-#include <QPixmap>
-#include <QPainter>
-#include <QPainterPath>
-
+#include <functional>
 EditEmployee_Dialog::EditEmployee_Dialog(User *emp, QWidget *parent)
     : QDialog(parent)
 {
@@ -13,8 +10,6 @@ EditEmployee_Dialog::EditEmployee_Dialog(User *emp, QWidget *parent)
     setModal(true);
     setupUi(emp);
 }
-
-
 
 void EditEmployee_Dialog::setupUi(User *emp)
 {
@@ -59,7 +54,6 @@ void EditEmployee_Dialog::setupUi(User *emp)
         return lbl;
     };
 
-
     inpName      = makeInput("vd: Nguyễn Văn A",          emp ? emp->getName()        : "");
     inpPhone     = makeInput("vd: 0901234567",             emp ? emp->getPhoneNum()    : "");
     inpDob       = makeInput("DD-MM-YYYY",                 emp ? emp->getDOB()         : "");
@@ -71,6 +65,10 @@ void EditEmployee_Dialog::setupUi(User *emp)
     cmbRole->addItem("Quản lý");
     cmbRole->setMinimumHeight(32);
 
+    cmbGender = new QComboBox();
+    cmbGender->addItem("Nam");
+    cmbGender->addItem("Nữ");
+    cmbGender->setMinimumHeight(32);
 
     if (emp) {
         // Map English role to Vietnamese display text
@@ -79,6 +77,14 @@ void EditEmployee_Dialog::setupUi(User *emp)
         else displayRole = "Nhân viên";
         int idx = cmbRole->findText(displayRole);
         if (idx >= 0) cmbRole->setCurrentIndex(idx);
+    }
+    if (emp) {
+        // Map English role to Vietnamese display text
+        QString displayRole = emp->getGender();
+        if (displayRole == "Nam") displayRole = "Nam";
+        else displayRole = "Nữ";
+        int idx = cmbGender->findText(displayRole);
+        if (idx >= 0) cmbGender->setCurrentIndex(idx);
     }
 
     //AVATAR UPLOAD SECTION
@@ -156,11 +162,13 @@ void EditEmployee_Dialog::setupUi(User *emp)
 
     form->addRow(makeLabel("Ảnh đại diện"),    avatarLayout);
     form->addRow(makeLabel("Họ và tên *"),    inpName);
+    form->addRow(makeLabel("Vai trò *"),      cmbGender);
     form->addRow(makeLabel("Vai trò *"),      cmbRole);
     form->addRow(makeLabel("Số điện thoại"),  inpPhone);
     form->addRow(makeLabel("Ngày sinh"),      inpDob);
     form->addRow(makeLabel("Địa chỉ"),        inpAddress);
     form->addRow(makeLabel("CCCD / CMND"),    inpCitizenId);
+
     mainLayout->addLayout(form);
 
     //Error label
@@ -195,11 +203,13 @@ void EditEmployee_Dialog::setupUi(User *emp)
 
 bool EditEmployee_Dialog::validate()
 {
-    if (inpName->text().trimmed().isEmpty()) {
-        lblError->setText("⚠  Họ và tên là bắt buộc.");
-        lblError->setVisible(true);
-        inpName->setFocus();
-        return false;
+    if (validatorDelegate) {
+        QString errorMsg = validatorDelegate(this);
+        if (!errorMsg.isEmpty()) {
+            lblError->setText(errorMsg);
+            lblError->setVisible(true);
+            return false;
+        }
     }
     lblError->setVisible(false);
     return true;
@@ -210,7 +220,6 @@ void EditEmployee_Dialog::onConfirm()
     if (validate()) accept();
 }
 
-
 // Getters
 QString EditEmployee_Dialog::getName()      const { return inpName->text().trimmed(); }
 QString EditEmployee_Dialog::getRole()      const {
@@ -218,6 +227,12 @@ QString EditEmployee_Dialog::getRole()      const {
     if (vn == "Quản lý") return "Manager";
     return "Staff";
 }
+QString EditEmployee_Dialog::getGender()      const {
+    QString vn = cmbGender->currentText();
+    if (vn == "Nam") return "Nam";
+    return "Nữ";
+}
+
 QString EditEmployee_Dialog::getPhone()     const { return inpPhone->text().trimmed(); }
 QString EditEmployee_Dialog::getDob()       const { return inpDob->text().trimmed(); }
 QString EditEmployee_Dialog::getAddress()   const { return inpAddress->text().trimmed(); }

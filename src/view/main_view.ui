@@ -63,6 +63,16 @@ nhân sự</string></property><property name="alignment"><set>Qt::AlignmentFlag:
        <property name="bottomMargin"><number>40</number></property>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_Header">
+        <item>
+                  <widget class="QPushButton" name="btnToggleSidebar">
+                   <property name="text"><string>☰</string></property>
+                   <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+                   <property name="styleSheet"><string notr="true">
+                    QPushButton { border: none; font-size: 24px; color: #637381; margin-right: 15px; background: transparent; }
+                    QPushButton:hover { color: #1a73e8; }
+                   </string></property>
+                  </widget>
+                 </item>
          <item>
           <layout class="QVBoxLayout" name="verticalLayout_Title">
            <item><widget class="QLabel" name="lblPageTitle"><property name="text"><string>Tổng quan</string></property></widget></item>

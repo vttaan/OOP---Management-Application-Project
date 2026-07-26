@@ -1,15 +1,27 @@
+#include "global.h"
 #include "model/Employee_Model.h"
 #include "utils/Database.h"
 #include "utils/Security.h"
-#include <QCoreApplication>
-#include <QDebug>
-#include <QDir>
-#include <QFile>
-#include <QFileInfo>
 
 Employee_Model::Employee_Model() {}
 
 
+
+int Employee_Model::getNextId(const QString& role) {
+    QSqlQuery query;
+    int newId = 1;
+
+    query.prepare("SELECT MAX(idEmployee) AS MaxID FROM PROFILES WHERE role = :u");
+    query.bindValue(":u", role);
+
+    if (query.exec() && query.next()) {
+        QVariant v = query.value("MaxID");
+        if (!v.isNull()) {
+            newId = v.toInt() + 1;
+        }
+    }
+    return newId;
+}
 bool Employee_Model::addUserInList(User *emp)
 {
   if (emp == nullptr)
@@ -35,18 +47,22 @@ bool Employee_Model::popUserInList(short idEmployee)
 
 bool Employee_Model::addEmployee(const QString &role, const QString &avatarPath, const QString &citizenId,
                                  const QString &name, const QString &dob, const QString &address,
-                                 const QString &phone, const QString &gender,
+                                 const QString &phone, const QString &gender, const int& baseSalary,
                                  const QString &username, const QString &password)
 {
-  User *emp = UserFactory::createNewUser(role, avatarPath, citizenId, name, dob, address, phone, gender);
-  if (emp == nullptr)
-    return false;
+  User *emp = UserFactory::createNewUser(role, avatarPath, citizenId, name, dob, address, phone, gender, baseSalary);
+    if (emp == nullptr) {
+      qDebug() << "Create fail\n";
+        return false;
+    }
+    //return false;
   QSqlDatabase db = Database::getInstance()->getDbConnect();
   db.transaction(); // start transaction before inserting
 
   // Copy avatar to local folder and update user object
   QString localAva =
       saveAvatarLocally(emp->getIdEmployee(), emp->getAvatarPath());
+  qDebug() << emp->getIdEmployee() << '\n';
   emp->setAva(localAva);
 
   QSqlQuery qProfile(db);
@@ -96,7 +112,6 @@ bool Employee_Model::addEmployee(const QString &role, const QString &avatarPath,
 
 bool Employee_Model::updateEmployee(User *emp)
 {
-
   if (!emp)
     return false;
 
@@ -110,7 +125,7 @@ bool Employee_Model::updateEmployee(User *emp)
   query.prepare("UPDATE PROFILES SET role = :role, name = :name, phoneNum = "
                 ":phone, dob = :dob, "
                 "address = :address, avatarPath = :avatar, IdCitizenIdentity "
-                "= :citizen WHERE idEmployee = :id");
+                "= :citizen, Gender = :gender WHERE idEmployee = :id");
   query.bindValue(":role", emp->getRole());
   query.bindValue(":name", emp->getName());
   query.bindValue(":phone", emp->getPhoneNum());
@@ -119,6 +134,7 @@ bool Employee_Model::updateEmployee(User *emp)
   query.bindValue(":avatar", emp->getAvatarPath());
   query.bindValue(":citizen", emp->getIdentityID());
   query.bindValue(":id", emp->getIdEmployee());
+  query.bindValue(":gender", emp->getGender());
 
   if (!query.exec())
   {
@@ -220,9 +236,10 @@ void Employee_Model::loadData()
     QString curAddress = query.value("address").toString();
     QString curAvatarPath = query.value("avatarPath").toString();
     QString curGender = query.value("Gender").toString();
+    int curSalary = query.value("Salary").toInt();
     User *nowEmployee = UserFactory::createContainsUser(
         curRole, curID, curAvatarPath, curIdIndentity, curName, curDob,
-        curAddress, curPhone, curGender);
+        curAddress, curPhone, curGender, curSalary);
     this->listEmployee.append(nowEmployee);
   }
 }
@@ -251,12 +268,27 @@ QString Employee_Model::removeAccent(const QString &input)
   QString res = "";
   QMap<QString, QString> mapping =
       {
-          {"à", "a"}, {"á", "a"}, {"ạ", "a"}, {"ả", "a"}, {"ã", "a"}, {"â", "a"}, {"ầ", "a"}, {"ấ", "a"}, {"ậ", "a"}, {"ẩ", "a"}, {"ẫ", "a"}, {"ă", "a"}, {"ằ", "a"}, {"ắ", "a"}, {"ặ", "a"}, {"ẳ", "a"}, {"ẵ", "a"}, {"è", "e"}, {"é", "e"}, {"ẹ", "e"}, {"ẻ", "e"}, {"ẽ", "e"}, {"ê", "e"}, {"ề", "e"}, {"ế", "e"}, {"ệ", "e"}, {"ể", "e"}, {"ễ", "e"}, {"ì", "i"}, {"í", "i"}, {"ị", "i"}, {"ỉ", "i"}, {"ĩ", "i"}, {"ò", "o"}, {"ó", "o"}, {"ọ", "o"}, {"ỏ", "o"}, {"õ", "o"}, {"ô", "o"}, {"ồ", "o"}, {"ố", "o"}, {"ộ", "o"}, {"ổ", "o"}, {"ỗ", "o"}, {"ơ", "o"}, {"ờ", "o"}, {"ớ", "o"}, {"ợ", "o"}, {"ở", "o"}, {"ỡ", "o"}, {"ù", "u"}, {"ú", "u"}, {"ụ", "u"}, {"ủ", "u"}, {"ũ", "u"}, {"ư", "u"}, {"ừ", "u"}, {"ứ", "u"}, {"ự", "u"}, {"ử", "u"}, {"ữ", "u"}, {"ỳ", "y"}, {"ý", "y"}, {"ỵ", "y"}, {"ỷ", "y"}, {"ỹ", "y"}, {"đ", "d"}};
+          {"à", "a"}, {"á", "a"}, {"ạ", "a"}, {"ả", "a"}, {"ã", "a"}, {"â", "a"}, {"ầ", "a"}, {"ấ", "a"}, {"ậ", "a"}, {"ẩ", "a"}, {"ẫ", "a"}, {"ă", "a"}, {"ằ", "a"}, {"ắ", "a"}, {"ặ", "a"}, {"ẳ", "a"}, {"ẵ", "a"}, 
+          {"è", "e"}, {"é", "e"}, {"ẹ", "e"}, {"ẻ", "e"}, {"ẽ", "e"}, {"ê", "e"}, {"ề", "e"}, {"ế", "e"}, {"ệ", "e"}, {"ể", "e"}, {"ễ", "e"}, 
+          {"ì", "i"}, {"í", "i"}, {"ị", "i"}, {"ỉ", "i"}, {"ĩ", "i"}, 
+          {"ò", "o"}, {"ó", "o"}, {"ọ", "o"}, {"ỏ", "o"}, {"õ", "o"}, {"ô", "o"}, {"ồ", "o"}, {"ố", "o"}, {"ộ", "o"}, {"ổ", "o"}, {"ỗ", "o"}, {"ơ", "o"}, {"ờ", "o"}, {"ớ", "o"}, {"ợ", "o"}, {"ở", "o"}, {"ỡ", "o"}, 
+          {"ù", "u"}, {"ú", "u"}, {"ụ", "u"}, {"ủ", "u"}, {"ũ", "u"}, {"ư", "u"}, {"ừ", "u"}, {"ứ", "u"}, {"ự", "u"}, {"ử", "u"}, {"ữ", "u"}, 
+          {"ỳ", "y"}, {"ý", "y"}, {"ỵ", "y"}, {"ỷ", "y"}, {"ỹ", "y"}, 
+          {"đ", "d"},
+          // Uppercase letters
+          {"À", "A"}, {"Á", "A"}, {"Ạ", "A"}, {"Ả", "A"}, {"Ã", "A"}, {"Â", "A"}, {"Ầ", "A"}, {"Ấ", "A"}, {"Ậ", "A"}, {"Ẩ", "A"}, {"Ẫ", "A"}, {"Ă", "A"}, {"Ằ", "A"}, {"Ắ", "A"}, {"Ặ", "A"}, {"Ẳ", "A"}, {"Ẵ", "A"}, 
+          {"È", "E"}, {"É", "E"}, {"Ẹ", "E"}, {"Ẻ", "E"}, {"Ẽ", "E"}, {"Ê", "E"}, {"Ề", "E"}, {"Ế", "E"}, {"Ệ", "E"}, {"Ể", "E"}, {"Ễ", "E"}, 
+          {"Ì", "I"}, {"Í", "I"}, {"Ị", "I"}, {"Ỉ", "I"}, {"Ĩ", "I"}, 
+          {"Ò", "O"}, {"Ó", "O"}, {"Ọ", "O"}, {"Ỏ", "O"}, {"Õ", "O"}, {"Ô", "O"}, {"Ồ", "O"}, {"Ố", "O"}, {"Ộ", "O"}, {"Ổ", "O"}, {"Ỗ", "O"}, {"Ơ", "O"}, {"Ờ", "O"}, {"Ớ", "O"}, {"Ợ", "O"}, {"Ở", "O"}, {"Ỡ", "O"}, 
+          {"Ù", "U"}, {"Ú", "U"}, {"Ụ", "U"}, {"Ủ", "U"}, {"Ũ", "U"}, {"Ư", "U"}, {"Ừ", "U"}, {"Ứ", "U"}, {"Ự", "U"}, {"Ử", "U"}, {"Ữ", "U"}, 
+          {"Ỳ", "Y"}, {"Ý", "Y"}, {"Ỵ", "Y"}, {"Ỷ", "Y"}, {"Ỹ", "Y"}, 
+          {"Đ", "D"}
+      };
 
   for (QChar c : input)
   {
     if (mapping.count(c))
-      res += mapping[c];
+      res += mapping[QString(c)];
     else
       res += c;
   }
@@ -278,7 +310,7 @@ QString Employee_Model::getPattern(User *emp)
   pattern = id + '|' + name + '|' + role + '|' + idIn + '|' + phone + '|' +
             dob + '|' + address + '|' + gender;
   QString patternNew = pattern.toLower();
-  patternNew = this->removeAccent(patternNew);
+  patternNew = removeAccent(patternNew);
   return patternNew;
 }
 
@@ -375,18 +407,26 @@ bool Employee_Model::rabinKarp(QString pattern, QString contentSearch)
 QList<User *> Employee_Model::filterInEmployee(QList<User *> inputList, QList<QString> contentFilter)
 {
   QList<User *> listOfFilter;
+  
+  QStringList roles;
+  QStringList genders;
+  
+  for (const QString &s : contentFilter) {
+      if (s == "Manager" || s == "Staff" || s == "Admin") {
+          roles.append(s);
+      } else {
+          genders.append(s);
+      }
+  }
+
   for (int i = 0; i < inputList.size(); i++)
   {
-    int cnt = 0;
-    for (const QString &s : contentFilter)
-    {
-      if (inputList[i]->getRole() == s)
-        cnt++;
-      else if (inputList[i]->getGender() == s)
-        cnt++;
-    }
-    if (cnt == contentFilter.size())
-      listOfFilter.push_back(inputList[i]);
+      bool roleMatch = roles.isEmpty() || roles.contains(inputList[i]->getRole());
+      bool genderMatch = genders.isEmpty() || genders.contains(inputList[i]->getGender());
+      
+      if (roleMatch && genderMatch) {
+          listOfFilter.push_back(inputList[i]);
+      }
   }
   return listOfFilter;
 }
@@ -394,8 +434,10 @@ QList<User *> Employee_Model::filterInEmployee(QList<User *> inputList, QList<QS
 QList<User *> Employee_Model::searchInEmployee(QList<User *> inputList, QString contentSearch)
 {
   QList<User *> listOfEmployeeForSearch;
-  contentSearch = this->removeAccent(contentSearch);
+
   contentSearch = contentSearch.toLower();
+  contentSearch = removeAccent(contentSearch);
+
   for (int i = 0; i < inputList.size(); i++)
   {
     QString pattern = this->getPattern(inputList[i]);
@@ -403,4 +445,30 @@ QList<User *> Employee_Model::searchInEmployee(QList<User *> inputList, QString 
       listOfEmployeeForSearch.push_back(inputList[i]);
   }
   return listOfEmployeeForSearch;
+}
+
+QString Employee_Model::generateAutoUsername(int id, QString& role){
+    QString res = (role=="Staff")? "NV_" : "QL_";
+    res += QString::number(id).rightJustified(3, '0');
+    // can memories 3 number 0 leading.
+    return res;
+}
+
+QString Employee_Model::generateAutoPassword(QString &name, QString &dob){
+    // Remove diacritics before grabbing first letters
+    QString cleanName = removeAccent(name);
+    QStringList words = cleanName.split(" ", Qt::SkipEmptyParts);
+    QString res = "";
+
+    for(const QString& w : words){
+        res += w.at(0).toUpper();
+    }
+    // yyyy-mm-dd
+    QStringList dates = dob.split("-");
+
+
+    QString dd = dates[2], mm = dates[1];
+
+    return res + '#' + dd + mm;
+    // TQT#0609
 }

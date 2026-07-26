@@ -1,3 +1,4 @@
+#include "global.h"
 #include "User.h"
 
 User::User(QString r, short int idEmp, QString ava,
@@ -51,4 +52,8 @@ void User::setAva(QString a) {
 }
 void User::setPhoneNum(QString phone) {
     this->phoneNum = phone;
+}
+
+void User::setGender(QString g) {
+    this->gender = g;
 }
