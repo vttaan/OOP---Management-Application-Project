@@ -683,7 +683,7 @@ EmployeesWidget QLabel#userAvatar {
 /* STYLE CHO BẢNG LỊCH LÀM VIỆC (TABLE)      */
 /* ========================================= */
 
-/* 1. Mặc định cho Nhân Viên (role="staff") */
+
 QTableWidget[role="staff"] {
     border: none;
     background-color: white;
@@ -707,7 +707,7 @@ QTableWidget[role="staff"] QHeaderView::section:vertical {
     font-weight: bold;
 }
 
-/* 2. Dành cho Quản Lý (role="manager") */
+
 QTableWidget[role="manager"] {
     border: none;
     background-color: white;
@@ -726,7 +726,7 @@ QTableWidget[role="manager"] QHeaderView::section {
     text-transform: uppercase;
 }
 
-/* 3. Dành cho Quản Lý (Các bảng nhỏ bên dưới - role="manager-dark") */
+
 QTableWidget[role="manager-dark"] {
     border: 1px solid #E5E7EB;
     background-color: white;
@@ -744,3 +744,5 @@ QTableWidget[role="manager-dark"] QHeaderView::section {
     color: white;
     text-transform: uppercase;
 }
+
+

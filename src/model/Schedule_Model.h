@@ -14,6 +14,7 @@ private:
     QList<QList<Shift *>> shiftList{7}; // 7 days
     int numberOfShift;
     QList<User*> currentWeeklyUsers;
+    QList<Shift*> draftShifts;
 
     QVector<Shift*> fetchPendingShifts(const QDate& weekStart, const QDate& weekEnd);
     // Lay tong so phut da lam cua tung nhan vien
@@ -33,7 +34,9 @@ public:
     QMap<int, QMap<int, ShiftBlock*>> getManagerWeeklyGrid(QDate monday, int status = 1);
     QMap<int, QList<QString>> getWeeklySummaryStrings() const;
 
-     QStringList generateSchedule();
+    QStringList generateSchedule();
+    bool saveDraftShiftsToDatabase();
+    void clearDrafts() {draftShifts.clear();}
 
     ~Schedule_Model();
 };

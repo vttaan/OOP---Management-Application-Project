@@ -26,11 +26,7 @@ Control_Navigator::Control_Navigator()
 
     this->salaryController = new Salary_Control(this);
     this->viewWindow = new View_Navigator(this); // Initialize viewWindow AFTER controllers
-    loginController->setView(this->viewWindow->loginPage);
-    dashboardController->setView(this->viewWindow->dashboardPage);
-    profileController->setView(this->viewWindow->profilePage);
-    employeeController->setView(this->viewWindow->employeePage);
-    scheduleController->setView(this->viewWindow->schedulePage);
+    // Các lệnh setView đã được gọi bên trong View_Navigator() nên không gọi lại ở đây nữa để tránh double-connection
     // switch tab side bar do all
     if(this->viewWindow->getSideBar()) {
         // switch tab
@@ -143,8 +139,7 @@ void Control_Navigator::switchTab(int index) {
     // show view tab
     if (this->viewWindow) {
         this->viewWindow->setPageIndex(targetPageIndex); // <-- Dùng targetPageIndex ở đây
-        // hide sub menu in schedule each switch tap
-        if(index != 4) this->viewWindow->getSideBar()->hideSubMenuInSchedule();
+
         // put pointer of side bar follow index
         this->viewWindow->getSideBar()->updateButtonStyles(index);
     }

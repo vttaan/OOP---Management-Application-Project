@@ -5,7 +5,7 @@ private:
     static const short openHour  = 7, closeHour = 22;
 
 
-    static const Qt::DayOfWeek dayOpenRegisShift = Qt::Saturday;
+    static const Qt::DayOfWeek dayOpenRegisShift = Qt::Sunday;
     static const short minStaffPerShift = 4;
     static const short maxStaffPerShift = 6;
 public:

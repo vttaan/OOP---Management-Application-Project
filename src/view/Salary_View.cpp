@@ -3,6 +3,7 @@
 #include <QTableWidgetItem>
 #include <QHeaderView>
 #include <QDate>
+#include <QBrush>
 
 QString convertCurrency(QString salary) {
     QString validSalary;
@@ -61,12 +62,38 @@ Salary_View::~Salary_View()
 
 void Salary_View::setupUI()
 {
+    QString tableStyle = 
+        "QTableWidget { "
+        "   background-color: #FFFFFF; "
+        "   gridline-color: #E2E8F0; "
+        "   border: 1px solid #E2E8F0; "
+        "   border-radius: 6px; "
+        "   color: #334155; "
+        "   outline: none; "
+        "} "
+        "QTableWidget::item { "
+        "   padding: 5px; "
+        "} "
+        "QHeaderView::section { "
+        "   background-color: #F0F9FF; "
+        "   color: #0284C7; "
+        "   border: none; "
+        "   border-right: 1px solid #E2E8F0; "
+        "   border-bottom: 1px solid #E2E8F0; "
+        "   font-weight: bold; "
+        "   padding: 8px; "
+        "} "
+        "QTableWidget::item:selected { "
+        "   background-color: #E0F2FE; "
+        "   color: #0369A1; "
+        "} ";
+
     ui->normalTable->setRowCount(2);
+    ui->normalTable->setShowGrid(true);
+    ui->normalTable->setStyleSheet(tableStyle);
     QTableWidgetItem* normalDateHeader = new QTableWidgetItem("Ngày");
-    normalDateHeader->setForeground(QBrush(Qt::black));
     ui->normalTable->setVerticalHeaderItem(0, normalDateHeader);
     QTableWidgetItem* normalHourHeader = new QTableWidgetItem("Số giờ");
-    normalHourHeader->setForeground(QBrush(Qt::black));
     ui->normalTable->setVerticalHeaderItem(1, normalHourHeader);
     ui->normalTable->horizontalHeader()->setVisible(false);
     ui->normalTable->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
@@ -74,11 +101,11 @@ void Salary_View::setupUI()
     ui->normalTable->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     
     ui->holidayTable->setRowCount(2);
+    ui->holidayTable->setShowGrid(true);
+    ui->holidayTable->setStyleSheet(tableStyle);
     QTableWidgetItem* holidayDateHeader = new QTableWidgetItem("Ngày");
-    holidayDateHeader->setForeground(QBrush(Qt::black));
     ui->holidayTable->setVerticalHeaderItem(0, holidayDateHeader);
     QTableWidgetItem* holidayHourHeader = new QTableWidgetItem("Số giờ");
-    holidayHourHeader->setForeground(QBrush(Qt::black));
     ui->holidayTable->setVerticalHeaderItem(1, holidayHourHeader);
     ui->holidayTable->horizontalHeader()->setVisible(false);
     ui->holidayTable->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
@@ -87,6 +114,8 @@ void Salary_View::setupUI()
 
     ui->summaryTable->setRowCount(4);
     ui->summaryTable->setColumnCount(2);
+    ui->summaryTable->setShowGrid(true);
+    ui->summaryTable->setStyleSheet(tableStyle);
     ui->summaryTable->setHorizontalHeaderLabels({"Ngày thường", "Ngày lễ"});
     ui->summaryTable->setVerticalHeaderLabels({"Tổng giờ công", "Tổng lương", "Khoản phạt", "TỔNG"});
     ui->summaryTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
@@ -165,12 +194,15 @@ void Salary_View::populateNormalTable(const QMap<QString, int>& data)
     for(auto it = data.begin(); it != data.end(); ++it) {
         QTableWidgetItem* dateItem = new QTableWidgetItem(it.key());
         dateItem->setTextAlignment(Qt::AlignCenter | Qt::AlignVCenter);
-        dateItem->setForeground(QBrush(Qt::black));
+        dateItem->setForeground(QBrush(QColor("#0369A1")));
+        QFont f = dateItem->font();
+        f.setBold(true);
+        dateItem->setFont(f);
         ui->normalTable->setItem(0, col, dateItem);
 
         QTableWidgetItem* hoursItem = new QTableWidgetItem(QString::number(it.value()));
         hoursItem->setTextAlignment(Qt::AlignCenter | Qt::AlignVCenter);
-        hoursItem->setForeground(QBrush(Qt::black));
+        hoursItem->setForeground(QBrush(QColor("#334155")));
         ui->normalTable->setItem(1, col, hoursItem);
         col++;
     }
@@ -185,12 +217,15 @@ void Salary_View::populateHolidayTable(const QMap<QString, int>& data)
     for(auto it = data.begin(); it != data.end(); ++it) {
         QTableWidgetItem* dateItem = new QTableWidgetItem(it.key());
         dateItem->setTextAlignment(Qt::AlignCenter | Qt::AlignVCenter);
-        dateItem->setForeground(QBrush(Qt::black));
+        dateItem->setForeground(QBrush(QColor("#0369A1")));
+        QFont f = dateItem->font();
+        f.setBold(true);
+        dateItem->setFont(f);
         ui->holidayTable->setItem(0, col, dateItem);
 
         QTableWidgetItem* hoursItem = new QTableWidgetItem(QString::number(it.value()));
         hoursItem->setTextAlignment(Qt::AlignCenter | Qt::AlignVCenter);
-        hoursItem->setForeground(QBrush(Qt::black));
+        hoursItem->setForeground(QBrush(QColor("#334155")));
         ui->holidayTable->setItem(1, col, hoursItem);
         col++;
     }
@@ -202,31 +237,34 @@ void Salary_View::populateSummaryTable(const SalaryData& data)
     QString holidayHoursText = QString::number(data.holidayHours) + (currentRole == "Manager" ? " ngày" : " giờ");
 
     QTableWidgetItem* normalItem = new QTableWidgetItem(normalHoursText);
-    normalItem->setForeground(QBrush(Qt::black));
+    normalItem->setForeground(QBrush(QColor("#334155")));
     ui->summaryTable->setItem(0, 0, normalItem);
     
     QTableWidgetItem* holidayItem = new QTableWidgetItem(holidayHoursText);
-    holidayItem->setForeground(QBrush(Qt::black));
+    holidayItem->setForeground(QBrush(QColor("#334155")));
     ui->summaryTable->setItem(0, 1, holidayItem);
     
     QTableWidgetItem* normalSalaryItem = new QTableWidgetItem(convertCurrency(QString::number(data.normalSalary)));
-    normalSalaryItem->setForeground(QBrush(Qt::black));
+    normalSalaryItem->setForeground(QBrush(QColor("#0369A1")));
+    QFont fn = normalSalaryItem->font(); fn.setBold(true); normalSalaryItem->setFont(fn);
     ui->summaryTable->setItem(1, 0, normalSalaryItem);
     
     QTableWidgetItem* holidaySalaryItem = new QTableWidgetItem(convertCurrency(QString::number(data.holidaySalary)));
-    holidaySalaryItem->setForeground(QBrush(Qt::black));
+    holidaySalaryItem->setForeground(QBrush(QColor("#0369A1")));
+    QFont fh = holidaySalaryItem->font(); fh.setBold(true); holidaySalaryItem->setFont(fh);
     ui->summaryTable->setItem(1, 1, holidaySalaryItem);
     
     QString penaltyText = convertCurrency(QString::number(data.penalty));
                           
     QTableWidgetItem* penaltyItem = new QTableWidgetItem(penaltyText);
     penaltyItem->setTextAlignment(Qt::AlignCenter);
-    penaltyItem->setForeground(QBrush(Qt::black));
+    penaltyItem->setForeground(QBrush(QColor("#E11D48"))); // Rose 600
     ui->summaryTable->setItem(2, 0, penaltyItem);
     
     QTableWidgetItem* totalItem = new QTableWidgetItem(convertCurrency(QString::number(data.totalSalary)));
     totalItem->setTextAlignment(Qt::AlignCenter);
-    totalItem->setForeground(QBrush(Qt::black));
+    totalItem->setForeground(QBrush(QColor("#0284C7"))); // Sky 600
+    QFont ft = totalItem->font(); ft.setBold(true); ft.setPointSize(11); totalItem->setFont(ft);
     ui->summaryTable->setItem(3, 0, totalItem);
 }
 

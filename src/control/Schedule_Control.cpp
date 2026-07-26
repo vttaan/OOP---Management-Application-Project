@@ -139,14 +139,9 @@ void Schedule_Control::onAddShiftRequested(const QString& day,
 
     // Success: reload the in-memory list from DB and refresh summary table
     // Fetch schedule for the NEXT week (the week that was just registered for)
-    QDate monday = QDate::currentDate().addDays(8 - QDate::currentDate().dayOfWeek());
-    model->getSchedule(currentEmployeeId, monday);
     view->updateSumTable(model->getWeeklySummaryStrings());
     view->resetInputTable();
 
-    delete newShift; // Ownership stays in the model's shiftList after reload
-
-    qDebug() << "Schedule_Control: shift added —" << day << startTime << "→" << endTime;
 }
 
 // ─────────────────────────────────────────────
@@ -166,8 +161,20 @@ void Schedule_Control::onSaveShiftRequested()
 
 void Schedule_Control::handleSaveSchedule()
 {
-    qDebug() << "Schedule_Control::handleSaveSchedule() — all pending shifts are already persisted.";
-    // TODO: if we move to a draft/commit model, flush pending shifts here.
+
+    bool success = model->saveDraftShiftsToDatabase();
+
+    if (success) {
+
+        QDate monday = QDate::currentDate().addDays(8 - QDate::currentDate().dayOfWeek());
+        model->getSchedule(currentEmployeeId, monday);
+
+
+        view->updateSumTable(model->getWeeklySummaryStrings());
+        view->showSuccess("Đã lưu các ca làm việc thành công!");
+    } else {
+        view->showError("Lỗi kết nối cơ sở dữ liệu, chưa thể lưu!");
+    }
 }
 
 void Schedule_Control::handleGenSchedule()

@@ -10,14 +10,23 @@ bool Schedule_Model::checkOverlapping(short int id, QDate date, QTime start, QTi
     query.bindValue(":id", id);
     query.bindValue(":date", date);
 
-    if (!query.exec())
-        return true;
-    while (query.next())
-    {
-        QTime currentStartTime = query.value("startTime").toTime();
-        QTime currentEndTime = query.value("endTime").toTime();
-        if (start < currentEndTime && currentStartTime < end)
-            return false;
+    if (query.exec()) {
+        while (query.next())
+        {
+            QTime currentStartTime = query.value("startTime").toTime();
+            QTime currentEndTime = query.value("endTime").toTime();
+            if (start < currentEndTime && currentStartTime < end)
+                return false;
+        }
+    }
+
+
+    for (Shift* draft : draftShifts) {
+        if (draft->getEmployeeID() == id && draft->getDate() == date) {
+            if (start < draft->getEndTime() && draft->getStartTime() < end) {
+                return false;
+            }
+        }
     }
     return true;
 }
@@ -75,33 +84,17 @@ Shift *Schedule_Model::handleAddShiftSubmission(short int id, QDate date, QTime 
         return nullptr;
     }
 
-    QSqlDatabase openData = Database::getInstance()->getDbConnect();
-    if (!openData.transaction())
-    {
-        qDebug() << "Failed to start transaction";
-        return nullptr;
+    Shift *newShift = new Shift(id,date,start,end);
+    newShift->setShiftId(-1); // note for draftshift
+    draftShifts.append(newShift);
+
+    QDate monday = date.addDays(1 - date.dayOfWeek());
+    int dayInWeek = monday.daysTo(date);
+    if (dayInWeek >= 0 && dayInWeek < 7) {
+        this->shiftList[dayInWeek].append(newShift);
+        this->numberOfShift++;
     }
-    QSqlQuery query(openData);
-    query.prepare(
-        "INSERT INTO SHIFT (idEmployee, workDate, startTime, endTime, status, isHoliday) "
-        "VALUES (:id,:date,:start,:end,:status,:isHoliday)");
-    query.bindValue(":id", id);
-    query.bindValue(":date", date);
-    query.bindValue(":start", start);
-    query.bindValue(":end", end);
-    query.bindValue(":status", 0);
-    query.bindValue(":isHoliday", 0);
-    if (holidayList.contains(QString::number(date.day()) + "/" + QString::number(date.month()))) {
-        query.bindValue("isHoliday", 1);
-    }
-    if (!query.exec())
-    {
-        qDebug() << "Error adding shift" << query.lastError().text();
-        openData.rollback();
-        return nullptr;
-    }
-    openData.commit();
-    Shift *newShift = new Shift(id, date, start, end);
+
     return newShift;
 }
 void Schedule_Model::getAcceptedSchedule(short int id, QDate monday)
@@ -332,3 +325,36 @@ QStringList Schedule_Model::generateSchedule() {
     
     return warnings;
 }
+
+bool Schedule_Model::saveDraftShiftsToDatabase()
+{
+    if (draftShifts.isEmpty()) return true;
+    QSqlDatabase openData = Database::getInstance()->getDbConnect();
+    if (!openData.transaction()) return false;
+    QSqlQuery query(openData);
+    query.prepare(
+        "INSERT INTO SHIFT (idEmployee, workDate, startTime, endTime, status, isHoliday) "
+        "VALUES (:id, :date, :start, :end, :status, :isHoliday)"
+        );
+    QList<QString> holidayList = {"01/01", "30/04", "01/05", "02/09"};
+    for (Shift* shift : draftShifts) {
+        query.bindValue(":id", shift->getEmployeeID());
+        query.bindValue(":date", shift->getDate());
+        query.bindValue(":start", shift->getStartTime());
+        query.bindValue(":end", shift->getEndTime());
+        query.bindValue(":status", 0); // 0 = Chờ duyệt
+
+        bool isHoliday = holidayList.contains(shift->getDate().toString("dd/MM"));
+        query.bindValue(":isHoliday", isHoliday);
+
+        if (!query.exec()) {
+            qDebug() << "Lỗi khi lưu ca làm:" << query.lastError().text();
+            openData.rollback();
+            return false;
+        }
+    }
+    openData.commit();
+    draftShifts.clear();
+    return true;
+}
+
