@@ -13,9 +13,388 @@
   <property name="windowTitle">
    <string>Employees</string>
   </property>
-  <property name="autoFillBackground">
-   <bool>false</bool>
-  </property>
+  <!-- Root layout: vertical, 24/16/24/16 margins, spacing 16 -->
+  <layout class="QVBoxLayout" name="mainLayout">
+   <property name="spacing">
+    <number>16</number>
+   </property>
+   <property name="leftMargin">
+    <number>24</number>
+   </property>
+   <property name="topMargin">
+    <number>16</number>
+   </property>
+   <property name="rightMargin">
+    <number>24</number>
+   </property>
+   <property name="bottomMargin">
+    <number>16</number>
+   </property>
+
+   <!-- ============================================================
+        PROFILE BLOCK (breadcrumb header bar)
+        ============================================================ -->
+   <item>
+    <widget class="QFrame" name="profileBlock">
+     <property name="cursor">
+      <cursorShape>PointingHandCursor</cursorShape>
+     </property>
+     <layout class="QHBoxLayout" name="profileBlockLayout">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="lblPageTitle">
+        <property name="text">
+         <string>Quản lý nhân viên</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="profileSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </widget>
+   </item>
+
+   <!-- ============================================================
+        METRICS ROW — placeholder layout; metric cards added in C++
+        ============================================================ -->
+   <item>
+    <layout class="QHBoxLayout" name="metricsLayout">
+     <property name="spacing">
+      <number>14</number>
+     </property>
+    </layout>
+   </item>
+
+   <!-- ============================================================
+        ROSTER CARD
+        ============================================================ -->
+   <item>
+    <widget class="QFrame" name="rosterCard">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <layout class="QVBoxLayout" name="rosterLayout">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+
+      <!-- Roster header -->
+      <item>
+       <widget class="QFrame" name="rosterHeader">
+        <layout class="QHBoxLayout" name="rosterHeaderLayout">
+         <property name="spacing">
+          <number>10</number>
+         </property>
+         <property name="leftMargin">
+          <number>18</number>
+         </property>
+         <property name="topMargin">
+          <number>14</number>
+         </property>
+         <property name="rightMargin">
+          <number>18</number>
+         </property>
+         <property name="bottomMargin">
+          <number>14</number>
+         </property>
+
+         <!-- Title block (vertical: rosterTitle + rosterSubtitle) -->
+         <item>
+          <layout class="QVBoxLayout" name="titleBlock">
+           <property name="spacing">
+            <number>2</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="rosterTitle">
+             <property name="text">
+              <string>Danh sách nhân viên</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="rosterSubtitle">
+             <property name="text">
+              <string>Tổng cộng 0 nhân viên</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+
+         <!-- Horizontal spacer -->
+         <item>
+          <spacer name="rosterHeaderSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+
+         <!-- Search bar -->
+         <item>
+          <widget class="QLineEdit" name="searchRoster">
+           <property name="placeholderText">
+            <string>Tìm kiếm nhân viên...</string>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>190</width>
+             <height>34</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>190</width>
+             <height>34</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+
+         <!-- Filter button -->
+         <item>
+          <widget class="QPushButton" name="filterBtn">
+           <property name="toolTip">
+            <string>Lọc</string>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>34</width>
+             <height>34</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>34</width>
+             <height>34</height>
+            </size>
+           </property>
+           <property name="cursor">
+            <cursorShape>PointingHandCursor</cursorShape>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>16</width>
+             <height>16</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+
+         <!-- Sort button -->
+         <item>
+          <widget class="QPushButton" name="sortBtn">
+           <property name="toolTip">
+            <string>Sắp xếp</string>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>34</width>
+             <height>34</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>34</width>
+             <height>34</height>
+            </size>
+           </property>
+           <property name="cursor">
+            <cursorShape>PointingHandCursor</cursorShape>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>16</width>
+             <height>16</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+
+         <!-- Add Employee button -->
+         <item>
+          <widget class="QPushButton" name="addEmployeeBtn">
+           <property name="text">
+            <string>+ Thêm nhân viên</string>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>34</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>34</height>
+            </size>
+           </property>
+           <property name="cursor">
+            <cursorShape>PointingHandCursor</cursorShape>
+           </property>
+          </widget>
+         </item>
+
+        </layout>
+       </widget>
+      </item>
+
+
+
+      <!-- Employees Table -->
+      <item>
+       <widget class="QTableWidget" name="employeesTable">
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="showGrid">
+         <bool>false</bool>
+        </property>
+        <property name="alternatingRowColors">
+         <bool>true</bool>
+        </property>
+        <property name="selectionMode">
+         <enum>QAbstractItemView::SingleSelection</enum>
+        </property>
+        <property name="selectionBehavior">
+         <enum>QAbstractItemView::SelectRows</enum>
+        </property>
+        <property name="editTriggers">
+         <set>QAbstractItemView::NoEditTriggers</set>
+        </property>
+        <property name="focusPolicy">
+         <enum>Qt::NoFocus</enum>
+        </property>
+        <attribute name="horizontalHeaderStretchLastSection">
+         <bool>true</bool>
+        </attribute>
+        <attribute name="horizontalHeaderHighlightSections">
+         <bool>false</bool>
+        </attribute>
+        <attribute name="verticalHeaderVisible">
+         <bool>false</bool>
+        </attribute>
+        <column>
+         <property name="text"><string>MÃ NHÂN VIÊN</string></property>
+        </column>
+        <column>
+         <property name="text"><string>TÊN</string></property>
+        </column>
+        <column>
+         <property name="text"><string>VAI TRÒ</string></property>
+        </column>
+        <column>
+         <property name="text"><string>LOẠI LƯƠNG</string></property>
+        </column>
+        <column>
+         <property name="text"><string>MỨC LƯƠNG</string></property>
+        </column>
+        <column>
+         <property name="text"><string>TRẠNG THÁI</string></property>
+        </column>
+        <column>
+         <property name="text"><string>THAO TÁC</string></property>
+        </column>
+       </widget>
+      </item>
+
+      <!-- Table Footer -->
+      <item>
+       <widget class="QFrame" name="tableFooterFrame">
+        <layout class="QHBoxLayout" name="footerLayout">
+         <property name="leftMargin">
+          <number>18</number>
+         </property>
+         <property name="topMargin">
+          <number>8</number>
+         </property>
+         <property name="rightMargin">
+          <number>18</number>
+         </property>
+         <property name="bottomMargin">
+          <number>8</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="footerLabel">
+           <property name="text">
+            <string>Hiển thị 0 / 0 nhân viên  ·  0 đang làm, 0 vắng, 0 chờ duyệt</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="footerSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
+      </item>
+
+     </layout>
+    </widget>
+   </item>
+
+  </layout>
  </widget>
  <resources/>
  <connections/>
