@@ -10,25 +10,19 @@
 #include "view/viewschedule_view.h"
 
 View_Navigator::View_Navigator(Control_Navigator *controller, QWidget *parent)
-    : QMainWindow(parent)
-    , ui(new Ui::View_Navigator)
-    , controller(controller)
-    , loginPage(new Login_View(controller->loginController))
-    , dashboardPage(new Dashboard_View())
-    , profilePage(new Profile_View(controller->profileController))
-    , employeePage(new EmployeesWidget())
-    , schedulePage(new Schedule_View())
-    , viewSchedulePage(new ViewSchedule_View())
-    , salaryPage(new Salary_View())
+    : QMainWindow(parent), ui(new Ui::View_Navigator), controller(controller), loginPage(new Login_View(controller->loginController)), dashboardPage(new Dashboard_View()), profilePage(new Profile_View(controller->profileController)), employeePage(new EmployeesWidget()), schedulePage(new Schedule_View()), viewSchedulePage(new ViewSchedule_View()), salaryPage(new Salary_View())
 {
     ui->setupUi(this);
 
     // Ẩn thanh Menu và Status bar mặc định của Qt để Full màn hình 100%
-    if (ui->menubar) ui->menubar->hide();
-    if (ui->statusbar) ui->statusbar->hide();
+    if (ui->menubar)
+        ui->menubar->hide();
+    if (ui->statusbar)
+        ui->statusbar->hide();
 
     // Xóa khoảng trắng (margins) thừa ở 4 lề của layout chính
-    if (this->centralWidget() && this->centralWidget()->layout()) {
+    if (this->centralWidget() && this->centralWidget()->layout())
+    {
         this->centralWidget()->layout()->setContentsMargins(0, 0, 0, 0);
     }
 
@@ -48,7 +42,6 @@ View_Navigator::View_Navigator(Control_Navigator *controller, QWidget *parent)
     controller->scheduleController->setView(schedulePage);
     controller->viewScheduleController->setView(viewSchedulePage);
     controller->salaryController->setView(salaryPage);
-
     // add pages
     // index note for each page
     ui->stackedWidget->addWidget(loginPage);        // index 0

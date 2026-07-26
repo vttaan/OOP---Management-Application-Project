@@ -28,7 +28,7 @@ Control_Navigator::Control_Navigator()
     this->salaryController = new Salary_Control(this);
 
     this->viewWindow = new View_Navigator(this); // Initialize viewWindow AFTER controllers
-
+    // Các lệnh setView đã được gọi bên trong View_Navigator() nên không gọi lại ở đây nữa để tránh double-connection
     // switch tab side bar do all
     if (this->viewWindow->getSideBar())
     {
@@ -69,11 +69,12 @@ Control_Navigator::Control_Navigator()
                      });
 
     QObject::connect(this->dashboardController, &Dashboard_Control::profilePageClicked,
-                     this->viewWindow, [this]() {
-        this->switchTab(2); // Switch to Profile (index 2)
-        // qDebug() << this->profileController->currentSession->getCurrentUser()->getName();
-        // no need to load user data for profile since its session already pointed to the whole app's session
-    });
+                     this->viewWindow, [this]()
+                     {
+                         this->switchTab(2); // Switch to Profile (index 2)
+                         // qDebug() << this->profileController->currentSession->getCurrentUser()->getName();
+                         // no need to load user data for profile since its session already pointed to the whole app's session
+                     });
 
     // switch from profile back previous
     QObject::connect(this->profileController, &Profile_Control::backToPrevious,
@@ -119,12 +120,19 @@ void Control_Navigator::switchTab(int index)
         break;
 
     case 4:
+        < < < < < < < < < Temporary merge branch 1 if (currentSession->checkPermission("Staff"))
+        {
+            this->scheduleController->setEmployeeId(currentSession->getCurrentUser()->getIdEmployee());
+            this->scheduleController->load();
+        }
+    == == == == =
+                    case 6:
         if (currentSession && currentSession->getCurrentUser())
         {
             this->scheduleController->setEmployeeId(currentSession->getCurrentUser()->getIdEmployee());
             this->scheduleController->load();
         }
-        targetPageIndex = 4; // Schedule_View for employee registration / manager scheduling
+        targetPageIndex = 4; // Dùng chung trang Schedule_View cho Đăng ký (nhân viên) và Xếp lịch (quản lý)
         break;
 
     case 5:
@@ -133,8 +141,8 @@ void Control_Navigator::switchTab(int index)
         targetPageIndex = 5; // ViewSchedule_View for viewing schedule
         break;
 
-    case 6:
     case 7:
+    case 8:
         this->salaryController->init();
         targetPageIndex = 6;
         break;
@@ -152,12 +160,16 @@ void Control_Navigator::switchTab(int index)
     // show view tab
     if (this->viewWindow)
     {
-        this->viewWindow->setPageIndex(targetPageIndex);
+        < < < < < < < < < Temporary merge branch 1 this->viewWindow->setPageIndex(index);
         // hide sub menu in schedule each switch tap
         if (index != 4)
             this->viewWindow->getSideBar()->hideSubMenuInSchedule();
-        // put pointer of side bar follow index
-        this->viewWindow->getSideBar()->updateButtonStyles(index);
+        == == == == =
+                        this->viewWindow->setPageIndex(targetPageIndex); // <-- Dùng targetPageIndex ở đây
+        >>>>>>>>> Temporary merge branch 2
+                  // put pointer of side bar follow index
+                  this->viewWindow->getSideBar()
+                      ->updateButtonStyles(index);
     }
 }
 

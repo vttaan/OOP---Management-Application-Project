@@ -14,6 +14,8 @@ class Schedule_Model
 private:
     QList<QList<Shift *>> shiftList{7}; // 7 days
     int numberOfShift;
+    QList<User *> currentWeeklyUsers;
+    QList<Shift *> draftShifts;
 
     QList<User *> currentWeeklyUsers;
 
@@ -36,6 +38,8 @@ public:
     QMap<int, QList<QString>> getWeeklySummaryStrings() const;
 
     QStringList generateSchedule();
+    bool saveDraftShiftsToDatabase();
+    void clearDrafts() { draftShifts.clear(); }
 
     ~Schedule_Model();
 };

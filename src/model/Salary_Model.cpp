@@ -38,7 +38,7 @@ SalaryData Salary_Model::getSalarySummary(User* user, int month, int year)
         }
         data.normalSalary = data.normalHours * user->getSalary();
         data.holidaySalary = data.holidayHours * (user->getSalary() * 2);
-        data.penalty = PENALTY;
+        data.penalty = 0; // Fix: Khong bi hardcode phat 500k nua
         data.totalSalary = data.normalSalary + data.holidaySalary - data.penalty;
     }
     return data;
@@ -53,7 +53,7 @@ QMap<QString, int> Salary_Model::getNormalDaysData(User* user, int month, int ye
 
     QDate startDate(year, month, 1);
     QDate endDate = QDate(year, month + 1, 1).addDays(-1);
-    if (endDate > QDate::currentDate()) endDate = QDate::currentDate();
+    // if (endDate > QDate::currentDate()) endDate = QDate::currentDate(); // Fix: Allow viewing future shifts in the month
 
     //qDebug() << "id: " << user->getIdEmployee();
 
@@ -84,7 +84,7 @@ QMap<QString, int> Salary_Model::getHolidayDaysData(User* user, int month, int y
 
     QDate startDate(year, month, 1);
     QDate endDate = QDate(year, month + 1, 1).addDays(-1);
-    if (endDate > QDate::currentDate()) endDate = QDate::currentDate();
+    // if (endDate > QDate::currentDate()) endDate = QDate::currentDate(); // Fix: Allow viewing future shifts in the month
 
     //qDebug() << "id: " << user->getIdEmployee();
 
