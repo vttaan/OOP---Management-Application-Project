@@ -120,13 +120,14 @@ void Control_Navigator::switchTab(int index)
         break;
 
     case 4:
-        < < < < < < < < < Temporary merge branch 1 if (currentSession->checkPermission("Staff"))
-        {
-            this->scheduleController->setEmployeeId(currentSession->getCurrentUser()->getIdEmployee());
-            this->scheduleController->load();
-        }
-    == == == == =
-                    case 6:
+
+
+    case 5:
+        this->viewScheduleController->setEmployeeId(currentSession->getCurrentUser()->getIdEmployee());
+        this->viewScheduleController->load();
+        targetPageIndex = 5; // ViewSchedule_View for viewing schedule
+        break;
+    case 6:
         if (currentSession && currentSession->getCurrentUser())
         {
             this->scheduleController->setEmployeeId(currentSession->getCurrentUser()->getIdEmployee());
@@ -134,21 +135,11 @@ void Control_Navigator::switchTab(int index)
         }
         targetPageIndex = 4; // Dùng chung trang Schedule_View cho Đăng ký (nhân viên) và Xếp lịch (quản lý)
         break;
-
-    case 5:
-        this->viewScheduleController->setEmployeeId(currentSession->getCurrentUser()->getIdEmployee());
-        this->viewScheduleController->load();
-        targetPageIndex = 5; // ViewSchedule_View for viewing schedule
-        break;
-
     case 7:
     case 8:
         this->salaryController->init();
         targetPageIndex = 6;
         break;
-
-    case 8:
-        // Xem lịch làm - Chưa có controller, chỉ chuyển UI
     case 9:
         // this->settingsController->init();
         break;
@@ -160,16 +151,12 @@ void Control_Navigator::switchTab(int index)
     // show view tab
     if (this->viewWindow)
     {
-        < < < < < < < < < Temporary merge branch 1 this->viewWindow->setPageIndex(index);
+        this->viewWindow->setPageIndex(targetPageIndex); // <-- Dùng targetPageIndex ở đây
         // hide sub menu in schedule each switch tap
         if (index != 4)
             this->viewWindow->getSideBar()->hideSubMenuInSchedule();
-        == == == == =
-                        this->viewWindow->setPageIndex(targetPageIndex); // <-- Dùng targetPageIndex ở đây
-        >>>>>>>>> Temporary merge branch 2
-                  // put pointer of side bar follow index
-                  this->viewWindow->getSideBar()
-                      ->updateButtonStyles(index);
+        // put pointer of side bar follow index
+        this->viewWindow->getSideBar()->updateButtonStyles(index);
     }
 }
 

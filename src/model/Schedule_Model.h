@@ -17,8 +17,6 @@ private:
     QList<User *> currentWeeklyUsers;
     QList<Shift *> draftShifts;
 
-    QList<User *> currentWeeklyUsers;
-
     QVector<Shift *> fetchPendingShifts(const QDate &weekStart, const QDate &weekEnd);
     // Lấy tổng số phút đã làm của từng nhân viên
     QMap<User *, int> fetchAllEmployeeInfos(const QDate &weekStart);

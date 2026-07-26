@@ -406,18 +406,26 @@ bool Employee_Model::rabinKarp(QString pattern, QString contentSearch)
 QList<User *> Employee_Model::filterInEmployee(QList<User *> inputList, QList<QString> contentFilter)
 {
   QList<User *> listOfFilter;
+  
+  QStringList roles;
+  QStringList genders;
+  
+  for (const QString &s : contentFilter) {
+      if (s == "Manager" || s == "Staff" || s == "Admin") {
+          roles.append(s);
+      } else {
+          genders.append(s);
+      }
+  }
+
   for (int i = 0; i < inputList.size(); i++)
   {
-    int cnt = 0;
-    for (const QString &s : contentFilter)
-    {
-      if (inputList[i]->getRole() == s)
-        cnt++;
-      else if (inputList[i]->getGender() == s)
-        cnt++;
-    }
-    if (cnt == contentFilter.size())
-      listOfFilter.push_back(inputList[i]);
+      bool roleMatch = roles.isEmpty() || roles.contains(inputList[i]->getRole());
+      bool genderMatch = genders.isEmpty() || genders.contains(inputList[i]->getGender());
+      
+      if (roleMatch && genderMatch) {
+          listOfFilter.push_back(inputList[i]);
+      }
   }
   return listOfFilter;
 }

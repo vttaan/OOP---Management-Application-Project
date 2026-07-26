@@ -387,8 +387,6 @@ void EmployeesWidget::updateMetricCards()
 
 void EmployeesWidget::renderTable(const QList<User *> &employees)
 {
-  QStringList avatarColors = {"#3B82F6", "#10B981", "#F59E0B", "#EF4444",
-                              "#8B5CF6", "#6366F1", "#14B8A6"};
 
   employeesTable->clearContents();
   employeesTable->setRowCount(employees.size());
@@ -415,8 +413,7 @@ void EmployeesWidget::renderTable(const QList<User *> &employees)
     User *emp = employees[row];
     employeesTable->setRowHeight(row, 50);
 
-    QString colorHex = avatarColors[row % avatarColors.size()];
-    QString initials = emp->getName().left(2).toUpper();
+    QString avatarPath = emp->getAvatarPath();
 
     // Col 0 — ID
     QTableWidgetItem *idItem =
@@ -434,7 +431,7 @@ void EmployeesWidget::renderTable(const QList<User *> &employees)
     QHBoxLayout *nameLayout = new QHBoxLayout(nameWidget);
     nameLayout->setContentsMargins(4, 4, 8, 4);
     nameLayout->setSpacing(10);
-    nameLayout->addWidget(createAvatar(initials, colorHex));
+    nameLayout->addWidget(createAvatar(avatarPath));
     QLabel *nameLabel = new QLabel(emp->getName());
     nameLabel->setObjectName("empNameLabel");
     nameLabel->setFont(QFont("Segoe UI", 10, QFont::DemiBold));
@@ -625,19 +622,55 @@ void EmployeesWidget::handleAddEmployee() { emit requestAddEmployee(); }
 // Widget Factories
 // ============================================================
 
-QLabel *EmployeesWidget::createAvatar(const QString &initials,
-                                      const QString &bgColor)
+QLabel *EmployeesWidget::createAvatar(const QString &avatarPath)
 {
-  QLabel *avatar = new QLabel(initials);
+  const int size = 32;
+
+  // Resolve the absolute file path (avatars are stored relative to resources/avatars/)
+  QPixmap avatarPixmap;
+  if (!avatarPath.isEmpty()) {
+      // Try Qt resource path first (starts with ":")
+      if (avatarPath.startsWith(":/")) {
+          avatarPixmap.load(avatarPath);
+      } else {
+          // Build path the same way sidebar_widget does
+          QDir appDir(QCoreApplication::applicationDirPath());
+          appDir.cdUp(); // build
+          appDir.cdUp(); // project root
+          QString fullPath = appDir.filePath("resources/avatars/") + avatarPath;
+          if (QFile::exists(fullPath))
+              avatarPixmap.load(fullPath);
+      }
+  }
+
+  // Fall back to the bundled default avatar
+  if (avatarPixmap.isNull())
+      avatarPixmap.load(":/images/avatarSample.png");
+
+  // Scale to fill the target square, then clip to a circle with QPainter
+  QPixmap scaled = avatarPixmap.scaled(size, size, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+
+  QPixmap rounded(size, size);
+  rounded.fill(Qt::transparent);
+
+  QPainter painter(&rounded);
+  painter.setRenderHint(QPainter::Antialiasing, true);
+  painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
+
+  QPainterPath path;
+  path.addRoundedRect(0, 0, size, size, size / 2, size / 2);
+  painter.setClipPath(path);
+
+  int xOffset = (size - scaled.width()) / 2;
+  int yOffset = (size - scaled.height()) / 2;
+  painter.drawPixmap(xOffset, yOffset, scaled);
+  painter.end();
+
+  QLabel *avatar = new QLabel();
   avatar->setObjectName("empAvatar");
-  avatar->setFixedSize(32, 32);
+  avatar->setFixedSize(size, size);
   avatar->setAlignment(Qt::AlignCenter);
-  avatar->setStyleSheet(QString("background-color: %1;"
-                                "color: #FFFFFF;"
-                                "border-radius: 16px;"
-                                "font-size: 11px;"
-                                "font-weight: bold;")
-                            .arg(bgColor));
+  avatar->setPixmap(rounded);
   return avatar;
 }
 

@@ -60,7 +60,7 @@ private:
     void renderTable(const QList<User *> &employees);
 
     // --- Widget Factories ---
-    QLabel      *createAvatar(const QString &initials, const QString &bgColor);
+    QLabel      *createAvatar(const QString &avatarPath);
     QFrame      *createMetricCard(const QString &iconText,
                                   const QString &iconBg,
                                   const QString &iconColor,
