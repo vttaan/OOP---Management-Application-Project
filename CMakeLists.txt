@@ -41,7 +41,6 @@ set(PROJECT_SOURCES
         src/utils/Database.cpp
         src/utils/SessionManage.cpp
         src/utils/Security.cpp
-        src/utils/Optimizer.cpp
 
     # file in Model
         # HEADER
