@@ -57,7 +57,9 @@ void Dashboard_Control::loadEmployeeCards(const QList<User *> &list){
     }
     for(User*u:list){
         EmployeeCard*card=new EmployeeCard();
-        card->setData(u->getAvatarPath(),u->getName(),u->getRole(),"",u->getPhoneNum());
+        QString fakeEmail = QString("nv%1@congty.com").arg(u->getIdEmployee());
+        card->setData(u->getAvatarPath(),u->getName(),u->getRole(),fakeEmail,u->getPhoneNum(),
+                      QString::number(u->getIdEmployee()), u->getDOB(), u->getGender());
         card->setStatus(workingIds.contains(u->getIdEmployee()));
         view->addEmployeeCard(card);
     }

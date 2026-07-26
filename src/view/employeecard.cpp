@@ -9,12 +9,16 @@ EmployeeCard::EmployeeCard(QWidget *parent)
 EmployeeCard::~EmployeeCard() { delete ui; }
 void EmployeeCard::setData(const QString& avatarPath, const QString& name,
                            const QString& role, const QString& email,
-                           const QString& phone)
+                           const QString& phone, const QString& id, 
+                           const QString& dob, const QString& gender)
 {
     ui->lblName->setText(name);
     ui->lblRole->setText(role);
     ui->lblEmail->setText("✉  " + email);
     ui->lblPhone->setText("📞  " + phone);
+    ui->lblID->setText("🆔  Mã số: " + id);
+    ui->lblDOB->setText("🎂  Ngày sinh: " + dob);
+    ui->lblGender->setText("🚻  Giới tính: " + gender);
     QPixmap pix(avatarPath);
     if (!pix.isNull()) {
         ui->lblAvatar->setPixmap(
@@ -29,7 +33,7 @@ void EmployeeCard::setData(const QString& avatarPath, const QString& name,
         ui->lblAvatar->setText(initial);
         ui->lblAvatar->setStyleSheet(
             QString("background-color: %1; color: white; "
-                    "border-radius: 40px; font-size: 28px; font-weight: bold;")
+                    "border-radius: 30px; font-size: 24px; font-weight: bold;")
                 .arg(bgColor));
     }
 }
