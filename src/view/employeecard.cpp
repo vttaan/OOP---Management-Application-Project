@@ -1,37 +1,49 @@
 #include "global.h"
 #include "employeecard.h"
 #include "ui_employeecard.h"
-
-EmployeeCard::EmployeeCard(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::EmployeeCard)
+EmployeeCard::EmployeeCard(QWidget *parent)
+    : QWidget(parent), ui(new Ui::EmployeeCard)
 {
     ui->setupUi(this);
 }
-
-EmployeeCard::~EmployeeCard()
-{
-    delete ui;
-}
-void EmployeeCard::setData(QString avatarPath, QString name, QString role, QString email, QString phone)
+EmployeeCard::~EmployeeCard() { delete ui; }
+void EmployeeCard::setData(const QString& avatarPath, const QString& name,
+                           const QString& role, const QString& email,
+                           const QString& phone)
 {
     ui->lblName->setText(name);
     ui->lblRole->setText(role);
-    ui->lblEmail->setText(email);
-    ui->lblPhone->setText(phone);
-
-    ui->lblAvatar->setText("");
-
-    QString css = QString("background-image: url(%1); "
-                          "background-position: center; "
-                          "background-repeat: no-repeat; "
-                          "border-radius: 40px;").arg(avatarPath);
-    ui->lblAvatar->setStyleSheet(css);
-    QPixmap originalPixmap(avatarPath);
-
-    QPixmap scaledPixmap = originalPixmap.scaled(ui->lblAvatar->size(),
-                                                 Qt::KeepAspectRatioByExpanding,
-                                                 Qt::SmoothTransformation);
-
-    ui->lblAvatar->setPixmap(scaledPixmap);
+    ui->lblEmail->setText("✉  " + email);
+    ui->lblPhone->setText("📞  " + phone);
+    QPixmap pix(avatarPath);
+    if (!pix.isNull()) {
+        ui->lblAvatar->setPixmap(
+            pix.scaled(ui->lblAvatar->size(),
+                       Qt::KeepAspectRatioByExpanding,
+                       Qt::SmoothTransformation));
+        ui->lblAvatar->setText("");
+    } else {
+        QString initial = name.isEmpty() ? "?" : QString(name[0]).toUpper();
+        QString bgColor = (role.contains("Manager", Qt::CaseInsensitive))
+                              ? "#9333ea" : "#1a73e8";
+        ui->lblAvatar->setText(initial);
+        ui->lblAvatar->setStyleSheet(
+            QString("background-color: %1; color: white; "
+                    "border-radius: 40px; font-size: 28px; font-weight: bold;")
+                .arg(bgColor));
+    }
+}
+void EmployeeCard::setStatus(bool isWorking)
+{
+    if (isWorking) {
+        ui->btnStatus->setText("● Đang làm việc");
+        ui->btnStatus->setStyleSheet(
+            "QPushButton { background-color: #e6f4ea; color: #1e8e3e; "
+            "border: none; border-radius: 14px; padding: 2px 10px; }");
+    } else {
+        ui->btnStatus->setText("● Đang nghỉ");
+        ui->btnStatus->setStyleSheet(
+            "QPushButton { background-color: #fdecea; color: #c5221f; "
+            "border: none; border-radius: 14px; padding: 2px 10px; }");
+    }
 }

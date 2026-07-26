@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>Login_View</string>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout" stretch="3,5">
+  <layout class="QHBoxLayout" name="horizontalLayout" stretch="2,5">
    <property name="spacing">
     <number>0</number>
    </property>
@@ -31,54 +31,114 @@
    </property>
    <item>
     <widget class="QFrame" name="frmLoginLeft">
+     <property name="styleSheet">
+      <string notr="true">QFrame#frmLoginLeft {
+    background-color: #f2f7fc;
+    border: none;
+}
+QLabel {
+    font-size: 15px;
+    color: #4a5568;
+    font-weight: 500;
+}
+QLabel#lblTitle {
+    font-size: 32px;
+    font-weight: 900;
+    color: #1a73e8;
+    margin-bottom: 10px;
+}
+QLineEdit {
+    min-height: 48px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0 15px;
+    font-size: 15px;
+    background-color: #ffffff;
+    color: #2d3748;
+}
+QLineEdit:hover {
+    border: 2px solid #cbd5e0;
+}
+QLineEdit:focus {
+    border: 2px solid #1a73e8;
+    background-color: #ffffff;
+}
+QPushButton#btnLogin {
+    min-height: 45px;
+    background-color: #1a73e8;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 6px;
+    border: none;
+    margin-top: 10px;
+}
+QPushButton#btnLogin:hover {
+    background-color: #1557b0;
+}</string>
+     </property>
      <property name="frameShape">
       <enum>QFrame::Shape::StyledPanel</enum>
      </property>
      <property name="frameShadow">
       <enum>QFrame::Shadow::Raised</enum>
      </property>
-     <layout class="QGridLayout" name="gridLayout">
+     <layout class="QGridLayout" name="gridLayout" columnstretch="0,0">
       <property name="spacing">
        <number>20</number>
       </property>
-      <item row="1" column="0" colspan="2">
+      <item row="3" column="0" colspan="2">
+       <widget class="QLabel" name="lblUsername">
+        <property name="text">
+         <string>Tên đăng nhập</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="0" colspan="2">
+       <widget class="QLineEdit" name="txtLoginPassword">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="placeholderText">
+         <string>Mời nhập mật khẩu</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0" colspan="2">
+       <widget class="QLineEdit" name="txtLoginUsername">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="placeholderText">
+         <string>Mời nhập tên đăng nhập</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="0" colspan="2">
+       <widget class="QPushButton" name="btnLogin">
+        <property name="text">
+         <string>Đăng nhập</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0" colspan="2">
        <widget class="QLabel" name="lblTitle">
         <property name="text">
-         <string>HCMUS</string>
+         <string>Xin chào</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignmentFlag::AlignCenter</set>
         </property>
        </widget>
       </item>
-      <item row="2" column="0" colspan="2">
-       <widget class="QLabel" name="lblUsername">
-        <property name="text">
-         <string>Username</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0" colspan="2">
+      <item row="5" column="0" colspan="2">
        <widget class="QLabel" name="lblPassword">
         <property name="text">
-         <string>Password</string>
+         <string>Mật Khẩu</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
-       <spacer name="verticalSpacer">
-        <property name="orientation">
-         <enum>Qt::Orientation::Vertical</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>20</width>
-          <height>107</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item row="7" column="1">
+      <item row="8" column="1">
        <spacer name="verticalSpacer_2">
         <property name="orientation">
          <enum>Qt::Orientation::Vertical</enum>
@@ -91,26 +151,21 @@
         </property>
        </spacer>
       </item>
-      <item row="5" column="0" colspan="2">
-       <widget class="QLineEdit" name="txtLoginPassword">
-        <property name="placeholderText">
-         <string>Enter your password</string>
+      <item row="1" column="0">
+       <spacer name="verticalSpacer">
+        <property name="orientation">
+         <enum>Qt::Orientation::Vertical</enum>
         </property>
-       </widget>
-      </item>
-      <item row="3" column="0" colspan="2">
-       <widget class="QLineEdit" name="txtLoginUsername">
-        <property name="placeholderText">
-         <string>Enter your username</string>
+        <property name="sizeType">
+         <enum>QSizePolicy::Policy::Expanding</enum>
         </property>
-       </widget>
-      </item>
-      <item row="6" column="0" colspan="2">
-       <widget class="QPushButton" name="btnLogin">
-        <property name="text">
-         <string>Login</string>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>10</width>
+          <height>10</height>
+         </size>
         </property>
-       </widget>
+       </spacer>
       </item>
      </layout>
     </widget>

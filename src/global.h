@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <QApplication>
 #include <QByteArray>
@@ -53,4 +53,4 @@
 #include <algorithm>
 #include <cmath>
 #include <functional>
-
+#include <QGraphicsDropShadowEffect>

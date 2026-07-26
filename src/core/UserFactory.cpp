@@ -2,16 +2,17 @@
 #include "core/UserFactory.h"
 
 User *UserFactory::createContainsUser(QString r, short int idEmp, QString ava, QString idCit, QString n, QString d, QString add,
-                                      QString phone, QString gender)
+                                      QString phone, QString gender, int baseSalary)
 {
-    if (r == "Manage")
-        return new Manager(r, idEmp, ava, idCit, n, d, add, phone, gender);
+    if (r == "Manager")
+        return new Manager(r, idEmp, ava, idCit, n, d, add, phone, gender, baseSalary);
     else if (r == "Staff")
-        return new Staff(r, idEmp, ava, idCit, n, d, add, phone, gender);
+        return new Staff(r, idEmp, ava, idCit, n, d, add, phone, gender, baseSalary);
     return nullptr;
 }
 
-User *UserFactory::createNewUser(QString r, QString ava, QString idCit, QString n, QString d, QString add, QString phone, QString gender)
+User *UserFactory::createNewUser(QString r, QString ava, QString idCit, QString n
+                                 , QString d, QString add, QString phone, QString gender, int baseSalary)
 {
     // Get the MAX idEmployee in the table to create a unique new ID
     QSqlQuery query;
@@ -29,10 +30,10 @@ User *UserFactory::createNewUser(QString r, QString ava, QString idCit, QString 
         // qDebug() << "createNewUser: could not fetch MAX id —" << query.lastError().text();
     }
 
-    if (r == "Manage")
-        return new Manager(r, newId, ava, idCit, n, d, add, phone, gender);
+    if (r == "Manager")
+        return new Manager(r, newId, ava, idCit, n, d, add, phone, gender, baseSalary);
     else if (r == "Staff")
-        return new Staff(r, newId, ava, idCit, n, d, add, phone, gender);
+        return new Staff(r, newId, ava, idCit, n, d, add, phone, gender, baseSalary);
 
     return nullptr;
 }

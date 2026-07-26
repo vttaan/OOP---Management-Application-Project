@@ -24,6 +24,7 @@ set(PROJECT_SOURCES
         src/core/Manager.h
         src/core/Optimizer.h
         src/core/UserFactory.h
+        src/core/Optimizer.h
         # CPP
         src/core/User.cpp
         src/core/Staff.cpp
@@ -36,6 +37,7 @@ set(PROJECT_SOURCES
         src/utils/Database.h
         src/utils/SessionManage.h
         src/utils/Security.h
+        src/utils/Config.h
         # CPP
         src/utils/Database.cpp
         src/utils/SessionManage.cpp
@@ -49,12 +51,14 @@ set(PROJECT_SOURCES
         src/model/Employee_Model.h
         src/model/Profile_Model.h
         src/model/validator.h
+        src/model/Salary_Model.h
         # CPP
         src/model/Login_Model.cpp
         src/model/Change_password.cpp
         src/model/Employee_Model.cpp
         src/model/Profile_Model.cpp
         src/model/validator.cpp
+        src/model/Salary_Model.cpp
 
     # file in Control
         # HEADER
@@ -63,12 +67,14 @@ set(PROJECT_SOURCES
         src/control/Control_Navigator.h
         src/control/Dashboard_Control.h
         src/control/Employee_Control.h
+        src/control/Salary_Control.h
         # CPP
         src/control/Login_Control.cpp
         src/control/Profile_Control.cpp
         src/control/Control_Navigator.cpp
         src/control/Dashboard_Control.cpp
         src/control/Employee_Control.cpp
+        src/control/Salary_Control.cpp
 
     # file in View
         # HEADER
@@ -84,6 +90,7 @@ set(PROJECT_SOURCES
         src/view/EditEmployee_Dialog.h
         src/view/Schedule_View.h
         src/view/sidebar_widget.h
+        src/view/Salary_View.h
         # CPP
         src/view/Login_View.cpp
         src/view/Dashboard_View.cpp
@@ -97,6 +104,7 @@ set(PROJECT_SOURCES
         src/view/EditEmployee_Dialog.cpp
         src/view/Schedule_View.cpp
         src/view/sidebar_widget.cpp
+        src/view/Salary_View.cpp
         # UI
         src/view/Login_View.ui
         src/view/Dashboard_View.ui
@@ -106,6 +114,7 @@ set(PROJECT_SOURCES
         src/view/employeecard.ui
         src/view/Schedule_View.ui
         src/view/sidebar_widget.ui
+        src/view/Salary_View.ui
 )
 
 qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
@@ -127,6 +136,10 @@ qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
     src/view/overview_view.h src/view/overview_view.cpp src/view/overview_view.ui
     src/control/overview_control.h src/control/overview_control.cpp
     src/model/Validator.h src/model/Validator.cpp
+    src/model/Salary_Model.h src/model/Salary_Model.cpp
+    src/control/Salary_Control.h src/control/Salary_Control.cpp
+    src/view/Salary_View.h src/view/Salary_View.cpp src/view/Salary_View.ui
+    #src/utils/Config.h
     src/core/Optimizer.h src/core/Optimizer.cpp)
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core Qt6::Widgets Qt6::Sql)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)

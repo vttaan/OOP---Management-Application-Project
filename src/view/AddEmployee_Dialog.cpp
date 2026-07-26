@@ -62,6 +62,7 @@ void AddEmployee_Dialog::setupUi()
     inpDob       = makeInput("YYYY-MM-DD");
     inpAddress   = makeInput("vd: 123 Lê Lợi, TP.HCM");
     inpCitizenId = makeInput("vd: 012345678901");
+    inpSalary    = makeInput("vd: 20000");
 
     cmbRole = new QComboBox();
     cmbRole->addItem("Nhân viên");
@@ -133,6 +134,7 @@ void AddEmployee_Dialog::setupUi()
     form->addRow(makeLabel("Ngày sinh"),        inpDob);
     form->addRow(makeLabel("Địa chỉ"),          inpAddress);
     form->addRow(makeLabel("CCCD / CMND *"),    inpCitizenId);
+    form->addRow(makeLabel("Lương(VNĐ) *"),          inpSalary);
 
     QLabel *lblAccount = new QLabel("— Thông tin tài khoản (Tự động cấp) —");
     lblAccount->setObjectName("lblAccount");
@@ -257,7 +259,7 @@ QString AddEmployee_Dialog::getName()       const { return inpName->text().trimm
 QString AddEmployee_Dialog::getRole()       const
 {
     QString vn = cmbRole->currentText();
-    if (vn == "Quản lý") return "Manage";
+    if (vn == "Quản lý") return "Manager";
     return "Staff";
 }
 
@@ -267,6 +269,7 @@ QString AddEmployee_Dialog::getDob()        const { return inpDob->text().trimme
 QString AddEmployee_Dialog::getAddress()    const { return inpAddress->text().trimmed(); }
 QString AddEmployee_Dialog::getCitizenId()  const { return inpCitizenId->text().trimmed(); }
 QString AddEmployee_Dialog::getAvatarPath() const { return m_avatarPath; }
+int AddEmployee_Dialog::getSalary() const { return inpSalary->text().trimmed().toInt(); }
 
 // Auto-generated credentials — username and password from real input fields
 QString AddEmployee_Dialog::getUsername()   const { return inpUsername->text().trimmed(); }

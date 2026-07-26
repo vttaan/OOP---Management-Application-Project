@@ -68,6 +68,11 @@ void Schedule_Model::getSchedule(short int id)
 // only then the database will add approved shifts
 
 // flow in control: select shift -> model check overlapping -> return preview -> submit -> system handle -> add shift to database
+
+
+// temporary solution, might fix later o_O
+QList<QString> holidayList = {"01/01", "30/04", "01/05", "02/09"};
+
 Shift *Schedule_Model::handleAddShiftSubmission(short int id, QDate date, QTime start, QTime end)
 {
     // checkOverlapping returns true when the slot is FREE (no overlap), false when blocked
@@ -85,13 +90,17 @@ Shift *Schedule_Model::handleAddShiftSubmission(short int id, QDate date, QTime 
     }
     QSqlQuery query(openData);
     query.prepare(
-        "INSERT INTO SHIFT (idEmployee, workDate, startTime, endTime, status) "
-        "VALUES (:id,:date,:start,:end,:status)");
+        "INSERT INTO SHIFT (idEmployee, workDate, startTime, endTime, status, isHoliday) "
+        "VALUES (:id,:date,:start,:end,:status,:isHoliday)");
     query.bindValue(":id", id);
     query.bindValue(":date", date);
     query.bindValue(":start", start);
     query.bindValue(":end", end);
     query.bindValue(":status", 0);
+    query.bindValue(":isHoliday", 0);
+    if (holidayList.contains(QString::number(date.day()) + "/" + QString::number(date.month()))) {
+        query.bindValue("isHoliday", 1);
+    }
     if (!query.exec())
     {
         qDebug() << "Error adding shift" << query.lastError().text();

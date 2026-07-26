@@ -540,7 +540,7 @@ void EmployeesWidget::emitUpdateRequest()
   if (chkStaff->isChecked())
     contentFilter << "Staff";
   if (chkManager->isChecked())
-    contentFilter << "Manage";
+    contentFilter << "Manager";
   if (chkAdmin->isChecked())
     contentFilter << "Admin";
   if (chkMale->isChecked())
@@ -736,7 +736,7 @@ QLabel *EmployeesWidget::createRoleBadge(const QString &role)
 {
   // Display Vietnamese label but use the English role string for logic checks
   QString displayRole;
-  if (role == "Manage")
+  if (role == "Manager")
     displayRole = "Quản lý";
   else if (role == "Admin")
     displayRole = "Quản trị viên";
@@ -750,7 +750,7 @@ QLabel *EmployeesWidget::createRoleBadge(const QString &role)
   // because the column itself is now fixed at 140px
 
   QString style;
-  if (role == "Manage") // Fixed: was "Manager" — internal value is "Manage"
+  if (role == "Manager")
     style = "background-color:#EDE9FE;color:#6D28D9;border-radius:12px;"
             "font-size:11px;font-weight:bold;padding:2px 10px;";
   else if (role == "Admin")

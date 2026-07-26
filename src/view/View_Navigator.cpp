@@ -17,6 +17,7 @@ View_Navigator::View_Navigator(Control_Navigator* controller, QWidget *parent)
     , profilePage(new Profile_View(controller->profileController))
     , employeePage(new EmployeesWidget())
     , schedulePage(new Schedule_View())
+    , salaryPage(new Salary_View())
 {
     ui->setupUi(this);
 
@@ -34,6 +35,7 @@ View_Navigator::View_Navigator(Control_Navigator* controller, QWidget *parent)
     controller->dashboardController->setView(dashboardPage);
     controller->employeeController->setView(employeePage);
     controller->scheduleController->setView(schedulePage);
+    controller->salaryController->setView(salaryPage);
     // add pages
     // index note for each page
     ui->stackedWidget->addWidget(loginPage); // index 0
@@ -41,6 +43,7 @@ View_Navigator::View_Navigator(Control_Navigator* controller, QWidget *parent)
     ui->stackedWidget->addWidget(profilePage); // index 2
     ui->stackedWidget->addWidget(employeePage); // index 3
     ui->stackedWidget->addWidget(schedulePage); // index 4
+    ui->stackedWidget->addWidget(salaryPage); //index 5
     //ui->stackedWidget->addWidget(schedulePage);
     // default : login page
     ui->stackedWidget->setCurrentIndex(0);
@@ -65,7 +68,13 @@ Ui::View_Navigator* View_Navigator::getUI() { return ui; }
 
 void View_Navigator::setPageIndex(int index) {
     if(ui && ui->stackedWidget) {
-        ui->stackedWidget->setCurrentIndex(index);
+        int stackedIndex = index;
+        if (index >= 4 && index <= 6) {
+            stackedIndex = 4; // Schedule page
+        } else if (index == 7) {
+            stackedIndex = 5; // Salary page
+        }
+        ui->stackedWidget->setCurrentIndex(stackedIndex);
         // login and profile can not show side bar
         if(index == 0 || index == 2) ui->widget->hide();
         else ui->widget->show();
