@@ -470,7 +470,7 @@ void EmployeesWidget::renderTable(const QList<User *> &employees)
     // Calculation logic placeholder — space reserved for actual formula
     QString suffix = isHourly ? "vnđ/h" : "vnđ/th";
     QString rateStr = QString("%1 %2")
-                          .arg(QString::number(emp->getSalary(), 'f', 0))
+                          .arg(QString::number(emp->getBaseSalary(), 'f', 0))
                           .arg(suffix);
     QTableWidgetItem *rateItem = new QTableWidgetItem(rateStr);
     rateItem->setForeground(QColor("#0F172A"));

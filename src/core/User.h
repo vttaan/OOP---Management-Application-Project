@@ -16,6 +16,7 @@ public:
     User(QString r, short int idEmp, QString ava, QString idCit, QString n, QString d, QString add, QString phone ,QString gender);
 	virtual ~User() = default;
 	virtual double getSalary() const = 0;
+    virtual double getBaseSalary() const = 0;
 	QString getRole() const;
 	short int getIdEmployee() const;
     QString getIdentityID() const;
