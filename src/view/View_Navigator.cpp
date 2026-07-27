@@ -52,7 +52,7 @@ View_Navigator::View_Navigator(Control_Navigator *controller, QWidget *parent)
     ui->stackedWidget->addWidget(viewSchedulePage); // index 5
     ui->stackedWidget->addWidget(salaryPage);       // index 6
     // default : login page
-    ui->stackedWidget->setCurrentIndex(0);
+    //ui->stackedWidget->setCurrentIndex(0);
 
     // Navigation is managed directly by Control_Navigator now.
 
@@ -74,20 +74,7 @@ void View_Navigator::setPageIndex(int index)
 {
     if (ui && ui->stackedWidget)
     {
-        int stackedIndex = index;
-        if (index >= 4 && index <= 6)
-        {
-            stackedIndex = 4; // Schedule page
-        }
-        else if (index == 7)
-        {
-            stackedIndex = 5; // ViewSchedule page
-        }
-        else if (index == 8 || index == 9)
-        {
-            stackedIndex = 6; // Salary page
-        }
-        ui->stackedWidget->setCurrentIndex(stackedIndex);
+        ui->stackedWidget->setCurrentIndex(index);
         // login and profile can not show side bar
         if (index == 0 || index == 2)
             ui->widget->hide();
