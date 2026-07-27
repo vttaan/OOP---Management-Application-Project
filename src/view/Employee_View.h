@@ -1,17 +1,17 @@
 #include "global.h"
-#ifndef EMPLOYEESWIDGET_H
-#define EMPLOYEESWIDGET_H
+#ifndef EMPLOYEE_VIEW_H
+#define EMPLOYEE_VIEW_H
 
 #include "model/Employee_Model.h"
 
-namespace Ui { class EmployeesWidget; }
+namespace Ui { class Employee_View; }
 
-class EmployeesWidget : public QWidget
+class Employee_View : public QWidget
 {
     Q_OBJECT
 public:
-    explicit EmployeesWidget(QWidget *parent = nullptr);
-    ~EmployeesWidget();
+    explicit Employee_View(QWidget *parent = nullptr);
+    ~Employee_View();
 
 signals:
     void backToDashboard();
@@ -48,7 +48,7 @@ private slots:
 
 private:
     // ---- ui pointer (owns all widgets declared in the .ui file) ----
-    Ui::EmployeesWidget *ui;
+    Ui::Employee_View *ui;
 
     void setupTableHeader();
     void setupConnections();
@@ -81,7 +81,7 @@ private:
     // Full unfiltered employee list (for metric card totals)
     QList<User *> m_allEmployees;
 
-    // --- Filter Dropdown (floating overlay, child of EmployeesWidget) ---
+    // --- Filter Dropdown (floating overlay, child of Employee_View) ---
     QFrame    *filterDropdown;
     QCheckBox *chkStaff;
     QCheckBox *chkManager;
@@ -90,11 +90,11 @@ private:
     QCheckBox *chkFemale;
     bool       m_filterOpen = false;
 
-    // --- Sort Dropdown (floating overlay, child of EmployeesWidget) ---
+    // --- Sort Dropdown (floating overlay, child of Employee_View) ---
     QFrame    *sortDropdown;
     bool       m_sortOpen  = false;
     QString    m_sortField;  // "" | "id" | "name"
     int        m_sortDir   = 0; // 0=none, 1=asc, -1=desc
 };
 
-#endif // EMPLOYEESWIDGET_H
+#endif // EMPLOYEE_VIEW_H

@@ -1,12 +1,12 @@
 #include "global.h"
-#include "employeeswidget.h"
-#include "ui_employeeswidget.h"
+#include "Employee_View.h"
+#include "ui_Employee_View.h"
 
 // ============================================================
 // Constructor / Destructor
 // ============================================================
 
-EmployeesWidget::EmployeesWidget(QWidget *parent) : QWidget(parent), ui(new Ui::EmployeesWidget)
+Employee_View::Employee_View(QWidget *parent) : QWidget(parent), ui(new Ui::Employee_View)
 {
   ui->setupUi(this);
 
@@ -37,7 +37,7 @@ EmployeesWidget::EmployeesWidget(QWidget *parent) : QWidget(parent), ui(new Ui::
   setupConnections();
 }
 
-EmployeesWidget::~EmployeesWidget()
+Employee_View::~Employee_View()
 {
   delete ui;
 }
@@ -46,7 +46,7 @@ EmployeesWidget::~EmployeesWidget()
 // Table Header Setup
 // ============================================================
 
-void EmployeesWidget::setupTableHeader()
+void Employee_View::setupTableHeader()
 {
   QHeaderView *hdr = ui->employeesTable->horizontalHeader();
 
@@ -75,7 +75,7 @@ void EmployeesWidget::setupTableHeader()
 // Build Filter Dropdown (floating child widget)
 // ============================================================
 
-void EmployeesWidget::buildFilterDropdown()
+void Employee_View::buildFilterDropdown()
 {
   filterDropdown = new QFrame(this);
   filterDropdown->setObjectName("filterDropdown");
@@ -122,7 +122,7 @@ void EmployeesWidget::buildFilterDropdown()
 // Build Sort Dropdown (floating child widget)
 // ============================================================
 
-void EmployeesWidget::buildSortDropdown()
+void Employee_View::buildSortDropdown()
 {
   sortDropdown = new QFrame(this);
   sortDropdown->setObjectName("sortDropdown");
@@ -172,42 +172,42 @@ void EmployeesWidget::buildSortDropdown()
 // Connections
 // ============================================================
 
-void EmployeesWidget::setupConnections()
+void Employee_View::setupConnections()
 {
   // Add button
   connect(ui->addEmployeeBtn, &QPushButton::clicked, this,
-          &EmployeesWidget::handleAddEmployee);
+          &Employee_View::handleAddEmployee);
 
   // Search bar — emit combined update when text changes
   connect(ui->searchRoster, &QLineEdit::textChanged, this,
-          &EmployeesWidget::emitUpdateRequest);
+          &Employee_View::emitUpdateRequest);
 
   // Filter dropdown toggle
   connect(ui->filterBtn, &QPushButton::clicked, this,
-          &EmployeesWidget::toggleFilterDropdown);
+          &Employee_View::toggleFilterDropdown);
 
   // Filter checkboxes — emit combined update on any change
   connect(chkStaff, &QCheckBox::checkStateChanged, this,
-          &EmployeesWidget::emitUpdateRequest);
+          &Employee_View::emitUpdateRequest);
   connect(chkManager, &QCheckBox::checkStateChanged, this,
-          &EmployeesWidget::emitUpdateRequest);
+          &Employee_View::emitUpdateRequest);
   connect(chkAdmin, &QCheckBox::checkStateChanged, this,
-          &EmployeesWidget::emitUpdateRequest);
+          &Employee_View::emitUpdateRequest);
   connect(chkMale, &QCheckBox::checkStateChanged, this,
-          &EmployeesWidget::emitUpdateRequest);
+          &Employee_View::emitUpdateRequest);
   connect(chkFemale, &QCheckBox::checkStateChanged, this,
-          &EmployeesWidget::emitUpdateRequest);
+          &Employee_View::emitUpdateRequest);
 
   // Sort dropdown toggle
   connect(ui->sortBtn, &QPushButton::clicked, this,
-          &EmployeesWidget::toggleSortDropdown);
+          &Employee_View::toggleSortDropdown);
 }
 
 // ============================================================
 // loadEmployees — called by Controller to update the table
 // ============================================================
 
-void EmployeesWidget::loadEmployees(const QList<User *> &employees)
+void Employee_View::loadEmployees(const QList<User *> &employees)
 {
   // The controller already applied filter→search→sort before calling us;
   // just render what we received.
@@ -218,7 +218,7 @@ void EmployeesWidget::loadEmployees(const QList<User *> &employees)
   updateMetricCards();
 }
 
-void EmployeesWidget::updateMetricCards()
+void Employee_View::updateMetricCards()
 {
   int total = m_allEmployees.size();
   // Since there is no status field in the model yet, all employees are
@@ -250,7 +250,7 @@ void EmployeesWidget::updateMetricCards()
   // Values left as placeholder; actual computation goes here in the future.
 }
 
-void EmployeesWidget::renderTable(const QList<User *> &employees)
+void Employee_View::renderTable(const QList<User *> &employees)
 {
   ui->employeesTable->clearContents();
   ui->employeesTable->setRowCount(employees.size());
@@ -379,12 +379,12 @@ void EmployeesWidget::renderTable(const QList<User *> &employees)
 // showError / showSuccess
 // ============================================================
 
-void EmployeesWidget::showError(const QString &msg)
+void Employee_View::showError(const QString &msg)
 {
   QMessageBox::critical(this, "Lỗi", msg);
 }
 
-void EmployeesWidget::showSuccess(const QString &msg)
+void Employee_View::showSuccess(const QString &msg)
 {
   QMessageBox::information(this, "Thành công", msg);
 }
@@ -393,7 +393,7 @@ void EmployeesWidget::showSuccess(const QString &msg)
 // emitUpdateRequest — collects all active criteria and signals the Controller
 // ============================================================
 
-void EmployeesWidget::emitUpdateRequest()
+void Employee_View::emitUpdateRequest()
 {
   QString searchText = ui->searchRoster->text();
 
@@ -420,7 +420,7 @@ void EmployeesWidget::emitUpdateRequest()
 // Filter / Sort Dropdown Toggles
 // ============================================================
 
-void EmployeesWidget::toggleFilterDropdown()
+void Employee_View::toggleFilterDropdown()
 {
   if (m_filterOpen)
   {
@@ -448,7 +448,7 @@ void EmployeesWidget::toggleFilterDropdown()
   }
 }
 
-void EmployeesWidget::toggleSortDropdown()
+void Employee_View::toggleSortDropdown()
 {
   if (m_sortOpen)
   {
@@ -478,13 +478,13 @@ void EmployeesWidget::toggleSortDropdown()
 // Slot — handleAddEmployee
 // ============================================================
 
-void EmployeesWidget::handleAddEmployee() { emit requestAddEmployee(); }
+void Employee_View::handleAddEmployee() { emit requestAddEmployee(); }
 
 // ============================================================
 // Widget Factories
 // ============================================================
 
-QLabel *EmployeesWidget::createAvatar(const QString &avatarPath)
+QLabel *Employee_View::createAvatar(const QString &avatarPath)
 {
   const int size = 32;
 
@@ -536,7 +536,7 @@ QLabel *EmployeesWidget::createAvatar(const QString &avatarPath)
   return avatar;
 }
 
-QFrame *EmployeesWidget::createMetricCard(
+QFrame *Employee_View::createMetricCard(
     const QString &iconText, const QString &iconBg, const QString &iconColor,
     const QString &title, const QString &value, const QString &subtitle,
     const QString &badge, const QString &badgeColor)
@@ -605,7 +605,7 @@ QFrame *EmployeesWidget::createMetricCard(
   return card;
 }
 
-QLabel *EmployeesWidget::createStatusBadge(const QString &status)
+QLabel *Employee_View::createStatusBadge(const QString &status)
 {
   QLabel *badge = new QLabel(status);
   badge->setAlignment(Qt::AlignCenter);
@@ -627,7 +627,7 @@ QLabel *EmployeesWidget::createStatusBadge(const QString &status)
   return badge;
 }
 
-QLabel *EmployeesWidget::createRoleBadge(const QString &role)
+QLabel *Employee_View::createRoleBadge(const QString &role)
 {
   // Display Vietnamese label but use the English role string for logic checks
   QString displayRole;
@@ -664,7 +664,7 @@ QLabel *EmployeesWidget::createRoleBadge(const QString &role)
   return badge;
 }
 
-QLabel *EmployeesWidget::createPayTypeBadge(const QString &payType)
+QLabel *Employee_View::createPayTypeBadge(const QString &payType)
 {
   QLabel *badge = new QLabel(payType);
   badge->setAlignment(Qt::AlignCenter);
@@ -684,7 +684,7 @@ QLabel *EmployeesWidget::createPayTypeBadge(const QString &payType)
   return badge;
 }
 
-QPushButton *EmployeesWidget::createActionButton(const QString &text,
+QPushButton *Employee_View::createActionButton(const QString &text,
                                                  const QString &tooltip)
 {
   QPushButton *btn = new QPushButton();

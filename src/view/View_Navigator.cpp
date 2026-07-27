@@ -5,12 +5,12 @@
 #include "Login_View.h"
 #include "Dashboard_View.h"
 #include "Profile_View.h"
-#include "view/employeeswidget.h"
+#include "view/Employee_View.h"
 #include "view/Profile_View.h"
 #include "view/viewschedule_view.h"
 
 View_Navigator::View_Navigator(Control_Navigator *controller, QWidget *parent)
-    : QMainWindow(parent), ui(new Ui::View_Navigator), controller(controller), loginPage(new Login_View(controller->loginController)), dashboardPage(new Dashboard_View()), profilePage(new Profile_View(controller->profileController)), employeePage(new EmployeesWidget()), schedulePage(new Schedule_View()), viewSchedulePage(new ViewSchedule_View()), salaryPage(new Salary_View())
+    : QMainWindow(parent), ui(new Ui::View_Navigator), controller(controller), loginPage(new Login_View(controller->loginController)), dashboardPage(new Dashboard_View()), profilePage(new Profile_View(controller->profileController)), employeePage(new Employee_View()), schedulePage(new Schedule_View()), viewSchedulePage(new ViewSchedule_View()), salaryPage(new Salary_View())
 {
     ui->setupUi(this);
 

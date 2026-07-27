@@ -29,7 +29,7 @@ public:
     Login_View *loginPage = nullptr;
     Dashboard_View *dashboardPage = nullptr;
     Profile_View *profilePage = nullptr;
-    EmployeesWidget *employeePage = nullptr;
+    Employee_View *employeePage = nullptr;
     Schedule_View *schedulePage = nullptr;
     Salary_View *salaryPage = nullptr;
     Sidebar_Widget *sidebar = nullptr;

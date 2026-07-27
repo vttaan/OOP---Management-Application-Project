@@ -1,6 +1,6 @@
 #include "global.h"
 #include "Employee_Control.h"
-#include "view/employeeswidget.h"
+#include "view/Employee_View.h"
 #include "view/AddEmployee_Dialog.h"
 #include "view/EditEmployee_Dialog.h"
 #include "model/Validator.h"
@@ -11,26 +11,26 @@ Employee_Control::Employee_Control(QObject *parent)
 
 Employee_Control::~Employee_Control() {delete m_model;}
 
-void Employee_Control::setView(EmployeesWidget *view)
+void Employee_Control::setView(Employee_View *view)
 {
     m_view = view;
     if (!m_view) return;
 
-    connect(m_view, &EmployeesWidget::requestAddEmployee,
+    connect(m_view, &Employee_View::requestAddEmployee,
             this,   &Employee_Control::handleAddEmployee);
 
-    connect(m_view, &EmployeesWidget::requestEditEmployee,
+    connect(m_view, &Employee_View::requestEditEmployee,
             this,   &Employee_Control::handleEditEmployee);
 
-    connect(m_view, &EmployeesWidget::requestDeleteEmployee,
+    connect(m_view, &Employee_View::requestDeleteEmployee,
             this,   &Employee_Control::handleDeleteEmployee);
 
-    connect(m_view, &EmployeesWidget::requestUpdate,
+    connect(m_view, &Employee_View::requestUpdate,
             this, &Employee_Control::handleUpdate);
 
 
 
-    connect(m_view, &EmployeesWidget::backToDashboard,
+    connect(m_view, &Employee_View::backToDashboard,
             this, &Employee_Control::backToDashBoard);
 }
 
@@ -38,7 +38,7 @@ void Employee_Control::setModel(Employee_Model* emp) {
     this->m_model = emp;
 }
 
-EmployeesWidget *Employee_Control::getView() const
+Employee_View *Employee_Control::getView() const
 {
     return m_view;
 }

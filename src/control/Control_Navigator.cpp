@@ -6,7 +6,7 @@
 #include "view/View_Navigator.h"
 #include "view/Dashboard_View.h"
 #include "utils/SessionManage.h"
-#include "view/employeeswidget.h"
+#include "view/Employee_View.h"
 #include "ViewSchedule_Control.h"
 
 Control_Navigator::Control_Navigator()

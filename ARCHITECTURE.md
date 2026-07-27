@@ -145,7 +145,7 @@ This module acts as the intermediary between the View and Model layers, orchestr
 #### 5.1.3. `Employee_Control`
 *   **Role:** Handles all logic related to employee management (CRUD operations, filtering, sorting).
 *   **Variables:**
-    *   `m_view` (Pointer to `EmployeesWidget`).
+    *   `m_view` (Pointer to `Employee_View`).
     *   `m_model` (Pointer to `Employee_Model`).
 *   **Functions:**
     *   `handleLoadEmployees()`: Fetches employee data from the model. *Calls `Employee_Model::loadData`.*
@@ -353,7 +353,7 @@ This module contains the UI components constructed using Qt (Widgets and Dialogs
 *   **`Schedule_View` / `ViewSchedule_View`**: Interfaces for managers to create schedules and for all users to view them. Includes interactive schedule grids. *Controllers: `Schedule_Control`, `ViewSchedule_Control`.*
 
 #### 5.5.3. Custom Widgets
-*   **`EmployeesWidget`**: A complex view containing the employee table, filter dropdowns, and pagination. Emits complex signals for search/sort/filter. *Controller: `Employee_Control`.*
+*   **`Employee_View`**: A complex view containing the employee table, filter dropdowns, and pagination. Emits complex signals for search/sort/filter. *Controller: `Employee_Control`.*
 *   **`EmployeeCard`**: A small widget to display a summary of a single employee in grid layouts.
 *   **`Sidebar_Widget`**: The navigation menu. Highlights active tabs and handles navigation clicks.
 *   **`View_Navigator`**: The main application window containing a `QStackedWidget` to swap between different main views. *Controller: `Control_Navigator`.*

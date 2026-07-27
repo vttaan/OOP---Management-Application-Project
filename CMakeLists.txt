@@ -81,7 +81,7 @@ set(PROJECT_SOURCES
         src/view/Dashboard_View.h
         src/view/View_Navigator.h
         src/view/Profile_View.h
-        src/view/employeeswidget.h
+        src/view/Employee_View.h
         src/view/EditProfile_Widget.h
         src/view/EditPassword_Widget.h
         src/view/employeecard.h
@@ -95,7 +95,7 @@ set(PROJECT_SOURCES
         src/view/Dashboard_View.cpp
         src/view/View_Navigator.cpp
         src/view/Profile_View.cpp
-        src/view/employeeswidget.cpp
+        src/view/Employee_View.cpp
         src/view/EditProfile_Widget.cpp
         src/view/EditPassword_Widget.cpp
         src/view/employeecard.cpp
@@ -109,7 +109,7 @@ set(PROJECT_SOURCES
         src/view/Dashboard_View.ui
         src/view/View_Navigator.ui
         src/view/Profile_View.ui
-        src/view/employeeswidget.ui
+        src/view/Employee_View.ui
         src/view/employeecard.ui
         src/view/Schedule_View.ui
         src/view/sidebar_widget.ui
@@ -122,7 +122,7 @@ qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
 
     src/view/Profile_View.h src/view/Profile_View.cpp src/view/Profile_View.ui
     src/view/View_Navigator.h src/view/View_Navigator.cpp src/view/View_Navigator.ui
-    src/view/employeeswidget.h
+    src/view/Employee_View.h
     src/control/Profile_Control.h src/control/Profile_Control.cpp
     src/control/Control_Navigator.h src/control/Control_Navigator.cpp
     src/control/Dashboard_Control.h src/control/Dashboard_Control.cpp
