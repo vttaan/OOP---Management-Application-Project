@@ -1,6 +1,6 @@
 #include "global.h"
 #include "Employee_Control.h"
-#include "view/employeeswidget.h"
+#include "view/Employee_View.h"
 #include "view/AddEmployee_Dialog.h"
 #include "view/EditEmployee_Dialog.h"
 #include "model/Validator.h"
@@ -11,26 +11,26 @@ Employee_Control::Employee_Control(QObject *parent)
 
 Employee_Control::~Employee_Control() {delete m_model;}
 
-void Employee_Control::setView(EmployeesWidget *view)
+void Employee_Control::setView(Employee_View *view)
 {
     m_view = view;
     if (!m_view) return;
 
-    connect(m_view, &EmployeesWidget::requestAddEmployee,
+    connect(m_view, &Employee_View::requestAddEmployee,
             this,   &Employee_Control::handleAddEmployee);
 
-    connect(m_view, &EmployeesWidget::requestEditEmployee,
+    connect(m_view, &Employee_View::requestEditEmployee,
             this,   &Employee_Control::handleEditEmployee);
 
-    connect(m_view, &EmployeesWidget::requestDeleteEmployee,
+    connect(m_view, &Employee_View::requestDeleteEmployee,
             this,   &Employee_Control::handleDeleteEmployee);
 
-    connect(m_view, &EmployeesWidget::requestUpdate,
+    connect(m_view, &Employee_View::requestUpdate,
             this, &Employee_Control::handleUpdate);
 
 
 
-    connect(m_view, &EmployeesWidget::backToDashboard,
+    connect(m_view, &Employee_View::backToDashboard,
             this, &Employee_Control::backToDashBoard);
 }
 
@@ -38,7 +38,7 @@ void Employee_Control::setModel(Employee_Model* emp) {
     this->m_model = emp;
 }
 
-EmployeesWidget *Employee_Control::getView() const
+Employee_View *Employee_Control::getView() const
 {
     return m_view;
 }
@@ -53,7 +53,7 @@ void Employee_Control::init()
 void Employee_Control::handleLoadEmployees()
 {
     m_model->loadData();
-    //qDebug() << "list: " << m_model->getListEmployee().size();
+
     if (m_view) {
           m_view->loadEmployees(m_model->getListEmployee());
     }
@@ -64,16 +64,33 @@ void Employee_Control::handleAddEmployee()
     if (!m_view) return;
     AddEmployee_Dialog dlg(m_view);
     // ==========================================================
-    // CONTROLLER TIÊM LOGIC KIỂM TRA VÀO HỘP THOẠI TRƯỚC KHI MỞ
+    // CONTROLLER TIÊM LOGIC KIỂM TRA VÀ TẠO TÀI KHOẢN
     // ==========================================================
     dlg.validatorDelegate = [](const AddEmployee_Dialog* d) -> QString {
 
         QString s = "";
         if (d->getName().isEmpty()) s += "⚠ Nhập đúng họ và tên đầy đủ.\n";
         if (d->getUsername().isEmpty()) s+="⚠ Nhập tên đăng nhập hợp lệ.\n";
+        
         if (!Validator::isValidCitizenId(d->getCitizenId()))
             s+= "⚠ Căn cước công dân phải bao gồm đúng 12 chữ số.\n";
+            
+        if (!Validator::isValidPhoneNumber(d->getPhone()))
+            s += "⚠ Số điện thoại phải bao gồm đúng 10 chữ số.\n";
+            
         return s; // if return "" it means that no error.
+    };
+
+    dlg.passwordGeneratorDelegate = [](const QString& name, const QString& dob) -> QString {
+        QString n = name;
+        QString d = dob;
+        return Employee_Model::generateAutoPassword(n, d);
+    };
+
+    dlg.usernameGeneratorDelegate = [this](const QString& role) -> QString {
+        QString r = role;
+        int nextId = m_model->getNextId(r);
+        return Employee_Model::generateAutoUsername(nextId, r);
     };
     // ==========================================================
 
@@ -181,7 +198,6 @@ void Employee_Control::handleUpdate(const QString &searchText,
 {
     if (!m_view || !m_model) return;
     QList<User*> result = m_model->SearchSortFilter(searchText, sortDir, contentSort, contentFilter);
-
     m_view->loadEmployees(result);
 }
 

@@ -32,6 +32,7 @@ private:
     QString currentRole;
     void setupUI();
     void setupConnections();
+    void showDetailDialog(const QString& date, const QString& hours, const QString& type);
 };
 
 #endif // SALARY_VIEW_H

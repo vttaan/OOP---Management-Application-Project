@@ -4,7 +4,7 @@
 #include "view/employeecard.h"
 
 Dashboard_Control::Dashboard_Control(QObject *parent)
-    :QObject(parent), view(nullptr), empModel(new Employee_Model()), currentSession(nullptr){
+    :QObject(parent), view(nullptr), currentSession(SessionManager::getInstance()){
 
 }
 Dashboard_Control::~Dashboard_Control() {

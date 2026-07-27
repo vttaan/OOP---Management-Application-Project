@@ -1,4 +1,5 @@
 #include "global.h"
+#include "core/ShiftBlock.h"
 #ifndef SCHEDULE_VIEW_H
 #define SCHEDULE_VIEW_H
 
@@ -21,7 +22,8 @@ public:
     void showError(const QString& mess);
 
     // loadData
-    void setUpDataInputTable(const QList<QString>& listDays, int openTime, int closeTime);
+    void setUpDataInputTable(QDate monday, int openTime, int closeTime);
+    void updateTableHeaders(QDate monday);
 
     // data for pre-view table, when add success, controller call this function to update pre-view table. int in map is colums, QList is content of this colum
     void updateSumTable(const QMap<int, QList<QString>> weeklyData);
@@ -30,6 +32,9 @@ public:
     void resetInputTable();
     void showSuccess(const QString& msg);
     void showWarnings(const QStringList& warnings);
+    
+    void setManagerMode(bool isManager);
+    void updateManagerPendingGrid(const QMap<int, QMap<int, ShiftBlock*>>& grid);
 private:
     Ui::Schedule_View *ui;
     void setUpUI();

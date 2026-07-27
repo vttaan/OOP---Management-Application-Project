@@ -10,6 +10,10 @@
 #include "utils/SessionManage.h"
 #include "core/User.h"
 
+void Sidebar_Widget::hideSubMenuInSchedule() {
+    ui->subMenu_Schedule->hide();
+}
+
 Sidebar_Widget::Sidebar_Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Sidebar_Widget)
 {
     ui->setupUi(this);
@@ -24,19 +28,22 @@ Sidebar_Widget::Sidebar_Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Si
         ui->subMenu_Schedule->setVisible(isHidden); });
 
     // main tab
-    connect(ui->btnProfile, &QPushButton::clicked, [this]() { emit menuClicked(2); updateButtonStyles(2); });
-    connect(ui->btnMenu_Overview, &QPushButton::clicked, [this]() { emit menuClicked(1); updateButtonStyles(1); });
-    connect(ui->btnMenu_HR, &QPushButton::clicked, [this]() { emit menuClicked(3); updateButtonStyles(3); });
-   // connect(ui->btnMenu_Salary, &QPushButton::clicked, [this]() { emit menuClicked(7); updateButtonStyles(7); });
-    connect(ui->btnMenu_Salary, &QPushButton::clicked, [this]() { emit menuClicked(8); updateButtonStyles(8); });
-    connect(ui->btnMenu_Settings, &QPushButton::clicked, [this]() { emit menuClicked(9); updateButtonStyles(9); });
+    connect(ui->btnProfile, &QPushButton::clicked, [this]()
+            { emit menuClicked(2); updateButtonStyles(2); });
+    connect(ui->btnMenu_Overview, &QPushButton::clicked, [this]()
+            { emit menuClicked(1); updateButtonStyles(1); });
+    connect(ui->btnMenu_HR, &QPushButton::clicked, [this]()
+            { emit menuClicked(3); updateButtonStyles(3); });
+    // connect(ui->btnMenu_Salary, &QPushButton::clicked, [this]() { emit menuClicked(7); updateButtonStyles(7); });
+    connect(ui->btnMenu_Settings, &QPushButton::clicked, [this]()
+            { emit menuClicked(9); updateButtonStyles(9); });
 
     // subTab in Schedule
     connect(ui->buttonRegistrationSchedule, &QPushButton::clicked, [this]()
             { emit menuClicked(4); updateButtonStyles(4); });
-    connect(ui->buttonArrangeSchedule, &QPushButton::clicked, [this]()
-            { emit menuClicked(5); updateButtonStyles(5); });
     connect(ui->buttonViewSchedule, &QPushButton::clicked, [this]()
+            { emit menuClicked(5); updateButtonStyles(5); });
+    connect(ui->buttonArrangeSchedule, &QPushButton::clicked, [this]()
             { emit menuClicked(6); updateButtonStyles(6); });
     connect(ui->btnMenu_Salary, &QPushButton::clicked, [this]()
             { emit menuClicked(7); updateButtonStyles(7); });
@@ -214,11 +221,11 @@ void Sidebar_Widget::updateButtonStyles(int mainIndex)
         break;
     case 5:
         ui->buttonSchedule->setStyleSheet(activeMain);
-        ui->buttonArrangeSchedule->setStyleSheet(activeSub);
+        ui->buttonViewSchedule->setStyleSheet(activeSub);
         break;
     case 6:
         ui->buttonSchedule->setStyleSheet(activeMain);
-        ui->buttonViewSchedule->setStyleSheet(activeSub);
+        ui->buttonArrangeSchedule->setStyleSheet(activeSub);
         break;
     case 7:
         ui->btnMenu_Salary->setStyleSheet(activeMain);

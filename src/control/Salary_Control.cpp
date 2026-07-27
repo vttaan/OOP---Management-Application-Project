@@ -34,10 +34,10 @@ void Salary_Control::loadData(int month, int year)
     if(!view) return;
     
     User* currentUser = currentSession->getCurrentUser();
-    SalaryData summary = model->getSalarySummary(currentUser, month, year);
-    QMap<QString, int> normalDays = model->getNormalDaysData(currentUser, month, year);
-    QMap<QString, int> holidayDays = model->getHolidayDaysData(currentUser, month, year);
-    QString baseSalary = QString::number(currentUser->getSalary());
+    SalaryData summary = Salary_Model::getSalarySummary(currentUser->getIdEmployee(), currentUser->getRole(), currentUser->getBaseSalary(), month, year);
+    QMap<QString, int> normalDays = model->getNormalDaysData(currentUser->getIdEmployee(), currentUser->getRole(), currentUser->getBaseSalary(), month, year);
+    QMap<QString, int> holidayDays = model->getHolidayDaysData(currentUser->getIdEmployee(), currentUser->getRole(), currentUser->getBaseSalary(), month, year);
+    QString baseSalary = QString::number(currentUser->getBaseSalary());
     
     //qDebug() << month << ' ' << year << "!!!";
 

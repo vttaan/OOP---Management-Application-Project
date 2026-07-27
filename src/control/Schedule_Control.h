@@ -21,9 +21,6 @@ private:
     // Helper: convert "Monday" display string → QDate of that day this week
     QDate dayStringToDate(const QString& day) const;
 
-    // Build the QMap<col, QList<label>> the view needs for the summary table
-    QMap<int, QList<QString>> buildWeeklySummary() const;
-
 public:
     explicit Schedule_Control(QObject *parent = nullptr);
     ~Schedule_Control();
@@ -42,6 +39,7 @@ public:
     void filter();
     void chooseDate();
     void handleChangeAlgorithm();
+
 
     // View wiring
     void setView(Schedule_View* view);

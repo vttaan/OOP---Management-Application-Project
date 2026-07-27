@@ -1,47 +1,29 @@
 #ifndef OPTIMIZER_H
 #define OPTIMIZER_H
-#include<vector>
-#include<queue>
-#include<QVector>
-#include<QDate>
-#include<QTime>
-#include<QString>
-#include<QStringList>
-struct ShiftRegistration{
-    int rowId;
-    int employeeId;
-    QDate date;
-    QTime startTime;
-    QTime endTime;
-};
-struct EmployeeInfo{
-    int employeeId;
-    int totalMinutesWorked;
-};
-struct OptimizerInput{
-    QVector<ShiftRegistration>registrations;
-    QVector<EmployeeInfo>employees;
-    int minPerShift=5; // tieu chi sort
-    int minDaysPerEmp=4; // tieu chi sort
-};
-struct ShiftAssignment{
-    int rowId;
-    int newStatus;
-};
-struct OptimizerOutput{
-    bool feasible=false; // neu tim duoc lich kha thi
-    int totalFlow=0;    // tong luot sap xep ca lam thanh cong
-    int totalCost=0;    // tong cost
-    QVector<ShiftAssignment>assignments; // ket qua tung ham db
-    QStringList warnings; // canh cao khi vi pham tieu chi nhung van cho xep lich
-
-};
+#include "global.h"
+#include "core/Shift.h"
+#include "core/User.h"
 
 
 class Optimizer
 {
+private:
+    QVector<Shift*> shifts;
+    QMap<User*, int> userMinutes;
+    
+    bool feasible = false;
+    int totalFlow = 0;
+    int totalCost = 0;
+    QStringList warnings;
+
 public:
-OptimizerOutput solve(const OptimizerInput& input);
+    Optimizer(const QVector<Shift*>& shifts, const QMap<User*, int>& userMinutes);
+    bool solve();
+    bool isFeasible() const { return feasible; }
+    int getTotalFlow() const { return totalFlow; }
+    int getTotalCost() const { return totalCost; }
+    QStringList getWarnings() const { return warnings; }
+
 private:
 struct Edge{
     int to ;

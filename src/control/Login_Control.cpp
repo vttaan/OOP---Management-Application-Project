@@ -4,7 +4,7 @@
 #include "Login_Control.h"
 
 Login_Control::Login_Control(QObject *parent)
-    : QObject(parent), view(nullptr), currentSession(nullptr)
+    : QObject(parent), view(nullptr), currentSession(SessionManager::getInstance())
 {
 }
 
@@ -55,7 +55,7 @@ void Login_Control::handleLoginSubmission(const QString &username, const QString
     }
     else
     {
-        QMessageBox::critical(view, "Login Failed", "Wrong username or Password!");
+        QMessageBox::critical(view, "Login Failed", "Sai tài khoản hoặc mật khẩu!");
         if (view)
             view->clearPassword();
     }
