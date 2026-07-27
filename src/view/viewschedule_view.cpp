@@ -1,6 +1,5 @@
 #include "ViewSchedule_View.h"
 #include "ui_ViewSchedule_View.h"
-#include "model/Schedule_Model.h"
 #include "utils/Config.h"
 #include "core/ShiftBlock.h"
 #include <QMessageBox>

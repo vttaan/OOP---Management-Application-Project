@@ -136,10 +136,10 @@ void Control_Navigator::switchTab(int index)
     {
         this->viewWindow->setPageIndex(targetPageIndex); // <-- Dùng targetPageIndex ở đây
         // hide sub menu in schedule each switch tap
-        if (index != 4)
+        if (targetPageIndex != 4 && targetPageIndex != 5)
             this->viewWindow->getSideBar()->hideSubMenuInSchedule();
         // put pointer of side bar follow index
-        this->viewWindow->getSideBar()->updateButtonStyles(index);
+        this->viewWindow->getSideBar()->updateButtonStyles(targetPageIndex);
     }
 }
 
