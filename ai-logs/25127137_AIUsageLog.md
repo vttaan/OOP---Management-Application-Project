@@ -297,3 +297,35 @@ Guided the student in building a custom profile widget in Qt C++, outlining the 
 | `Salary_View.h/.cpp/.ui` | Updated — combo boxes and scroller setup |
 | `Control_Navigator.cpp`, `View_Navigator.ui` | Updated — geometry initialization fix |
 | `employeeswidget.cpp` | Updated — list loading fix |
+
+---
+
+## Session 15 — Gender Field Integration & Add Employee Dialog Updates (~04:01, July 25)
+
+### Changes Made
+- Added a gender field to the Profile database layout.
+- Integrated the gender field into MVC files for `Profile`, editing elements inside `EditProfile_Widget` to support updates (implemented using radio buttons/combo box).
+- Configured the Add Employee Dialog (`AddEmployee_Dialog`) to include scroll functionality and made it dynamically resizable.
+
+### Files Modified
+| File | Action |
+|---|---|
+| `Profile_Control.h/.cpp` | Updated — gender data flow bindings |
+| `Profile_Model.h/.cpp` | Updated — bound gender properties to database query statements |
+| `EditProfile_Widget.h/.cpp` | Updated — added UI widgets to modify gender |
+| `Profile_View.cpp` | Updated — render gender property value |
+| `AddEmployee_Dialog.cpp` | Updated — wrapped dialog in a scroll area and adjusted resize policies |
+
+---
+
+## Session 16 — Salary Model Parameter Calculation Fix (~07:10, July 27)
+
+### Changes Made
+- Debugged and corrected parameters within the calculation engine of `Salary_Model` to fix a discrepancy in computed payout totals.
+
+### Files Modified
+| File | Action |
+|---|---|
+| `Salary_Model.cpp` | Updated — corrected calculation logic parameters |
+| `Salary_Control.cpp` | Updated — synced bindings to matching calculation calls |
+| `employeeswidget.cpp` | Updated — refreshed rendering details |
