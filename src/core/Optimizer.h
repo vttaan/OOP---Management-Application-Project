@@ -1,15 +1,9 @@
 #ifndef OPTIMIZER_H
 #define OPTIMIZER_H
-#include<vector>
-#include<queue>
-#include<QVector>
-#include<QDate>
-#include<QTime>
-#include<QString>
-#include<QStringList>
+#include "global.h"
 #include "core/Shift.h"
 #include "core/User.h"
-#include <QMap>
+
 
 class Optimizer
 {

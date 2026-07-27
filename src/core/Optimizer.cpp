@@ -1,9 +1,4 @@
 #include "Optimizer.h"
-#include<QMap>
-#include<QPair>
-#include<QSet>
-#include<queue>
-#include<climits>
 using namespace std;
 static constexpr int INF =INT_MAX/2;
 static constexpr int WEEKDAY_PENALTY=20; /// uu tien fill cuoi tuan truoc

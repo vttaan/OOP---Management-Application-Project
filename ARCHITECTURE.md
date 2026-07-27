@@ -348,12 +348,12 @@ This module contains the UI components constructed using Qt (Widgets and Dialogs
 #### 5.5.2. Main Views
 *   **`Login_View`**: Handles user credential input. Emits `loginSubmitted`. *Controller: `Login_Control`.*
 *   **`Dashboard_View` / `Overview_View` / `Main_View`**: Landing pages providing a high-level summary.
+*   **`Employee_View`**: A complex view containing the employee table, filter dropdowns, and pagination. Emits complex signals for search/sort/filter. *Controller: `Employee_Control`.*
 *   **`Profile_View`**: Displays user info. *Controller: `Profile_Control`.*
 *   **`Salary_View`**: Displays salary breakdowns in tables. *Controller: `Salary_Control`.*
 *   **`Schedule_View` / `ViewSchedule_View`**: Interfaces for managers to create schedules and for all users to view them. Includes interactive schedule grids. *Controllers: `Schedule_Control`, `ViewSchedule_Control`.*
 
 #### 5.5.3. Custom Widgets
-*   **`Employee_View`**: A complex view containing the employee table, filter dropdowns, and pagination. Emits complex signals for search/sort/filter. *Controller: `Employee_Control`.*
 *   **`EmployeeCard`**: A small widget to display a summary of a single employee in grid layouts.
 *   **`Sidebar_Widget`**: The navigation menu. Highlights active tabs and handles navigation clicks.
 *   **`View_Navigator`**: The main application window containing a `QStackedWidget` to swap between different main views. *Controller: `Control_Navigator`.*
