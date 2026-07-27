@@ -6,6 +6,7 @@
 Employee_Model::Employee_Model() {}
 
 
+
 int Employee_Model::getNextId(const QString& role) {
     QSqlQuery query;
     int newId = 1;

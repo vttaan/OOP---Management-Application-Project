@@ -211,6 +211,8 @@ void EmployeesWidget::loadEmployees(const QList<User *> &employees)
 {
   // The controller already applied filter→search→sort before calling us;
   // just render what we received.
+  m_allEmployees = employees;
+  updateMetricCards();
   renderTable(employees);
   m_allEmployees = employees;
   updateMetricCards();

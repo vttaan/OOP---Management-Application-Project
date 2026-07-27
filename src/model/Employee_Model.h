@@ -43,7 +43,10 @@ public:
                      const QString &phone, const QString &gender, const int& baseSalary,
                      const QString &username, const QString &password);
 
-    bool updateEmployee(User *emp);
+
+
+
+    bool updateEmployee(User* emp);
     bool deleteEmployee(short idEmployee);
 
     static QString generateAutoUsername(int id, QString& role);

@@ -3,11 +3,7 @@
 #include "control/Control_Navigator.h"
 #include "view/View_Navigator.h"
 
-#ifdef _WIN32
-int qMain(int argc, char *argv[])
-#else
 int main(int argc, char *argv[])
-#endif
 {
     QApplication app(argc, argv);
 
@@ -33,7 +29,7 @@ int main(int argc, char *argv[])
         appWindow->viewWindow->setWindowTitle("Optimus - Phần mềm Quản Lý Nhân Sự");
 
         appWindow->viewWindow->setWindowIcon(QIcon(":/images/logo.png"));
-        
+
         appWindow->viewWindow->showMaximized();
     }
 

@@ -28,7 +28,6 @@ Control_Navigator::Control_Navigator()
     this->salaryController = new Salary_Control(this);
 
     this->viewWindow = new View_Navigator(this); // Initialize viewWindow AFTER controllers
-    // Các lệnh setView đã được gọi bên trong View_Navigator() nên không gọi lại ở đây nữa để tránh double-connection
     // switch tab side bar do all
     if (this->viewWindow->getSideBar())
     {
@@ -68,14 +67,6 @@ Control_Navigator::Control_Navigator()
                          //  the whole app's session is updated
                      });
 
-    QObject::connect(this->dashboardController, &Dashboard_Control::profilePageClicked,
-                     this->viewWindow, [this]()
-                     {
-                         this->switchTab(2); // Switch to Profile (index 2)
-                         // qDebug() << this->profileController->currentSession->getCurrentUser()->getName();
-                         // no need to load user data for profile since its session already pointed to the whole app's session
-                     });
-
     // switch from profile back previous
     QObject::connect(this->profileController, &Profile_Control::backToPrevious,
                      this->viewWindow, [this]()
@@ -89,13 +80,6 @@ Control_Navigator::Control_Navigator()
         if (this->viewWindow && this->viewWindow->getSideBar()) {
             this->viewWindow->getSideBar()->loadUserData(this->currentSession);
         } });
-
-    QObject::connect(this->employeeController, &Employee_Control::profilePageClicked,
-                     this->viewWindow, [this]()
-                     {
-                         this->switchTab(2); // from Employee  switch to Profile (index 2)
-                                             // qDebug() << this->profileController->currentSession->getCurrentUser()->getName();
-                     });
 }
 
 void Control_Navigator::switchTab(int index)
@@ -118,10 +102,10 @@ void Control_Navigator::switchTab(int index)
         if (currentSession->checkPermission("Manager"))
             this->employeeController->init();
         break;
-
     case 4:
-
-
+        this->scheduleController->setEmployeeId(currentSession->getCurrentUser()->getIdEmployee());
+        this->scheduleController->load();
+        break;
     case 5:
         this->viewScheduleController->setEmployeeId(currentSession->getCurrentUser()->getIdEmployee());
         this->viewScheduleController->load();
@@ -136,11 +120,10 @@ void Control_Navigator::switchTab(int index)
         targetPageIndex = 4; // Dùng chung trang Schedule_View cho Đăng ký (nhân viên) và Xếp lịch (quản lý)
         break;
     case 7:
-    case 8:
         this->salaryController->init();
         targetPageIndex = 6;
         break;
-    case 9:
+    case 8:
         // this->settingsController->init();
         break;
 
@@ -153,10 +136,10 @@ void Control_Navigator::switchTab(int index)
     {
         this->viewWindow->setPageIndex(targetPageIndex); // <-- Dùng targetPageIndex ở đây
         // hide sub menu in schedule each switch tap
-        if (index != 4)
+        if (targetPageIndex != 4 && targetPageIndex != 5)
             this->viewWindow->getSideBar()->hideSubMenuInSchedule();
         // put pointer of side bar follow index
-        this->viewWindow->getSideBar()->updateButtonStyles(index);
+        this->viewWindow->getSideBar()->updateButtonStyles(targetPageIndex);
     }
 }
 
