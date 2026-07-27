@@ -22,6 +22,7 @@ set(PROJECT_SOURCES
         src/core/User.h
         src/core/Staff.h
         src/core/Manager.h
+        src/core/Optimizer.h
         src/core/UserFactory.h
         src/core/ShiftBlock.h
         src/core/Optimizer.h

@@ -40,7 +40,7 @@ void Overview_View::clearEmployeeCards()
 void Overview_View::addEmployeeCard(const QString& avatarPath, const QString& name, const QString& role, const QString& email, const QString& phone)
 {
     EmployeeCard* card = new EmployeeCard(this);
-    card->setData(avatarPath, name, role, email, phone);
+    card->setData(avatarPath, name, role, email, phone, "N/A", "N/A", "N/A");
 
     gridLayoutEmployees->addWidget(card, currentRow, currentCol);
     currentCol++;
