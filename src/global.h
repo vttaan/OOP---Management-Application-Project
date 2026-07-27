@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <QApplication>
 #include <QByteArray>
@@ -16,6 +16,7 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QFont>
+#include <QFontDatabase>
 #include <QFormLayout>
 #include <QFrame>
 #include <QGraphicsDropShadowEffect>
@@ -54,3 +55,9 @@
 #include <cmath>
 #include <functional>
 #include <QGraphicsDropShadowEffect>
+#include <QVector>
+#include <QPair>
+#include <QSet>
+#include <vector>
+#include <queue>
+#include <climits>

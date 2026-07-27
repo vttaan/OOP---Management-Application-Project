@@ -15,7 +15,6 @@ Login_View::Login_View(Login_Control* controller, QWidget *parent)
 
     if (controller) {
         connect(controller, &Login_Control::loginSuccessful, this, &Login_View::loginSuccessful);
-
     }
 }
 

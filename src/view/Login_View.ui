@@ -31,52 +31,6 @@
    </property>
    <item>
     <widget class="QFrame" name="frmLoginLeft">
-     <property name="styleSheet">
-      <string notr="true">QFrame#frmLoginLeft {
-    background-color: #f2f7fc;
-    border: none;
-}
-QLabel {
-    font-size: 15px;
-    color: #4a5568;
-    font-weight: 500;
-}
-QLabel#lblTitle {
-    font-size: 32px;
-    font-weight: 900;
-    color: #1a73e8;
-    margin-bottom: 10px;
-}
-QLineEdit {
-    min-height: 48px;
-    border: 2px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 0 15px;
-    font-size: 15px;
-    background-color: #ffffff;
-    color: #2d3748;
-}
-QLineEdit:hover {
-    border: 2px solid #cbd5e0;
-}
-QLineEdit:focus {
-    border: 2px solid #1a73e8;
-    background-color: #ffffff;
-}
-QPushButton#btnLogin {
-    min-height: 45px;
-    background-color: #1a73e8;
-    color: #ffffff;
-    font-size: 16px;
-    font-weight: bold;
-    border-radius: 6px;
-    border: none;
-    margin-top: 10px;
-}
-QPushButton#btnLogin:hover {
-    background-color: #1557b0;
-}</string>
-     </property>
      <property name="frameShape">
       <enum>QFrame::Shape::StyledPanel</enum>
      </property>
@@ -124,7 +78,7 @@ QPushButton#btnLogin:hover {
       <item row="2" column="0" colspan="2">
        <widget class="QLabel" name="lblTitle">
         <property name="text">
-         <string>Xin chào</string>
+         <string>Đăng Nhập</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignmentFlag::AlignCenter</set>

@@ -8,20 +8,23 @@
 #include "Employee_Control.h"
 #include "Schedule_Control.h"
 #include "Salary_Control.h"
-//#include "view/View_Navigator.h"
+// #include "view/View_Navigator.h"
+#include "ViewSchedule_Control.h"
 class View_Navigator;
 class Control_Navigator : public QObject
 {
     Q_OBJECT
 public:
-    Login_Control* loginController = nullptr;
-    Profile_Control* profileController = nullptr;
-    Dashboard_Control* dashboardController = nullptr;
-    Employee_Control * employeeController = nullptr;
-    Schedule_Control* scheduleController = nullptr;
-    Salary_Control* salaryController = nullptr;
-    View_Navigator* viewWindow = nullptr;
-    SessionManager* currentSession = SessionManager::getInstance();
+    Login_Control *loginController = nullptr;
+    Profile_Control *profileController = nullptr;
+    Dashboard_Control *dashboardController = nullptr;
+    Employee_Control *employeeController = nullptr;
+    Schedule_Control *scheduleController = nullptr;
+    Salary_Control *salaryController = nullptr;
+    View_Navigator *viewWindow = nullptr;
+    SessionManager *currentSession = SessionManager::getInstance();
+    ViewSchedule_Control *viewScheduleController = nullptr;
+
     Control_Navigator();
     void switchTab(int index);
 

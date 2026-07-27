@@ -23,6 +23,7 @@ set(PROJECT_SOURCES
         src/core/Staff.h
         src/core/Manager.h
         src/core/UserFactory.h
+        src/core/ShiftBlock.h
         src/core/Optimizer.h
         # CPP
         src/core/User.cpp
@@ -80,7 +81,7 @@ set(PROJECT_SOURCES
         src/view/Dashboard_View.h
         src/view/View_Navigator.h
         src/view/Profile_View.h
-        src/view/employeeswidget.h
+        src/view/Employee_View.h
         src/view/EditProfile_Widget.h
         src/view/EditPassword_Widget.h
         src/view/employeecard.h
@@ -94,7 +95,7 @@ set(PROJECT_SOURCES
         src/view/Dashboard_View.cpp
         src/view/View_Navigator.cpp
         src/view/Profile_View.cpp
-        src/view/employeeswidget.cpp
+        src/view/Employee_View.cpp
         src/view/EditProfile_Widget.cpp
         src/view/EditPassword_Widget.cpp
         src/view/employeecard.cpp
@@ -108,7 +109,7 @@ set(PROJECT_SOURCES
         src/view/Dashboard_View.ui
         src/view/View_Navigator.ui
         src/view/Profile_View.ui
-        src/view/employeeswidget.ui
+        src/view/Employee_View.ui
         src/view/employeecard.ui
         src/view/Schedule_View.ui
         src/view/sidebar_widget.ui
@@ -121,7 +122,7 @@ qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
 
     src/view/Profile_View.h src/view/Profile_View.cpp src/view/Profile_View.ui
     src/view/View_Navigator.h src/view/View_Navigator.cpp src/view/View_Navigator.ui
-    src/view/employeeswidget.h
+    src/view/Employee_View.h
     src/control/Profile_Control.h src/control/Profile_Control.cpp
     src/control/Control_Navigator.h src/control/Control_Navigator.cpp
     src/control/Dashboard_Control.h src/control/Dashboard_Control.cpp
@@ -134,11 +135,14 @@ qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
     src/view/overview_view.h src/view/overview_view.cpp src/view/overview_view.ui
     src/control/overview_control.h src/control/overview_control.cpp
     src/model/Validator.h src/model/Validator.cpp
+    src/view/viewschedule_view.h src/view/viewschedule_view.cpp src/view/viewschedule_view.ui
+    src/control/viewschedule_control.h src/control/viewschedule_control.cpp
     src/model/Salary_Model.h src/model/Salary_Model.cpp
     src/control/Salary_Control.h src/control/Salary_Control.cpp
     src/view/Salary_View.h src/view/Salary_View.cpp src/view/Salary_View.ui
-    #src/utils/Config.h
-    src/core/Optimizer.h src/core/Optimizer.cpp)
+    src/core/Optimizer.h src/core/Optimizer.cpp
+    src/utils/Config.h
+    )
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core Qt6::Widgets Qt6::Sql)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_precompile_headers(${PROJECT_NAME} PRIVATE src/global.h)
