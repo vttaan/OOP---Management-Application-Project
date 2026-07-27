@@ -270,7 +270,7 @@ void ViewSchedule_View::updateShiftDetails(const QList<User*>& employees, const 
         itemName->setTextAlignment(Qt::AlignCenter);
         itemName->setForeground(QBrush(Qt::black));
         
-        QTableWidgetItem* itemRole = new QTableWidgetItem(emp->getRole());
+        QTableWidgetItem* itemRole = new QTableWidgetItem((emp->getRole() == "Staff" ? "Nhân viên" : "Quản lý"));
         itemRole->setTextAlignment(Qt::AlignCenter);
         itemRole->setForeground(QBrush(Qt::black));
         
