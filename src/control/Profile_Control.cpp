@@ -72,9 +72,19 @@ QString Profile_Control::saveAvatarLocally(int empId,
     if (sourcePath.startsWith(":/"))
         return sourcePath;
 
+    // If it's already just the name of a local avatar file (e.g. avatar_1001.png),
+    // which does not contain any directory separators, return it as-is.
+    if (!sourcePath.contains('/') && !sourcePath.contains('\\')) {
+        return sourcePath;
+    }
+
     QFileInfo sourceInfo(sourcePath);
-    if (!sourceInfo.exists())
+    if (!sourceInfo.exists()) {
+        if (sourceInfo.fileName() == sourcePath)
+            return sourcePath;
         return "";
+    }
+
     QDir appDir = QCoreApplication::applicationDirPath(); // debug folder
     appDir.cdUp(); // build folder
     appDir.cdUp(); // MAP folder
@@ -92,6 +102,11 @@ QString Profile_Control::saveAvatarLocally(int empId,
     QString targetPath =
         QString("%1/avatar_%2.%3").arg(targetDir).arg(empId).arg(ext);
 
+    // If the source file is already the target file, we don't need to copy
+    if (QFileInfo(targetPath).absoluteFilePath() == sourceInfo.absoluteFilePath()) {
+        return QString("avatar_%1.%2").arg(empId).arg(ext);
+    }
+
     // If file already exists, remove it first to overwrite
     if (QFile::exists(targetPath)) {
         QFile::remove(targetPath);
@@ -101,5 +116,5 @@ QString Profile_Control::saveAvatarLocally(int empId,
         return QString("avatar_%1.%2").arg(empId).arg(ext);
     }
 
-    return sourcePath;
+    return QString("avatar_%1.%2").arg(empId).arg(ext);
 }

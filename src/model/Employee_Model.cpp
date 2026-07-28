@@ -68,8 +68,8 @@ bool Employee_Model::addEmployee(const QString &role, const QString &avatarPath,
   QSqlQuery qProfile(db);
   qProfile.prepare(
       "INSERT INTO PROFILES (idEmployee, role, name, phoneNum, dob, address, "
-      "avatarPath, IdCitizenIdentity, Gender) "
-      "VALUES (:id,:role,:name,:phone,:dob,:address,:avatar,:citizen, :Gender)");
+      "avatarPath, IdCitizenIdentity, Gender, Salary) "
+      "VALUES (:id,:role,:name,:phone,:dob,:address,:avatar,:citizen, :Gender, :Salary)");
   qProfile.bindValue(":id", emp->getIdEmployee());
   qProfile.bindValue(":role", emp->getRole());
   qProfile.bindValue(":name", emp->getName());
@@ -79,6 +79,7 @@ bool Employee_Model::addEmployee(const QString &role, const QString &avatarPath,
   qProfile.bindValue(":avatar", localAva);
   qProfile.bindValue(":citizen", emp->getIdentityID());
   qProfile.bindValue(":Gender", emp->getGender());
+  qProfile.bindValue(":Salary", emp->getBaseSalary());
   if (!qProfile.exec())
   {
     qDebug() << "Error adding profile" << qProfile.lastError().text();
@@ -125,7 +126,7 @@ bool Employee_Model::updateEmployee(User *emp)
   query.prepare("UPDATE PROFILES SET role = :role, name = :name, phoneNum = "
                 ":phone, dob = :dob, "
                 "address = :address, avatarPath = :avatar, IdCitizenIdentity "
-                "= :citizen, Gender = :gender WHERE idEmployee = :id");
+                "= :citizen, Gender = :gender, Salary = :salary WHERE idEmployee = :id");
   query.bindValue(":role", emp->getRole());
   query.bindValue(":name", emp->getName());
   query.bindValue(":phone", emp->getPhoneNum());
@@ -135,6 +136,7 @@ bool Employee_Model::updateEmployee(User *emp)
   query.bindValue(":citizen", emp->getIdentityID());
   query.bindValue(":id", emp->getIdEmployee());
   query.bindValue(":gender", emp->getGender());
+  query.bindValue(":salary", emp->getBaseSalary());
 
   if (!query.exec())
   {
@@ -179,9 +181,21 @@ QString Employee_Model::saveAvatarLocally(int empId,
   if (sourcePath.startsWith(":/"))
     return sourcePath;
 
+  // If it's already just the name of a local avatar file (e.g. avatar_1001.png),
+  // which does not contain any directory separators, return it as-is.
+  if (!sourcePath.contains('/') && !sourcePath.contains('\\'))
+  {
+    return sourcePath;
+  }
+
   QFileInfo sourceInfo(sourcePath);
   if (!sourceInfo.exists())
+  {
+    if (sourceInfo.fileName() == sourcePath)
+      return sourcePath;
     return "";
+  }
+
   QDir appDir = QCoreApplication::applicationDirPath(); // debug folder
   appDir.cdUp();                                        // build folder
   appDir.cdUp();                                        // MAP folder
@@ -200,6 +214,12 @@ QString Employee_Model::saveAvatarLocally(int empId,
   QString targetPath =
       QString("%1/avatar_%2.%3").arg(targetDir).arg(empId).arg(ext);
 
+  // If the source file is already the target file, we don't need to copy
+  if (QFileInfo(targetPath).absoluteFilePath() == sourceInfo.absoluteFilePath())
+  {
+    return QString("avatar_%1.%2").arg(empId).arg(ext);
+  }
+
   // If file already exists, remove it first to overwrite
   if (QFile::exists(targetPath))
   {
@@ -211,7 +231,7 @@ QString Employee_Model::saveAvatarLocally(int empId,
     return QString("avatar_%1.%2").arg(empId).arg(ext);
   }
 
-  return sourcePath;
+  return QString("avatar_%1.%2").arg(empId).arg(ext);
 }
 
 void Employee_Model::loadData()

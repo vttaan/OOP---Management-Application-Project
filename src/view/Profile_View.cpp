@@ -130,6 +130,8 @@ void Profile_View::loadUserData(const QString& name, const QString& studentId, c
     // Populate detailed details
     ui->lblVal_Phone->setText(phone);
     ui->lblVal_Email->setText(email);
+    ui->lblVal_Email->setHidden(true);
+    ui->lblTitle_Email->setHidden(true);
 }
 
 Profile_Control* Profile_View::getController() {
