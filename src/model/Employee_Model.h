@@ -17,7 +17,7 @@ private:
     QString saveAvatarLocally(int empId, const QString &sourcePath);
 
     //--------REMOVE ACCENT FOR SEARCH
-    QString removeAccent(const QString &input);
+    static QString removeAccent(const QString &input);
     //-----------------------------------
     QList<User *> searchInEmployee(QList<User *> inputList, QString contentSearch);
     QList<User *> filterInEmployee(QList<User *> inputList, QList<QString> contentFilter);
@@ -40,10 +40,13 @@ public:
 
     bool addEmployee(const QString &role, const QString &avatarPath, const QString &citizenId,
                      const QString &name, const QString &dob, const QString &address,
-                     const QString &phone, const QString &gender,
+                     const QString &phone, const QString &gender, const int& baseSalary,
                      const QString &username, const QString &password);
 
-    bool updateEmployee(User *emp);
+
+
+
+    bool updateEmployee(User* emp);
     bool deleteEmployee(short idEmployee);
 
     static QString generateAutoUsername(int id, QString& role);

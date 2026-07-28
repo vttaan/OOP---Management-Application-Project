@@ -10,8 +10,8 @@ EditProfile_Widget::EditProfile_Widget(QWidget *parent) : QWidget(parent), isPan
     panelWidget = new QWidget(this);
     panelWidget->setStyleSheet("QWidget { background-color: white; border-top-left-radius: 16px; border-bottom-left-radius: 16px; } "
                                "QLabel { color: #1e293b; font-size: 14px; font-weight: 500; font-family: 'Segoe UI', Arial; } "
-                               "QLineEdit { color: #8484a5; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; } "
-                               "QLineEdit:focus { border: 1px solid #3b82f6; }");
+                               "QLineEdit, QComboBox { color: #8484a5; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; background-color: white; } "
+                               "QLineEdit:focus, QComboBox:focus { border: 1px solid #3b82f6; }");
                                
     QGraphicsDropShadowEffect* shadow = new QGraphicsDropShadowEffect(this);
     shadow->setBlurRadius(20);
@@ -71,9 +71,12 @@ EditProfile_Widget::EditProfile_Widget(QWidget *parent) : QWidget(parent), isPan
     txtAddress = new QLineEdit(scrollContent);
     txtPhone = new QLineEdit(scrollContent);
     txtCitizenId = new QLineEdit(scrollContent);
+    cmbGender = new QComboBox(scrollContent);
+    cmbGender->addItems({"Nam", "Nữ"});
     
     formLayout->addRow("Họ và tên:", txtName);
     formLayout->addRow("Ngày sinh:", txtDob);
+    formLayout->addRow("Giới tính:", cmbGender);
     formLayout->addRow("Địa chỉ:", txtAddress);
     formLayout->addRow("Số điện thoại:", txtPhone);
     formLayout->addRow("CMND/CCCD:", txtCitizenId);
@@ -114,13 +117,21 @@ EditProfile_Widget::EditProfile_Widget(QWidget *parent) : QWidget(parent), isPan
 }
 
 void EditProfile_Widget::setInitialData(const QString& name, const QString& dob, const QString& address,
-                                        const QString& phone, const QString& citizenId, const QString& avatarPath
-                                        ) {
+                                        const QString& phone, const QString& citizenId, const QString& avatarPath,
+                                        const QString& gender) {
     txtName->setText(name);
     txtDob->setText(dob);
     txtAddress->setText(address);
     txtPhone->setText(phone);
     txtCitizenId->setText(citizenId);
+    
+    int index = cmbGender->findText(gender);
+    if (index != -1) {
+        cmbGender->setCurrentIndex(index);
+    } else {
+        cmbGender->setCurrentIndex(0);
+    }
+    
     currentAvatarPath = avatarPath;
     
     // Load avatar preview
@@ -200,7 +211,7 @@ void EditProfile_Widget::resizeEvent(QResizeEvent *event) {
 }
 
 void EditProfile_Widget::onSaveClicked() {
-    emit saveRequested(txtName->text(), txtDob->text(), txtAddress->text(), txtPhone->text(), txtCitizenId->text(), currentAvatarPath);
+    emit saveRequested(txtName->text(), txtDob->text(), txtAddress->text(), txtPhone->text(), txtCitizenId->text(), currentAvatarPath, cmbGender->currentText());
 }
 
 void EditProfile_Widget::onCancelClicked() {

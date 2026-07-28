@@ -6,7 +6,7 @@
 #include "view/AddEmployee_Dialog.h"
 #include "view/EditEmployee_Dialog.h"
 
-class EmployeesWidget;
+class Employee_View;
 
 class Employee_Control : public QObject {
     Q_OBJECT
@@ -16,9 +16,9 @@ public:
     //Employee_Control();
     ~Employee_Control();
 
-    void setView(EmployeesWidget *view);
+    void setView(Employee_View *view);
     void setModel(Employee_Model* emp);
-    EmployeesWidget *getView() const;
+    Employee_View *getView() const;
     void init();
 signals:
     void profilePageClicked();
@@ -36,6 +36,6 @@ private slots:
                       short sortDir);
 
 private:
-    EmployeesWidget  *m_view;
+    Employee_View  *m_view;
     Employee_Model   *m_model;
 };

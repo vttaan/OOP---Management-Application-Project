@@ -4,7 +4,7 @@
 #include "Login_Control.h"
 
 Login_Control::Login_Control(QObject *parent)
-    : QObject(parent), view(nullptr), currentSession(nullptr)
+    : QObject(parent), view(nullptr), currentSession(SessionManager::getInstance())
 {
 }
 
@@ -44,7 +44,7 @@ void Login_Control::handleLoginSubmission(const QString &username, const QString
         this->currentSession->saveCurrentInfo(newUser);
         emit loginSuccessful(this->currentSession->getCurrentUser());
 
-        if (this->currentSession->getCurrentUser()->getRole() == "Manage")
+        if (this->currentSession->getCurrentUser()->getRole() == "Manager")
         {
             qDebug() << "Manager logged in - Mo giao dien Quan ly";
         }
@@ -55,7 +55,7 @@ void Login_Control::handleLoginSubmission(const QString &username, const QString
     }
     else
     {
-        QMessageBox::critical(view, "Login Failed", "Wrong username or Password!");
+        QMessageBox::critical(view, "Login Failed", "Sai tài khoản hoặc mật khẩu!");
         if (view)
             view->clearPassword();
     }

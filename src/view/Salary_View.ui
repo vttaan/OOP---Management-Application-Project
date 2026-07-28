@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Salary_View</class>
+ <widget class="QWidget" name="Salary_View">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Salary</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QWidget#Salary_View {
+    background-color: #F8FAFC;
+}
+QLabel {
+    color: #0F172A;
+}
+QComboBox {
+    background-color: #ffffff;
+    color: #0F172A;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    padding: 5px 12px;
+}
+QComboBox:hover {
+    border-color: #93C5FD;
+    background-color: #F1F5F9;
+}
+QComboBox QAbstractItemView {
+    background-color: #ffffff;
+    color: #0F172A;
+    selection-background-color: #EFF6FF;
+    selection-color: #0F172A;
+    outline: none;
+    border: 1px solid #E2E8F0;
+}
+QComboBox QAbstractItemView::item:hover {
+    background-color: #F0F9FF;
+    color: #0F172A;
+}
+QComboBox QAbstractItemView::item:selected {
+    background-color: #EFF6FF;
+    color: #0F172A;
+}
+QTableWidget {
+    background-color: #ffffff;
+    color: #0F172A;
+    gridline-color: transparent;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    outline: none;
+}
+QTableWidget::item {
+    border-bottom: 1px solid #F1F5F9;
+    padding: 6px;
+    color: #0F172A;
+}
+QTableWidget::item:hover {
+    background-color: #F0F9FF;
+    color: #0F172A;
+}
+QTableWidget::item:selected {
+    background-color: #EFF6FF;
+    color: #0F172A;
+}
+QHeaderView::section {
+    background-color: #F8FAFC;
+    color: #64748B;
+    padding: 8px;
+    border: none;
+    border-bottom: 2px solid #E2E8F0;
+    font-weight: 700;
+    font-size: 11px;
+}
+QTableCornerButton::section {
+    background-color: #F8FAFC;
+    border: none;
+    border-bottom: 2px solid #E2E8F0;
+}
+QScrollBar:horizontal {
+    border: none;
+    background: #F1F5F9;
+    height: 8px;
+    margin: 0px;
+    border-radius: 4px;
+}
+QScrollBar::handle:horizontal {
+    background: #E0F2FE;
+    min-width: 20px;
+    border-radius: 4px;
+    border: 1px solid #93C5FD;
+}
+QScrollBar::handle:horizontal:hover {
+    background: #BAE6FD;
+    border-color: #60A5FA;
+}
+QScrollBar::add-line:horizontal {
+    border: none;
+    background: none;
+    width: 0px;
+}
+QScrollBar::sub-line:horizontal {
+    border: none;
+    background: none;
+    width: 0px;
+}
+QScrollBar:vertical {
+    border: none;
+    background: #F1F5F9;
+    width: 8px;
+    margin: 0px;
+    border-radius: 4px;
+}
+QScrollBar::handle:vertical {
+    background: #E0F2FE;
+    min-height: 20px;
+    border-radius: 4px;
+    border: 1px solid #93C5FD;
+}
+QScrollBar::handle:vertical:hover {
+    background: #BAE6FD;
+    border-color: #60A5FA;
+}
+QScrollBar::add-line:vertical {
+    border: none;
+    background: none;
+    height: 0px;
+}
+QScrollBar::sub-line:vertical {
+    border: none;
+    background: none;
+    height: 0px;
+}</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QComboBox" name="monthComboBox">
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+         <bold>true</bold>
+        </font>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="yearComboBox">
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+         <bold>true</bold>
+        </font>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QLabel" name="lcbLabel">
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Lương cơ bản: XXX.XXX VNĐ</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QSplitter" name="splitter">
+     <property name="orientation">
+      <enum>Qt::Orientation::Horizontal</enum>
+     </property>
+     <widget class="QWidget" name="layoutWidget">
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="QLabel" name="normalLabel">
+         <property name="font">
+          <font>
+           <pointsize>12</pointsize>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="styleSheet">
+          <string>background-color: #E0F2FE; color: #0369A1; padding: 6px; border-radius: 6px; font-weight: bold;</string>
+         </property>
+         <property name="text">
+          <string>Ngày thường</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignmentFlag::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTableWidget" name="normalTable">
+         <property name="autoFillBackground">
+          <bool>true</bool>
+         </property>
+         <property name="styleSheet">
+          <string notr="true"></string>
+         </property>
+         <property name="horizontalScrollBarPolicy">
+          <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOn</enum>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="layoutWidget1">
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <widget class="QLabel" name="holidayLabel">
+         <property name="font">
+          <font>
+           <pointsize>12</pointsize>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="styleSheet">
+          <string>background-color: #E0F2FE; color: #0369A1; padding: 6px; border-radius: 6px; font-weight: bold;</string>
+         </property>
+         <property name="text">
+          <string>Ngày lễ</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignmentFlag::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTableWidget" name="holidayTable">
+         <property name="autoFillBackground">
+          <bool>true</bool>
+         </property>
+         <property name="styleSheet">
+          <string notr="true"></string>
+         </property>
+         <property name="horizontalScrollBarPolicy">
+          <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOn</enum>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Orientation::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <widget class="QTableWidget" name="summaryTable">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>200</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

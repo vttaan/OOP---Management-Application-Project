@@ -20,7 +20,10 @@ public:
     QString getNormalStyle() { return this->normalStyle; }
     QString getActiveStyle() { return this->activeStyle; }
     void loadUserData(SessionManager *session);
+    void setPermission(const bool &permitted);
+    void updateButtonStyles(int mainIndex);
 
+    void hideSubMenuInSchedule();
 signals:
     void menuClicked(int pageIndex);
     void logoutClicked();
@@ -32,7 +35,6 @@ private:
     void setupSidebarAvatar(const QString &imagePath);
     Ui::Sidebar_Widget *ui;
     // mainIndex is tab in sidebar, subIndex is tab in Schedule
-    void updateButtonStyles(int mainIndex);
     void initUI();
     // CSS for normal (inactive) button — glassmorphic cyan theme
     const QString normalStyle = "QPushButton { "
@@ -81,6 +83,7 @@ private:
         "   border-radius: 12px; "
         "   height: 48px; "
         "   margin: 4px 12px; "
-        "}";};
+        "}";
+};
 
 #endif
