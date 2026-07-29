@@ -5,6 +5,7 @@
 
 | Task | AI Tool Used | Prompt / Instruction | Student Verification or Modification |
 |---|---|---|---|
+| **Project Planning & Qt Framework Research** | Google Gemini | Asked for guidance on project planning and how to use the Qt framework for C++ GUI application development. | Created a project plan and did a research on how to use Qt framework. |
 | **GUI Design & Implementation (Profile View)** | Google Gemini, Google Antigravity | Asked for layout suggestions for the profile widget, circular avatars, and QSS styling. | Modified the arrangement of labels and elements on the profile page through QSS. Rewrote the change avatar and save avatar locally functions. Manually chose hex colors for backgrounds and headers. |
 | **Architecture & Controller Routing** | Google Gemini, Google Antigravity | Asked to resolve circular dependencies, fix empty navigator bugs, properly link Views to Controllers, and clean up Qt signal connections. | Wrote View_Navigator & Control_Navigator manually and asked AI to polish/ensure smooth performance. Checked out Qt signals, removed unnecessary signals, and tested multiple emits. |
 | **Session Management & Edit Pop-ups** | Google Gemini, Google Antigravity | Asked to implement global SessionManager memory, sliding Edit Profile pop-ups, and custom password visibility line edits. | Manually arranged the order of elements for sliding widgets (pop-ups) to ensure clarity. Re-checked password validation and hash functions. |
