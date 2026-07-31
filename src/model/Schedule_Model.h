@@ -4,6 +4,7 @@
 #include "global.h"
 #include "core/Shift.h"
 #include "utils/Database.h"
+#include "utils/ScheduleDTOs.h"
 
 #include "core/ShiftBlock.h"
 #include <QMap>
@@ -32,8 +33,25 @@ public:
     const QList<QList<Shift *>> &getShiftList() const { return shiftList; }
 
     void getAcceptedSchedule(short int id, QDate monday);
+    void getPendingSchedule(short int id, QDate monday);
     QMap<int, QMap<int, ShiftBlock *>> getManagerWeeklyGrid(QDate monday, int status = 1);
     QMap<int, QList<QString>> getWeeklySummaryStrings() const;
+
+    // Xếp Lịch Làm — assignment grid: fetches all statuses (pending + accepted + declined)
+    // grid: col (0-6 Mon-Sun) -> row (0-2 shift) -> { pendingCount, acceptedCount, declinedCount }
+    QMap<int, QMap<int, BlockCounts>> getAssignBlockCounts(QDate monday);
+
+    // Returns all shift requests that touch a given shift block (col=day 0-6, row=shift 0-2)
+    QList<PendingShiftInfo> getShiftsForBlock(QDate monday, int col, int row);
+
+    // Raw shifts for 15x7 rendering
+    QMap<int, QList<Shift*>> getRawStaffShifts(short int id, QDate monday, int status);
+
+    // Approve or decline a shift by its DB rowid; returns true on success
+    bool approveShift(int shiftId);
+    bool declineShift(int shiftId);
+
+signals:
 
     QStringList generateSchedule();
     bool saveDraftShiftsToDatabase();

@@ -3,6 +3,15 @@ Login_View {
     font-family: "Inter", sans-serif;
 }
 
+QHeaderView {
+    background-color: white;
+    border: none;
+}
+QTableCornerButton::section {
+    background-color: white;
+    border: none;
+}
+
 QMainWindow, QStackedWidget, QWidget#centralwidget {
     background-color: #F8FAFC;
 }
@@ -634,41 +643,41 @@ Employee_View #footerLabel {
 
 /* ── 7. SCROLLBARS ──────────────────────────────────────── */
 
-Employee_View QScrollBar:vertical {
+QScrollBar:vertical {
     border: none;
     background-color: #F8FAFC;
     width: 7px;
     margin: 0px;
 }
-Employee_View QScrollBar::handle:vertical {
+QScrollBar::handle:vertical {
     background-color: #CBD5E1;
     min-height: 24px;
     border-radius: 3px;
 }
-Employee_View QScrollBar::handle:vertical:hover {
+QScrollBar::handle:vertical:hover {
     background-color: #94A3B8;
 }
-Employee_View QScrollBar::add-line:vertical,
-Employee_View QScrollBar::sub-line:vertical {
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical {
     height: 0px;
 }
 
-Employee_View QScrollBar:horizontal {
+QScrollBar:horizontal {
     border: none;
     background-color: #F8FAFC;
     height: 7px;
     margin: 0px;
 }
-Employee_View QScrollBar::handle:horizontal {
+QScrollBar::handle:horizontal {
     background-color: #CBD5E1;
     min-width: 24px;
     border-radius: 3px;
 }
-Employee_View QScrollBar::handle:horizontal:hover {
+QScrollBar::handle:horizontal:hover {
     background-color: #94A3B8;
 }
-Employee_View QScrollBar::add-line:horizontal,
-Employee_View QScrollBar::sub-line:horizontal {
+QScrollBar::add-line:horizontal,
+QScrollBar::sub-line:horizontal {
     width: 0px;
 }
 
@@ -707,6 +716,14 @@ QTableWidget[role="staff"] QHeaderView::section:vertical {
     border: none;
     font-weight: bold;
 }
+QTableWidget[role="staff"] QHeaderView {
+    background-color: white;
+    border: none;
+}
+QTableWidget[role="staff"] QTableCornerButton::section {
+    background-color: #E0F2FE;
+    border: none;
+}
 
 
 QTableWidget[role="manager"] {
@@ -727,6 +744,14 @@ QTableWidget[role="manager"] QHeaderView::section {
     color: white; /* Màu chữ trắng ở đây */
     text-transform: uppercase;
 }
+QTableWidget[role="manager"] QHeaderView {
+    background-color: white;
+    border: none;
+}
+QTableWidget[role="manager"] QTableCornerButton::section {
+    background-color: #A855F7;
+    border: none;
+}
 
 
 QTableWidget[role="manager-dark"] {
@@ -746,6 +771,14 @@ QTableWidget[role="manager-dark"] QHeaderView::section {
     font-weight: bold;
     color: white;
     text-transform: uppercase;
+}
+QTableWidget[role="manager-dark"] QHeaderView {
+    background-color: white;
+    border: none;
+}
+QTableWidget[role="manager-dark"] QTableCornerButton::section {
+    background-color: #9333EA;
+    border: none;
 }
 
 

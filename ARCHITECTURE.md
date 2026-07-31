@@ -189,8 +189,9 @@ This module acts as the intermediary between the View and Model layers, orchestr
     *   `currentEmployeeId` (ID of the employee being managed).
 *   **Functions:**
     *   `load()`: Loads schedule data.
-    *   `onAddShiftRequested(...)`: Handles adding a new shift. *Calls `Schedule_Model::handleAddShiftSubmission`.*
-    *   `onSaveShiftRequested()`: Handles saving the schedule draft. *Calls `Schedule_Model::saveDraftShiftsToDatabase`.*
+    *   `onSaveGridRequested(...)`: Handles saving the schedule draft from the interactive timeline grid. *Calls `Schedule_Model::handleAddShiftSubmission` and `saveDraftShiftsToDatabase`.*
+    *   `handleGenSchedule()`: Triggers automated schedule generation.
+    *   `onShiftBlockClicked(...)`, `onApproveShift(...)`, `onDeclineShift(...)`: Manager actions for processing shift requests.
 
 #### 5.1.8. `ViewSchedule_Control`
 *   **Role:** Manages logic for viewing existing schedules.
@@ -199,7 +200,7 @@ This module acts as the intermediary between the View and Model layers, orchestr
     *   `model` (Pointer to `Schedule_Model`).
     *   `currentSession` (Pointer to `SessionManager`).
 *   **Functions:**
-    *   `loadData()`, `loadStaffSchedule()`, `loadManagerSchedule()`: Loads schedule based on role. *Calls `Schedule_Model::getAcceptedSchedule` or `getManagerWeeklyGrid`.*
+    *   `loadData()`, `loadStaffSchedule()`, `loadManagerSchedule()`: Loads schedule based on role. `loadStaffSchedule` handles both approved and pending schedules. *Calls `Schedule_Model::getAcceptedSchedule`, `getPendingSchedule`, or `getManagerWeeklyGrid`.*
     *   `onPrevWeek()`, `onNextWeek()`, `onCurrentWeek()`: Navigation slots.
 
 ### 5.2. Core Module (`src/core`)

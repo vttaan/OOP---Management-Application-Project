@@ -545,6 +545,20 @@ QFrame *Employee_View::createMetricCard(
   card->setObjectName("metricCard");
   card->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
   card->setMinimumHeight(108);
+  card->setStyleSheet(
+      "QFrame#metricCard {"
+      "  background-color: #FFFFFF;"
+      "  border: 1px solid #E5E7EB;"
+      "  border-radius: 12px;"
+      "}"
+  );
+
+  // Soft drop shadow to lift card off the page
+  QGraphicsDropShadowEffect *shadow = new QGraphicsDropShadowEffect(card);
+  shadow->setBlurRadius(14);
+  shadow->setOffset(0, 3);
+  shadow->setColor(QColor(0, 0, 0, 18));
+  card->setGraphicsEffect(shadow);
 
   QHBoxLayout *cardLayout = new QHBoxLayout(card);
   cardLayout->setContentsMargins(16, 14, 16, 14);
@@ -567,7 +581,8 @@ QFrame *Employee_View::createMetricCard(
   iconLabel->setStyleSheet(QString("background-color: %1;"
                                    "color: %2;"
                                    "border-radius: 25px;"
-                                   "font-size: 20px;")
+                                   "font-size: 20px;"
+                                   "border: none;")
                                .arg(iconBg, iconColor));
 
   QVBoxLayout *textLayout = new QVBoxLayout();
@@ -604,6 +619,7 @@ QFrame *Employee_View::createMetricCard(
 
   return card;
 }
+
 
 QLabel *Employee_View::createStatusBadge(const QString &status)
 {
