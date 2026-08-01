@@ -167,7 +167,7 @@ bool Employee_Model::deleteEmployee(short idEmployee)
     return false;
   }
   if (!this->popUserInList(idEmployee))
-    qDebug() << "POP USER IN LIST FAILDE, LIST IS EMPTY\n";
+    qDebug() << "POP USER IN LIST FAILED, LIST IS EMPTY\n";
   return db.commit();
 }
 

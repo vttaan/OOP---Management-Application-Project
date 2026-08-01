@@ -26,3 +26,4 @@ Makefile
 *.exe
 *.dll
 *.pdb
+database/-- SQLite.sql
