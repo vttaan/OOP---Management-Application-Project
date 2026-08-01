@@ -5,7 +5,7 @@ class Config
 private:
     static const short openHour = 7, closeHour = 22;
 
-    static const Qt::DayOfWeek dayOpenRegisShift = Qt::Friday;
+    static const Qt::DayOfWeek dayOpenRegisShift = Qt::Saturday;
     static const short minStaffPerShift = 4;
     static const short maxStaffPerShift = 6;
 
