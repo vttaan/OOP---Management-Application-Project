@@ -14,11 +14,13 @@ private:
     Schedule_Model*  model;
     short int        currentEmployeeId;
 
-    // Days list provided by business logic (Mon–Sun in the display language)
+    // Days list provided by business logic (Mon-Sun in the display language)
     QList<QString>   listDays;
 
+    // Tracks the week being shown in the assign grid
+    QDate            currentAssignMonday;
 
-    // Helper: convert "Monday" display string → QDate of that day this week
+    // Helper: convert "Monday" display string -> QDate of that day this week
     QDate dayStringToDate(const QString& day) const;
 
 public:
@@ -33,7 +35,6 @@ public:
     void load();
 
     // UML-required stubs (left for future implementation)
-    void handleSaveSchedule();
     void handleGenSchedule();
     void search();
     void filter();
@@ -46,15 +47,22 @@ public:
     Schedule_View* getView() const;
 
 private slots:
-    // Fired by view when the user presses "Thêm" (Add shift)
-    void onAddShiftRequested(const QString& day,
-                             const QString& startTime,
-                             const QString& endTime);
+    // Fired by view when the staff presses "Luu / Xac Nhan"
+    // selectedHoursByDay: outer index = day (0-6), inner list = selected hour-row indices
+    void onSaveGridRequested(const QList<QList<int>>& selectedHoursByDay);
 
-    // Fired by view when the user presses "Lưu" (Save)
-    void onSaveShiftRequested();
+    // Fired when manager clicks a shift block in the assign grid
+    void onShiftBlockClicked(int col, int row);
+
+    // Fired from the popup dialog approve/decline buttons
+    void onApproveShift(int shiftId);
+    void onDeclineShift(int shiftId);
+
+    // Fired when the manager clicks "Xac Nhan"
+    void onConfirmRequested();
+
 signals:
-    void scheduleGenerated(bool success, int assignedCount,  const QStringList& warnings);
+    void scheduleGenerated(bool success, int assignedCount, const QStringList& warnings);
 };
 
 #endif // SCHEDULE_CONTROL_H

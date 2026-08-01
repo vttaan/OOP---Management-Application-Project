@@ -39,6 +39,7 @@
 #include <QResizeEvent>
 #include <QSize>
 #include <QSizePolicy>
+#include <QSplitter>
 #include <QSqlDatabase>
 #include <QSqlError>
 #include <QSqlQuery>

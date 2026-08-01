@@ -65,67 +65,84 @@ QFrame#frameCard:hover {
        <number>20</number>
       </property>
       <item>
-       <widget class="QLabel" name="lblAvatar">
-        <property name="minimumSize">
-         <size>
-          <width>80</width>
-          <height>80</height>
-         </size>
+       <layout class="QHBoxLayout" name="horizontalLayout_Header">
+        <property name="spacing">
+         <number>12</number>
         </property>
-        <property name="maximumSize">
-         <size>
-          <width>80</width>
-          <height>80</height>
-         </size>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">background-color: #e8f0fe;
-border-radius: 40px;</string>
-        </property>
-        <property name="text">
-         <string>🧑‍💼</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="lblName">
-        <property name="font">
-         <font>
-          <pointsize>11</pointsize>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">color: #212b36;</string>
-        </property>
-        <property name="text">
-         <string>Nhân viên A</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="lblRole">
-        <property name="font">
-         <font>
-          <pointsize>9</pointsize>
-         </font>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">color: #637381;</string>
-        </property>
-        <property name="text">
-         <string>Nhân viên</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
+        <item>
+         <widget class="QLabel" name="lblAvatar">
+          <property name="minimumSize">
+           <size>
+            <width>60</width>
+            <height>60</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>60</width>
+            <height>60</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: #e8f0fe;
+border-radius: 30px;</string>
+          </property>
+          <property name="text">
+           <string>🧑‍💼</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_NameRole">
+          <property name="spacing">
+           <number>2</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="lblName">
+            <property name="font">
+             <font>
+              <pointsize>11</pointsize>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">color: #212b36;</string>
+            </property>
+            <property name="text">
+             <string>Nhân viên A</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="lblRole">
+            <property name="font">
+             <font>
+              <pointsize>9</pointsize>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">color: #637381;</string>
+            </property>
+            <property name="text">
+             <string>Nhân viên</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
       </item>
       <item>
        <spacer name="verticalSpacer">
@@ -157,6 +174,36 @@ border-radius: 40px;</string>
         </property>
         <property name="text">
          <string>📞 0901 111 111</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="lblID">
+        <property name="styleSheet">
+         <string notr="true">color: #454f5b;</string>
+        </property>
+        <property name="text">
+         <string>🆔 1001</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="lblDOB">
+        <property name="styleSheet">
+         <string notr="true">color: #454f5b;</string>
+        </property>
+        <property name="text">
+         <string>🎂 2000-01-01</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="lblGender">
+        <property name="styleSheet">
+         <string notr="true">color: #454f5b;</string>
+        </property>
+        <property name="text">
+         <string>🚻 Nam</string>
         </property>
        </widget>
       </item>

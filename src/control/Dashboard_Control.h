@@ -2,6 +2,7 @@
 
 #include "global.h"
 #include "utils/SessionManage.h"
+#include "model/Employee_Model.h"
 
 class Dashboard_View;
 class Dashboard_Model;
@@ -12,7 +13,9 @@ class Dashboard_Control : public QObject
 
 private:
     Dashboard_View *view;
-
+    Employee_Model*empModel;
+    void loadEmployeeCards(const QList<User*>&list);
+    void loadShiftPanel();
 public:
     SessionManager *currentSession;
     Dashboard_Control(QObject *parent = nullptr);
@@ -27,4 +30,6 @@ signals:
     // void DashboardSuccessful(User* currentUser);
 private slots:
     // void handleDashboardSubmission(const QString& username, const QString& password);
+    void onSearchChanged(const QString&text);
+
 };

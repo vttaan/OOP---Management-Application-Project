@@ -33,7 +33,7 @@ void ViewSchedule_Control::setView(ViewSchedule_View* v) {
 void ViewSchedule_Control::load() {
     if (!view || currentEmployeeId < 0) return;
 
-    currentViewMonday = QDate::currentDate().addDays(-(QDate::currentDate().dayOfWeek() - 1));
+    currentViewMonday = Config::getStartOfCurrentWeek(QDate::currentDate());
     loadData();
 }
 
@@ -53,11 +53,33 @@ void ViewSchedule_Control::loadData() {
 }
 
 void ViewSchedule_Control::loadStaffSchedule() {
-    model->getAcceptedSchedule(currentEmployeeId, currentViewMonday);
     view->setManagerFeaturesVisible(false);
-    view->updateTable(model->getWeeklySummaryStrings());
-    updateDateRangeLabel();
 
+    // ── Approved shifts (bottom table) ───────────────────────────────────────
+    QMap<int, QList<Shift*>> approvedShifts = model->getRawStaffShifts(currentEmployeeId, currentViewMonday, 1);
+    view->updateTable(approvedShifts);
+
+    // ── Pending and Declined shifts (top table) ──────────────────────────────
+    QMap<int, QList<Shift*>> pendingShifts = model->getRawStaffShifts(currentEmployeeId, currentViewMonday, 0);
+    QMap<int, QList<Shift*>> declinedShifts = model->getRawStaffShifts(currentEmployeeId, currentViewMonday, -1);
+    
+    QMap<int, QList<Shift*>> pendingAndDeclined;
+    for (int col = 0; col < 7; ++col) {
+        if (pendingShifts.contains(col)) {
+            pendingAndDeclined[col].append(pendingShifts[col]);
+        }
+        if (declinedShifts.contains(col)) {
+            pendingAndDeclined[col].append(declinedShifts[col]);
+        }
+    }
+    view->updatePendingTable(pendingAndDeclined);
+
+    // Clean up temporary shift objects
+    for (auto list : approvedShifts) qDeleteAll(list);
+    for (auto list : pendingShifts) qDeleteAll(list);
+    for (auto list : declinedShifts) qDeleteAll(list);
+
+    updateDateRangeLabel();
 
     QDate today = QDate::currentDate();
     if (today >= currentViewMonday && today <= currentViewMonday.addDays(6)) {
@@ -66,6 +88,7 @@ void ViewSchedule_Control::loadStaffSchedule() {
         view->highlightToday(-1);
     }
 }
+
 
 void ViewSchedule_Control::loadManagerSchedule() {
     view->setManagerFeaturesVisible(true);
@@ -80,30 +103,7 @@ void ViewSchedule_Control::loadManagerSchedule() {
 
     scheduleGrid = model->getManagerWeeklyGrid(currentViewMonday);
 
-    QList<QString> timeSlots;
-    for (int i = 8; i < 22; ++i) {
-        QString start = QString("%1:00").arg(i, 2, 10, QChar('0'));
-        QString end = QString("%1:00").arg(i+1, 2, 10, QChar('0'));
-        timeSlots.append(start + " - " + end);
-    }
-
-    QList<QPair<QString, int>> unqualifiedShifts;
-    QStringList daysOfWeek = {"Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ Nhật"};
-
-    for (int col = 0; col < 7; ++col) {
-        if (!scheduleGrid.contains(col)) continue;
-        for (int row = 0; row < timeSlots.size(); ++row) {
-            if (!scheduleGrid[col].contains(row)) continue;
-            ShiftBlock* block = scheduleGrid[col][row];
-            if (block && (block->getStatus() == ShiftStatus::Understaffed || block->getStatus() == ShiftStatus::Empty)) {
-                QString shiftName = QString("%1: %2").arg(daysOfWeek[col]).arg(timeSlots[row]);
-                unqualifiedShifts.append(qMakePair(shiftName, block->getStaffCount()));
-            }
-        }
-    }
-
-    view->updateManagerTable(timeSlots, scheduleGrid);
-    view->updateUnqualifiedShifts(unqualifiedShifts);
+    view->updateManagerTable(scheduleGrid);
     updateDateRangeLabel();
     view->highlightToday(-1); 
 }
@@ -124,10 +124,9 @@ void ViewSchedule_Control::onShiftClicked(int row, int dayIndex) {
 
 
 
-void ViewSchedule_Control::updateDateRangeLabel() {
-    QString start = currentViewMonday.toString("dd/MM/yyyy");
-    QString end = currentViewMonday.addDays(6).toString("dd/MM/yyyy");
-    view->updateDateRange(start + " - " + end);
+void ViewSchedule_Control::updateDateRangeLabel()
+{
+    view->updateDateRange(currentViewMonday);
 }
 
 void ViewSchedule_Control::onPrevWeek() {

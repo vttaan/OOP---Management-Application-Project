@@ -1,24 +1,30 @@
 #ifndef VIEWSCHEDULE_VIEW_H
 #define VIEWSCHEDULE_VIEW_H
 #include "global.h"
-namespace Ui {
-class ViewSchedule_View;
+namespace Ui
+{
+    class ViewSchedule_View;
 }
-class QSplitter;
 class ShiftBlock;
 class User;
+class Shift;
 
-namespace ScheduleStyle {
-    const QString BtnNormal = 
+namespace ScheduleStyle
+{
+    // Blue-White theme aligned with navigation bar
+    const QString BtnNormal =
         "QPushButton { background-color: #F3F4F6; color: #374151; border: 1px solid #D1D5DB; border-radius: 6px; padding: 6px 15px; font-weight: bold; } "
         "QPushButton:hover { background-color: #E5E7EB; }";
 
-    const QString BtnHighlight = 
+    const QString BtnHighlight =
         "QPushButton { background-color: #2F80ED; color: white; border-radius: 6px; padding: 6px 15px; font-weight: bold; } "
         "QPushButton:hover { background-color: #1C64F2; }";
 
-    const QString Title = "font-size: 14px; font-weight: bold; color: black; padding-bottom: 5px;";
+    const QString Title = "font-size: 14px; font-weight: bold; color: #1F2937; padding-bottom: 5px;";
 
+    // 3 fixed shifts: Morning, Afternoon, Evening
+    const QStringList SHIFT_NAMES = {"Ca Sáng", "Ca Chiều", "Ca Tối"};
+    const QStringList SHIFT_TIMES = {"07:00 - 12:00", "12:00 - 17:00", "17:00 - 22:00"};
 }
 
 class ViewSchedule_View : public QWidget
@@ -27,35 +33,46 @@ class ViewSchedule_View : public QWidget
 public:
     explicit ViewSchedule_View(QWidget *parent = nullptr);
     ~ViewSchedule_View();
-    void updateTable(const QMap<int, QList<QString>>& weeklyData);
-    void updateManagerTable(const QList<QString>& timeSlots, const QMap<int, QMap<int, ShiftBlock*>>& gridData);
-    void updateDateRange(const QString& dateRangeText);
+
+    // Staff view: display assigned (approved) shifts per day
+    void updateTable(const QMap<int, QList<Shift*>> &weeklyData);
+
+    // Staff view: display pending (unreviewed) and declined shifts per day
+    void updatePendingTable(const QMap<int, QList<Shift*>> &weeklyData);
+
+    // Manager view: display finalized schedule with employee cards
+    // grid: col (day 0-6) -> row (shift 0-2) -> ShiftBlock*
+    void updateManagerTable(const QMap<int, QMap<int, ShiftBlock *>> &gridData);
+
+    void updateDateRange(QDate monday);
     void highlightToday(int currentDayIndex);
-    
-    // New methods for bottom pane
-    void updateUnqualifiedShifts(const QList<QPair<QString, int>>& unqualifiedShifts);
-    void updateShiftDetails(const QList<User*>& employees, const QString& timeLabel);
+
+    // Populates the shift details pane when a cell is clicked (manager only)
+    void updateShiftDetails(const QList<User *> &employees, const QString &timeLabel);
+
+    // Overload that also provides per-employee working time strings (employeeId -> "HH:mm - HH:mm")
+    void updateShiftDetails(const QList<User *> &employees, const QString &timeLabel,
+                            const QMap<int, QString> &employeeTimes);
+
     void setManagerFeaturesVisible(bool visible);
-    
+
 signals:
     void requestPrevWeek();
     void requestNextWeek();
     void requestCurrentWeek();
     void shiftClicked(int row, int dayIndex);
-    
+
 private:
     Ui::ViewSchedule_View *ui;
     void setUpUI();
-    
-    QSplitter* splitter;
-    QWidget* bottomWidget;
-    QTableWidget* tableMissingStaff;
-    QTableWidget* tableShiftDetails;
-    
+    QWidget *detailsWidget;
+    QLabel *lblShiftDetailTitle;
+    QTableWidget *tableShiftDetails;
+    bool m_isManagerMode = false; // guard for redundant polish calls
+
 private slots:
     void onBtnPrevClicked();
     void onBtnNextClicked();
     void onBtnCurrentClicked();
-
 };
 #endif // VIEWSCHEDULE_VIEW_H

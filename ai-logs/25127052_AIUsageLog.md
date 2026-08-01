@@ -764,3 +764,21 @@ After completing the Thynhhh merge, a `git merge Tin` was in progress on branch 
 
 ### AI Tool Used
 Antigravity (Google DeepMind) — Claude Sonnet 4.6 Thinking
+
+---
+
+## Session 24 — Updating AI Agent Rules for Architecture (2026-07-28)
+
+**Ideal / Idea:** 
+To formally define the software architecture rules (specifically MVC adherence and UI icon standards) into the project's AI agent instructions (`.agents/AGENTS.md`) so that future code generation maintains architectural integrity. Additionally, I wanted to evaluate our global vs. local `#include` strategy and determine if a refactor was necessary before finalizing the project.
+
+**Process (Prompting):** 
+- Asked the AI to add a rule enforcing the MVC structure to the `.agents/AGENTS.md` file and asked for implementation suggestions.
+- Prompted to add a rule strictly forbidding the use of inline Unicode emojis (e.g., 😊) in favor of SVG files.
+- Asked the AI to review and rate the overall `AGENTS.md` ruleset.
+- Asked for an explanation of what should go into the `global.h` file vs local files, and whether we should refactor our current "everything-in-global" approach given the project is in its final stages.
+
+**Result / Path to Result:** 
+- **Rule Formulation:** The AI successfully appended the new rules. To make the MVC rule concrete for Qt, the AI defined strict include boundaries (e.g., `src/model/` must never include `<QWidget>`) and mandated the use of Signals/Slots and Dependency Injection. The emoji rule was formalized to enforce Qt's resource system (`.qrc`) for SVGs.
+- **Rule Evaluation:** The AI gave the ruleset a 9/10, noting that explicit boundaries prevent AI hallucinations and "unnecessary code changes" ensure the AI doesn't break existing structures while trying to "clean up."
+- **Architecture Strategy & Final Decision:** The AI explained that ideally, only large/stable libraries (like STL or core Qt) belong in a global Precompiled Header, while domain logic stays local. However, since the project is in its "last period of growing," the AI strongly advised *against* doing this refactor. The reasoning was that the slow-compile penalty has already been paid, and rewriting includes now would introduce massive risk of circular dependencies and build breaks. **Conclusion:** We decided to keep the current `global.h` strategy as-is to ensure project stability across the finish line.
