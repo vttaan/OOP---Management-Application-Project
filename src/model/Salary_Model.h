@@ -25,10 +25,11 @@ public:
     explicit Salary_Model(QObject *parent = nullptr);
     ~Salary_Model();
 
-    SalaryData getSalarySummary(User* currentUser, int month, int year);
 
-    QMap<QString, int> getNormalDaysData(User* currentUser, int month, int year);
-    QMap<QString, int> getHolidayDaysData(User* currentUser, int month, int year);
+    static SalaryData getSalarySummary(short int id, QString role, double base, int month, int year);
+
+    static QMap<QString, int> getNormalDaysData(short int id, QString role, double base, int month, int year);
+    static QMap<QString, int> getHolidayDaysData(short int id, QString role, double base, int month, int year);
     User* currentUser;
 
 

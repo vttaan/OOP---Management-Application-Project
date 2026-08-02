@@ -5,10 +5,11 @@
 // #include "Profile_View.h"
 // #include "Dashboard_View.h"
 #include "control/Control_Navigator.h"
-#include "view/Schedule_View.h"
-#include "view/sidebar_widget.h"
-#include "view/viewschedule_view.h"
-#include "view/Salary_View.h"
+#include "Schedule_View.h"
+#include "sidebar_widget.h"
+#include "viewschedule_view.h"
+#include "Salary_View.h"
+#include "Setting_View.h"
 
 namespace Ui
 {
@@ -29,11 +30,12 @@ public:
     Login_View *loginPage = nullptr;
     Dashboard_View *dashboardPage = nullptr;
     Profile_View *profilePage = nullptr;
-    EmployeesWidget *employeePage = nullptr;
+    Employee_View *employeePage = nullptr;
     Schedule_View *schedulePage = nullptr;
     Salary_View *salaryPage = nullptr;
     Sidebar_Widget *sidebar = nullptr;
     ViewSchedule_View *viewSchedulePage = nullptr;
+    Setting_View* settingPage = nullptr;
     Control_Navigator *getController();
     QWidget *getWindow();
     Ui::View_Navigator *getUI();

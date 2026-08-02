@@ -39,6 +39,7 @@
 #include <QResizeEvent>
 #include <QSize>
 #include <QSizePolicy>
+#include <QSplitter>
 #include <QSqlDatabase>
 #include <QSqlError>
 #include <QSqlQuery>
@@ -55,3 +56,12 @@
 #include <cmath>
 #include <functional>
 #include <QGraphicsDropShadowEffect>
+#include <QVector>
+#include <QPair>
+#include <QSet>
+#include <vector>
+#include <queue>
+#include <climits>
+#include "core/KitchenAssistant.h"
+#include "core/HallStaff.h"
+#include "core/Cashier.h"

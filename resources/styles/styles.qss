@@ -3,6 +3,15 @@ Login_View {
     font-family: "Inter", sans-serif;
 }
 
+QHeaderView {
+    background-color: white;
+    border: none;
+}
+QTableCornerButton::section {
+    background-color: white;
+    border: none;
+}
+
 QMainWindow, QStackedWidget, QWidget#centralwidget {
     background-color: #F8FAFC;
 }
@@ -284,7 +293,7 @@ QPushButton#btnEditPassword:pressed {
 
 
 /* ╔══════════════════════════════════════════════════════════╗ */
-/* ║          EmployeesWidget  —  F&B Dashboard Theme         ║ */
+/* ║          Employee_View  —  F&B Dashboard Theme         ║ */
 /* ║  Sections:                                               ║ */
 /* ║    1. Root Widget                                        ║ */
 /* ║    2. Profile Block (top-right user card)                ║ */
@@ -298,7 +307,7 @@ QPushButton#btnEditPassword:pressed {
 
 /* ── 1. ROOT WIDGET ─────────────────────────────────────── */
 
-EmployeesWidget {
+Employee_View {
     background-color: #F8FAFC;
     color: #0F172A;
     font-family: "Segoe UI", "Inter", Arial, sans-serif;
@@ -307,25 +316,25 @@ EmployeesWidget {
 
 /* ── 2. PROFILE BLOCK ───────────────────────────────────── */
 
-EmployeesWidget #profileBlock {
+Employee_View #profileBlock {
     background-color: transparent;
     min-height: 52px;
     max-height: 52px;
 }
 
-EmployeesWidget #lblPageTitle {
+Employee_View #lblPageTitle {
     color: #0F172A;
     font-size: 20px;
     font-weight: 700;
 }
 
 /* Clickable user identity card */
-EmployeesWidget #userCard {
+Employee_View #userCard {
     background-color: #FFFFFF;
     border: 1px solid #E2E8F0;
     border-radius: 10px;
 }
-EmployeesWidget #userCard:hover {
+Employee_View #userCard:hover {
     background-color: #F1F5F9;
     border-color: #BFDBFE;
 }
@@ -336,19 +345,19 @@ EmployeesWidget #userCard:hover {
  * named-object property.
  */
 
-EmployeesWidget #userName {
+Employee_View #userName {
     color: #1E293B;
     font-size: 13px;
     font-weight: 700;
 }
 
-EmployeesWidget #userRole {
+Employee_View #userRole {
     color: #64748B;
     font-size: 11px;
     font-weight: 500;
 }
 
-EmployeesWidget #userCaret {
+Employee_View #userCaret {
     color: #94A3B8;
     font-size: 16px;
     font-weight: bold;
@@ -358,30 +367,30 @@ EmployeesWidget #userCaret {
 
 /* ── 3. METRIC SUMMARY CARDS ────────────────────────────── */
 
-EmployeesWidget #metricCard {
+Employee_View #metricCard {
     background-color: #FFFFFF;
     border: 1px solid #E2E8F0;
     border-radius: 14px;
 }
-EmployeesWidget #metricCard:hover {
+Employee_View #metricCard:hover {
     border-color: #BFDBFE;
     background-color: #F8FBFF;
 }
 
-EmployeesWidget #metricTitle {
+Employee_View #metricTitle {
     color: #64748B;
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.4px;
 }
 
-EmployeesWidget #metricValue {
+Employee_View #metricValue {
     color: #0F172A;
     font-size: 26px;
     font-weight: 700;
 }
 
-EmployeesWidget #metricSubtitle {
+Employee_View #metricSubtitle {
     color: #94A3B8;
     font-size: 11px;
 }
@@ -394,34 +403,34 @@ EmployeesWidget #metricSubtitle {
 
 /* ── 4. ROSTER CARD ─────────────────────────────────────── */
 
-EmployeesWidget #rosterCard {
+Employee_View #rosterCard {
     background-color: #FFFFFF;
     border: 1px solid #E2E8F0;
     border-radius: 14px;
 }
 
-EmployeesWidget #rosterHeader {
+Employee_View #rosterHeader {
     background-color: transparent;
 }
 
-EmployeesWidget #rosterTitle {
+Employee_View #rosterTitle {
     color: #0F172A;
     font-size: 15px;
     font-weight: 700;
 }
 
-EmployeesWidget #rosterSubtitle {
+Employee_View #rosterSubtitle {
     color: #94A3B8;
     font-size: 11px;
 }
 
-EmployeesWidget #tableDivider {
+Employee_View #tableDivider {
     color: #E2E8F0;
     max-height: 1px;
 }
 
 /* Search bar inside roster header */
-EmployeesWidget #searchRoster {
+Employee_View #searchRoster {
     background-color: #F8FAFC;
     color: #374151;
     border: 1px solid #E2E8F0;
@@ -429,13 +438,13 @@ EmployeesWidget #searchRoster {
     padding: 3px 12px;
     font-size: 12px;
 }
-EmployeesWidget #searchRoster:focus {
+Employee_View #searchRoster:focus {
     border: 1px solid #93C5FD;
     background-color: #FFFFFF;
 }
 
 /* Sort / Filter combo box */
-EmployeesWidget #filterCombo {
+Employee_View #filterCombo {
     background-color: #F8FAFC;
     color: #374151;
     border: 1px solid #E2E8F0;
@@ -444,15 +453,15 @@ EmployeesWidget #filterCombo {
     font-size: 12px;
     min-width: 100px;
 }
-EmployeesWidget #filterCombo:hover {
+Employee_View #filterCombo:hover {
     border-color: #93C5FD;
     background-color: #F1F5F9;
 }
-EmployeesWidget #filterCombo::drop-down {
+Employee_View #filterCombo::drop-down {
     border: none;
     width: 20px;
 }
-EmployeesWidget #filterCombo QAbstractItemView {
+Employee_View #filterCombo QAbstractItemView {
     background-color: #FFFFFF;
     border: 1px solid #E2E8F0;
     border-radius: 6px;
@@ -462,7 +471,7 @@ EmployeesWidget #filterCombo QAbstractItemView {
 }
 
 /* Add Staff primary button */
-EmployeesWidget #addEmployeeBtn {
+Employee_View #addEmployeeBtn {
     background-color: #2563EB;
     color: #FFFFFF;
     border: none;
@@ -472,70 +481,70 @@ EmployeesWidget #addEmployeeBtn {
     font-weight: 600;
     min-width: 100px;
 }
-EmployeesWidget #addEmployeeBtn:hover {
+Employee_View #addEmployeeBtn:hover {
     background-color: #1D4ED8;
 }
-EmployeesWidget #addEmployeeBtn:pressed {
+Employee_View #addEmployeeBtn:pressed {
     background-color: #1E40AF;
 }
 
 /* Filter / Sort icon buttons — light theme */
-EmployeesWidget #filterBtn,
-EmployeesWidget #sortBtn {
+Employee_View #filterBtn,
+Employee_View #sortBtn {
     background-color: #F1F5F9;
     border: 1px solid #CBD5E1;
     border-radius: 8px;
     color: #374151;
     padding: 0px;
 }
-EmployeesWidget #filterBtn:hover,
-EmployeesWidget #sortBtn:hover {
+Employee_View #filterBtn:hover,
+Employee_View #sortBtn:hover {
     background-color: #E2E8F0;
     border-color: #93C5FD;
 }
-EmployeesWidget #filterBtn:pressed,
-EmployeesWidget #sortBtn:pressed {
+Employee_View #filterBtn:pressed,
+Employee_View #sortBtn:pressed {
     background-color: #CBD5E1;
 }
 
 /* Filter / Sort floating dropdowns — light theme */
-EmployeesWidget #filterDropdown,
-EmployeesWidget #sortDropdown {
+Employee_View #filterDropdown,
+Employee_View #sortDropdown {
     background-color: #FFFFFF;
     border: 1px solid #E2E8F0;
     border-radius: 10px;
     color: #1E293B;
 }
-EmployeesWidget #filterDropdown QCheckBox,
-EmployeesWidget #sortDropdown QCheckBox {
+Employee_View #filterDropdown QCheckBox,
+Employee_View #sortDropdown QCheckBox {
     color: #374151;
     font-size: 12px;
     spacing: 6px;
 }
-EmployeesWidget #filterDropdown QCheckBox::indicator,
-EmployeesWidget #sortDropdown QCheckBox::indicator {
+Employee_View #filterDropdown QCheckBox::indicator,
+Employee_View #sortDropdown QCheckBox::indicator {
     width: 14px;
     height: 14px;
     border: 1px solid #CBD5E1;
     border-radius: 3px;
     background: #F8FAFC;
 }
-EmployeesWidget #filterDropdown QCheckBox::indicator:checked,
-EmployeesWidget #sortDropdown QCheckBox::indicator:checked {
+Employee_View #filterDropdown QCheckBox::indicator:checked,
+Employee_View #sortDropdown QCheckBox::indicator:checked {
     background: #2563EB;
     border-color: #3B82F6;
 }
-EmployeesWidget #filterSectionLabel {
+Employee_View #filterSectionLabel {
     color: #94A3B8;
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.5px;
 }
-EmployeesWidget #filterSeparator {
+Employee_View #filterSeparator {
     color: #E2E8F0;
     max-height: 1px;
 }
-EmployeesWidget #sortDropdownItem {
+Employee_View #sortDropdownItem {
     color: #374151;
     font-size: 12px;
     background: transparent;
@@ -544,7 +553,7 @@ EmployeesWidget #sortDropdownItem {
     text-align: left;
     padding: 5px 10px;
 }
-EmployeesWidget #sortDropdownItem:hover {
+Employee_View #sortDropdownItem:hover {
     background-color: #F1F5F9;
     color: #2563EB;
 }
@@ -552,7 +561,7 @@ EmployeesWidget #sortDropdownItem:hover {
 
 /* ── 5. STAFF TABLE ─────────────────────────────────────── */
 
-EmployeesWidget #employeesTable {
+Employee_View #employeesTable {
     background-color: #FFFFFF;
     alternate-background-color: #F8FAFC;
     color: #0F172A;
@@ -563,22 +572,22 @@ EmployeesWidget #employeesTable {
     outline: none;
 }
 
-EmployeesWidget #employeesTable::item {
+Employee_View #employeesTable::item {
     padding: 5px 8px;
     border-bottom: 1px solid #F1F5F9;
 }
-EmployeesWidget #employeesTable::item:hover {
+Employee_View #employeesTable::item:hover {
     background-color: #F0F9FF;
 }
-EmployeesWidget #employeesTable::item:selected {
+Employee_View #employeesTable::item:selected {
     background-color: #EFF6FF;
     color: #1E40AF;
 }
 
-EmployeesWidget QHeaderView {
+Employee_View QHeaderView {
     background-color: transparent;
 }
-EmployeesWidget QHeaderView::section {
+Employee_View QHeaderView::section {
     background-color: #F8FAFC;
     color: #64748B;
     padding: 9px 8px;
@@ -589,7 +598,7 @@ EmployeesWidget QHeaderView::section {
     letter-spacing: 0.5px;
 }
 
-EmployeesWidget #empNameLabel {
+Employee_View #empNameLabel {
     color: #1E293B;
     font-size: 12px;
     font-weight: 600;
@@ -602,31 +611,31 @@ EmployeesWidget #empNameLabel {
  */
 
 /* Edit / Delete icon buttons */
-EmployeesWidget #tableActionBtn {
+Employee_View #tableActionBtn {
     background-color: transparent;
     border: 1px solid #E2E8F0;
     border-radius: 6px;
     font-size: 13px;
 }
-EmployeesWidget #tableActionBtn:hover {
+Employee_View #tableActionBtn:hover {
     background-color: #F1F5F9;
     border-color: #CBD5E1;
 }
-EmployeesWidget #tableActionBtn:pressed {
+Employee_View #tableActionBtn:pressed {
     background-color: #E2E8F0;
 }
 
 
 /* ── 6. TABLE FOOTER ────────────────────────────────────── */
 
-EmployeesWidget #tableFooterFrame {
+Employee_View #tableFooterFrame {
     background-color: #F8FAFC;
     border-top: 1px solid #E2E8F0;
     border-bottom-left-radius: 14px;
     border-bottom-right-radius: 14px;
 }
 
-EmployeesWidget #footerLabel {
+Employee_View #footerLabel {
     color: #94A3B8;
     font-size: 11px;
 }
@@ -634,45 +643,45 @@ EmployeesWidget #footerLabel {
 
 /* ── 7. SCROLLBARS ──────────────────────────────────────── */
 
-EmployeesWidget QScrollBar:vertical {
+QScrollBar:vertical {
     border: none;
     background-color: #F8FAFC;
     width: 7px;
     margin: 0px;
 }
-EmployeesWidget QScrollBar::handle:vertical {
+QScrollBar::handle:vertical {
     background-color: #CBD5E1;
     min-height: 24px;
     border-radius: 3px;
 }
-EmployeesWidget QScrollBar::handle:vertical:hover {
+QScrollBar::handle:vertical:hover {
     background-color: #94A3B8;
 }
-EmployeesWidget QScrollBar::add-line:vertical,
-EmployeesWidget QScrollBar::sub-line:vertical {
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical {
     height: 0px;
 }
 
-EmployeesWidget QScrollBar:horizontal {
+QScrollBar:horizontal {
     border: none;
     background-color: #F8FAFC;
     height: 7px;
     margin: 0px;
 }
-EmployeesWidget QScrollBar::handle:horizontal {
+QScrollBar::handle:horizontal {
     background-color: #CBD5E1;
     min-width: 24px;
     border-radius: 3px;
 }
-EmployeesWidget QScrollBar::handle:horizontal:hover {
+QScrollBar::handle:horizontal:hover {
     background-color: #94A3B8;
 }
-EmployeesWidget QScrollBar::add-line:horizontal,
-EmployeesWidget QScrollBar::sub-line:horizontal {
+QScrollBar::add-line:horizontal,
+QScrollBar::sub-line:horizontal {
     width: 0px;
 }
 
-EmployeesWidget QLabel#userAvatar {
+Employee_View QLabel#userAvatar {
     background-color: #2563EB;
     color: #FFFFFF;
     border-radius: 18px;
@@ -707,6 +716,14 @@ QTableWidget[role="staff"] QHeaderView::section:vertical {
     border: none;
     font-weight: bold;
 }
+QTableWidget[role="staff"] QHeaderView {
+    background-color: white;
+    border: none;
+}
+QTableWidget[role="staff"] QTableCornerButton::section {
+    background-color: #E0F2FE;
+    border: none;
+}
 
 
 QTableWidget[role="manager"] {
@@ -727,6 +744,14 @@ QTableWidget[role="manager"] QHeaderView::section {
     color: white; /* Màu chữ trắng ở đây */
     text-transform: uppercase;
 }
+QTableWidget[role="manager"] QHeaderView {
+    background-color: white;
+    border: none;
+}
+QTableWidget[role="manager"] QTableCornerButton::section {
+    background-color: #A855F7;
+    border: none;
+}
 
 
 QTableWidget[role="manager-dark"] {
@@ -746,6 +771,14 @@ QTableWidget[role="manager-dark"] QHeaderView::section {
     font-weight: bold;
     color: white;
     text-transform: uppercase;
+}
+QTableWidget[role="manager-dark"] QHeaderView {
+    background-color: white;
+    border: none;
+}
+QTableWidget[role="manager-dark"] QTableCornerButton::section {
+    background-color: #9333EA;
+    border: none;
 }
 
 
