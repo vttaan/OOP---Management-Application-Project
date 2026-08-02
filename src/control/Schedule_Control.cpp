@@ -141,7 +141,7 @@ void Schedule_Control::load()
                 MissingShiftInfo info;
                 info.dateStr = currentAssignMonday.addDays(col).toString("dd/MM/yyyy");
                 info.shiftName = (row < shiftNames.size()) ? shiftNames[row] : "";
-                info.required = Config::getMinStaffPerShift();
+                info.required = 0;//Config::getMinStaffPerShift();
                 info.assigned = block->getStaffCount();
                 missingList.append(info);
             }

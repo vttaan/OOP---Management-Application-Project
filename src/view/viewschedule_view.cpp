@@ -289,7 +289,7 @@ void ViewSchedule_View::updateManagerTable(const QMap<int, QMap<int, ShiftBlock 
                 cellBg          = "#F0FDF4";
             }
 
-            int minStaff = Config::getMinStaffPerShift();
+            int minStaff = 0; //Config::getMinStaffPerShift();
             QString countText;
             if (count == 0) {
                 countText = QString("Chưa có NV (Thiếu %1)").arg(minStaff);
