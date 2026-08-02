@@ -3,6 +3,8 @@
 #include "Login_Control.h"
 #include "Dashboard_Control.h"
 #include "Profile_Control.h"
+#include "Employee_Control.h"
+#include "overview_control.h"
 #include "view/View_Navigator.h"
 #include "view/Dashboard_View.h"
 #include "utils/SessionManage.h"
