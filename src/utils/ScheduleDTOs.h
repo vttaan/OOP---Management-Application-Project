@@ -25,3 +25,17 @@ struct BlockCounts {
     int accepted = 0;
     int declined = 0;
 };
+
+enum class EmployeeScheduleLayoutMode {
+    PartTimeHourly,
+    FullTimeMock
+};
+
+enum class FullTimeShiftStatus {
+    Unregistered,
+    Registered,
+    StaffShortage
+};
+
+// Outer list index = day (Monday-Sunday), inner list index = shift (morning-evening).
+using FullTimeScheduleGrid = QList<QList<FullTimeShiftStatus>>;
