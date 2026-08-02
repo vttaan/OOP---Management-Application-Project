@@ -257,9 +257,10 @@ void Employee_Model::loadData()
     QString curAvatarPath = query.value("avatarPath").toString();
     QString curGender = query.value("Gender").toString();
     int curSalary = query.value("Salary").toInt();
+    bool curIsFixed = query.value("isFixed").toBool();
     User *nowEmployee = UserFactory::createContainsUser(
         curRole, curID, curAvatarPath, curIdIndentity, curName, curDob,
-        curAddress, curPhone, curGender, curSalary);
+        curAddress, curPhone, curGender, curSalary, curIsFixed);
     this->listEmployee.append(nowEmployee);
   }
 }
