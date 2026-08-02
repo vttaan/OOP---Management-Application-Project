@@ -91,16 +91,6 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="btnChangeShiftInfo">
-       <property name="text">
-        <string>Thay đổi thông tin ca làm</string>
-       </property>
-       <property name="cursor">
-        <cursorShape>PointingHandCursor</cursorShape>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QPushButton" name="btnConfirm">
        <property name="text">
         <string>Xác Nhận</string>

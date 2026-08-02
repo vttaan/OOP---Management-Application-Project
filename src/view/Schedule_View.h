@@ -34,7 +34,11 @@ public:
     void showError(const QString& mess);
 
     // Populate the interactive grid with date-labelled column headers
-    void setUpInteractiveGrid(QDate monday, int openTime, int closeTime);
+    void setUpInteractiveGrid(QDate weekStart, int openTime, int closeTime);
+
+    // Populate the full-time 3-shift registration grid from controller-owned state.
+    void setUpFullTimeGrid(QDate weekStart, const FullTimeScheduleGrid &statuses);
+    void showFullTimeSaveFeedback(const QString &message);
 
     // Update column headers of the summary (manager) table
     void updateTableHeaders(QDate monday);
@@ -69,6 +73,11 @@ private:
 
     // Build the staff-mode interactive calendar grid
     void buildInteractiveGrid(int openHour, int closeHour);
+    void buildFullTimeGrid();
+    void renderFullTimeCell(int row, int col);
+    void updateFullTimeWeekMetadata(QDate weekStart);
+    void resetFullTimeFooterHint();
+    bool eventFilter(QObject *watched, QEvent *event) override;
 
     // Manager missing-staff table (created dynamically)
     QWidget*        missingStaffWidget;
@@ -76,18 +85,28 @@ private:
     QLabel*         lblMissingCount;
     QTableWidget*   tableMissingStaff;
 
+    QWidget*        fullTimeInfoWidget;
+    QLabel*         lblFullTimeWeekRange;
+    QLabel*         lblFullTimeFooterMessage;
+
     // Tracks which mode the manager grid is in (assign vs view)
     int             m_isAssignMode = -1;
 
     // Store open/close hours used to build the interactive grid
     int             m_openHour  = Config::getOpenHour();
     int             m_closeHour = Config::getCloseHour();
+    bool            m_isFullTimeMode = false;
+    FullTimeScheduleGrid m_fullTimeStatuses;
+    QSet<QPair<int, int>> m_fullTimeSelections;
 
 signals:
 
     // Staff registration: emitted with grid selection when Luu is clicked
     // Outer QList index = day (0-6), inner QList = selected hour indices (row indices)
     void requestSaveGridShifts(const QList<QList<int>>& selectedHoursByDay);
+
+    // Full-time mock registration: selected shift-row indices grouped by day.
+    void requestSaveFullTimeShifts(const QList<QList<int>>& selectedShiftsByDay);
 
     // switch tab
     void profileClicked();
@@ -103,7 +122,7 @@ signals:
 
 private slots:
     void buttonSaveClicked();
-    void onBtnChangeShiftInfoClicked();
+    void onFullTimeCellClicked(int row, int col);
 };
 
 #endif // SCHEDULE_VIEW_H

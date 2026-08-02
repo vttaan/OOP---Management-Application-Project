@@ -20,8 +20,15 @@ private:
     // Tracks the week being shown in the assign grid
     QDate            currentAssignMonday;
 
+    // Temporary employee registration mode and controller-owned mock data.
+    EmployeeScheduleLayoutMode employeeScheduleLayoutMode =
+        EmployeeScheduleLayoutMode::FullTimeMock;
+    FullTimeScheduleGrid fullTimeMockStatuses;
+    QDate currentEmployeeRegistrationWeekStart;
+
     // Helper: convert "Monday" display string -> QDate of that day this week
     QDate dayStringToDate(const QString& day) const;
+    void initializeFullTimeMockStatuses();
 
 public:
     explicit Schedule_Control(QObject *parent = nullptr);
@@ -30,6 +37,7 @@ public:
     // Called by navigator before showing the page
     void setEmployeeId(short int id);
     short int getEmployeeId() const;
+    void setEmployeeScheduleLayoutMode(EmployeeScheduleLayoutMode mode);
 
     // Core lifecycle
     void load();
@@ -50,6 +58,9 @@ private slots:
     // Fired by view when the staff presses "Luu / Xac Nhan"
     // selectedHoursByDay: outer index = day (0-6), inner list = selected hour-row indices
     void onSaveGridRequested(const QList<QList<int>>& selectedHoursByDay);
+
+    // UI-only full-time mock save; does not call the model or database.
+    void onSaveFullTimeShiftsRequested(const QList<QList<int>>& selectedShiftsByDay);
 
     // Fired when manager clicks a shift block in the assign grid
     void onShiftBlockClicked(int col, int row);

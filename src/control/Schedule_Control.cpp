@@ -11,6 +11,7 @@ Schedule_Control::Schedule_Control(QObject *parent)
 {
     // Default day labels (Vietnamese, Monday first)
     listDays = {"Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "CN"};
+    initializeFullTimeMockStatuses();
 }
 
 Schedule_Control::~Schedule_Control()
@@ -33,6 +34,25 @@ short int Schedule_Control::getEmployeeId() const
     return currentEmployeeId;
 }
 
+void Schedule_Control::setEmployeeScheduleLayoutMode(EmployeeScheduleLayoutMode mode)
+{
+    employeeScheduleLayoutMode = mode;
+}
+
+void Schedule_Control::initializeFullTimeMockStatuses()
+{
+    using Status = FullTimeShiftStatus;
+    fullTimeMockStatuses = {
+        {Status::Registered,   Status::Unregistered, Status::StaffShortage},
+        {Status::Unregistered, Status::Registered,   Status::Unregistered},
+        {Status::StaffShortage, Status::Unregistered, Status::Registered},
+        {Status::Unregistered, Status::Unregistered, Status::Unregistered},
+        {Status::Registered,   Status::StaffShortage, Status::Unregistered},
+        {Status::Unregistered, Status::Registered,   Status::Unregistered},
+        {Status::StaffShortage, Status::Unregistered, Status::Registered}
+    };
+}
+
 // ─────────────────────────────────────────────
 // View wiring
 // ─────────────────────────────────────────────
@@ -46,6 +66,9 @@ void Schedule_Control::setView(Schedule_View *v)
     // Connect view signals -> controller slots
     connect(view, &Schedule_View::requestSaveGridShifts,
             this, &Schedule_Control::onSaveGridRequested);
+
+    connect(view, &Schedule_View::requestSaveFullTimeShifts,
+            this, &Schedule_Control::onSaveFullTimeShiftsRequested);
 
     connect(view, &Schedule_View::requestGenSchedule,
             this, &Schedule_Control::handleGenSchedule);
@@ -136,20 +159,29 @@ void Schedule_Control::load()
             return;
 
         QDate today = QDate::currentDate();
+        QDate weekStart = Config::getStartOfCurrentWeek(today).addDays(7);
+        currentEmployeeRegistrationWeekStart = weekStart;
+
+        if (employeeScheduleLayoutMode == EmployeeScheduleLayoutMode::FullTimeMock)
+        {
+            // UI-only demo mode. Future role logic can select this mode and replace
+            // fullTimeMockStatuses with real data.
+            view->enableRegistration(true);
+            view->setUpFullTimeGrid(weekStart, fullTimeMockStatuses);
+            return;
+        }
+
         bool registrationOpen = (today.dayOfWeek() == Config::getDayOpenRegisShift());
-
         view->enableRegistration(registrationOpen);
-
-        QDate monday = Config::getStartOfCurrentWeek(today).addDays(7);
-        view->setUpInteractiveGrid(monday, Config::getOpenHour(), Config::getCloseHour());
+        view->setUpInteractiveGrid(weekStart, Config::getOpenHour(), Config::getCloseHour());
 
         // Update summary table headers to match the registration week
-        view->updateTableHeaders(monday);
+        view->updateTableHeaders(weekStart);
 
         // Fetch shift status for coloring the interactive grid
-        QMap<int, QList<Shift*>> pendingShifts = model->getRawStaffShifts(currentEmployeeId, monday, 0); // 0 = Pending
-        QMap<int, QList<Shift*>> acceptedShifts = model->getRawStaffShifts(currentEmployeeId, monday, 1); // 1 = Accepted
-        QMap<int, QMap<int, ShiftBlock *>> managerGrid = model->getManagerWeeklyGrid(monday, 1);
+        QMap<int, QList<Shift*>> pendingShifts = model->getRawStaffShifts(currentEmployeeId, weekStart, 0); // 0 = Pending
+        QMap<int, QList<Shift*>> acceptedShifts = model->getRawStaffShifts(currentEmployeeId, weekStart, 1); // 1 = Accepted
+        QMap<int, QMap<int, ShiftBlock *>> managerGrid = model->getManagerWeeklyGrid(weekStart, 1);
 
         view->updateStaffInteractiveGridStatus(pendingShifts, acceptedShifts, managerGrid);
 
@@ -159,6 +191,41 @@ void Schedule_Control::load()
 
         // Data fetching for staff shifts is now fully handled in ViewSchedule_Control
     }
+}
+
+void Schedule_Control::onSaveFullTimeShiftsRequested(
+    const QList<QList<int>>& selectedShiftsByDay)
+{
+    if (!view || employeeScheduleLayoutMode != EmployeeScheduleLayoutMode::FullTimeMock)
+        return;
+
+    for (int day = 0; day < fullTimeMockStatuses.size() && day < 7; ++day)
+    {
+        QSet<int> selectedRows;
+        if (day < selectedShiftsByDay.size())
+            selectedRows = QSet<int>(selectedShiftsByDay[day].begin(),
+                                     selectedShiftsByDay[day].end());
+
+        for (int shift = 0; shift < fullTimeMockStatuses[day].size() && shift < 3; ++shift)
+        {
+            if (fullTimeMockStatuses[day][shift] == FullTimeShiftStatus::StaffShortage)
+                continue;
+
+            fullTimeMockStatuses[day][shift] = selectedRows.contains(shift)
+                ? FullTimeShiftStatus::Registered
+                : FullTimeShiftStatus::Unregistered;
+        }
+    }
+
+    if (!currentEmployeeRegistrationWeekStart.isValid())
+    {
+        currentEmployeeRegistrationWeekStart =
+            Config::getStartOfCurrentWeek(QDate::currentDate()).addDays(7);
+    }
+    view->setUpFullTimeGrid(currentEmployeeRegistrationWeekStart,
+                            fullTimeMockStatuses);
+    view->showFullTimeSaveFeedback(
+        "Đã lưu lịch đăng ký mô phỏng thành công.");
 }
 
 // ─────────────────────────────────────────────
@@ -174,7 +241,7 @@ void Schedule_Control::onSaveGridRequested(const QList<QList<int>>& selectedHour
         return;
 
     QDate today = QDate::currentDate();
-    QDate monday = Config::getStartOfCurrentWeek(today).addDays(7);
+    QDate weekStart = Config::getStartOfCurrentWeek(today).addDays(7);
     int openHour = Config::getOpenHour();
 
     // Clear any existing drafts so a second save doesn't duplicate
@@ -191,7 +258,7 @@ void Schedule_Control::onSaveGridRequested(const QList<QList<int>>& selectedHour
         // Sort rows to detect contiguous blocks
         std::sort(rows.begin(), rows.end());
 
-        QDate shiftDate = monday.addDays(col);
+        QDate shiftDate = weekStart.addDays(col);
 
         // Group contiguous rows into [startRow, endRow] spans
         int spanStart = rows[0];
