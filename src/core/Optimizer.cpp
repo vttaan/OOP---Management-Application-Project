@@ -1,8 +1,12 @@
 #include "Optimizer.h"
+#include "utils/Config.h"
 using namespace std;
-static constexpr int INF =INT_MAX/2;
-static constexpr int WEEKDAY_PENALTY=20; /// uu tien fill cuoi tuan truoc
-static constexpr int HOUR_SCALE=10; // moi 10p tinh 1 lan , nhan vien it gio hon duoc uu tien
+
+static constexpr int INF = INT_MAX/2;
+static constexpr int WEEKDAY_PENALTY = 20; // uu tien fill cuoi tuan truoc
+static constexpr int HOUR_SCALE = 10;      // moi 10p tinh 1 lan, nhan vien it gio hon duoc uu tien
+
+
 void Optimizer::init(int n){
     m_n=n;
     m_edges.clear();
@@ -61,149 +65,260 @@ int Optimizer::minCostFlow(int s,int t,int maxFlow,int &outCost){
     return flow;
 }
 
-#include "utils/Config.h"
-
-Optimizer::Optimizer(const QVector<Shift*>& shifts, const QMap<User*, int>& userMinutes) 
+Optimizer::Optimizer(const QVector<Shift*>& shifts, const QMap<User*, int>& userMinutes)
     : shifts(shifts), userMinutes(userMinutes) {}
+
+User* Optimizer::findUserById(short int id) const {
+    return m_userById.value(id, nullptr);
+}
+
 
 bool Optimizer::solve(){
     if(shifts.isEmpty()||userMinutes.isEmpty()){
-        warnings << " Khong co du lieu dang ki hoac danh sach dang rong ";
+        warnings << "Khong co du lieu dang ky hoac danh sach dang rong.";
         return false;
     }
-    QMap<User*,int>empIdx;
-    QVector<User*> empList = userMinutes.keys().toVector();
-    for(int i = 0;i<empList.size();++i)
-        empIdx[empList[i]]=i;
-    const int E=empList.size();
 
-    QMap<QString,int>slotIdx;
-    QVector<QString> slotKeys;
-    auto makeSlotKey =[](Shift* r){
-        return r->getDate().toString(Qt::ISODate) + "|"
-               + r->getStartTime().toString("HH:mm") + "|"
-               + r->getEndTime().toString("HH:mm");
 
-};
-for (Shift* r : shifts) {
-    QString key = makeSlotKey(r);
-    if (!slotIdx.contains(key)) {
-        slotIdx[key] = slotKeys.size();
-        slotKeys.push_back(key);
-    }
-}
-const int K = slotKeys.size();
+    m_userById.clear();
+    for (auto it = userMinutes.constBegin(); it != userMinutes.constEnd(); ++it)
+        m_userById[it.key()->getIdEmployee()] = it.key();
 
-const int S=0,T=1;
-auto nEmp  = [&](int i) { return 2 + i; };
-auto nDay  = [&](int i, int d) { return 2 + E + i * 7 + d; };
-auto nSlot = [&](int j) { return 2 + 8 * E + j; };
-init(2 + 8 * E + K);
-QMap<int,int> empRegCount;
-QMap<QPair<int,int>,int> dayRegCount;
-QMap<int,int> slotRegCount;
-for(Shift* r : shifts){
-    User* currentUser = nullptr;
-    for (User* u : empList) {
-        if (u->getIdEmployee() == r->getEmployeeID()) {
-            currentUser = u; break;
-        }
-    }
-    if (!currentUser) continue;
-    int ei = empIdx[currentUser];
-    int d  = r->getDate().dayOfWeek() - 1;
-    int si = slotIdx[makeSlotKey(r)];
-    empRegCount[ei]++;
-    dayRegCount[{ei, d}]++;
-    slotRegCount[si]++;
-}
-for (int i = 0; i < E; ++i) {
-    int cap = empRegCount.value(i, 0);
-    if (cap > 0)
-        addEdge(S, nEmp(i), cap, 0);
-}
-for (auto it = dayRegCount.constBegin(); it != dayRegCount.constEnd(); ++it) {
-    int ei = it.key().first;
-    int d  = it.key().second;
-    addEdge(nEmp(ei), nDay(ei, d), it.value(), 0);
-}
-struct RegEdge {
-    int rowId;
-    int edgeIdx;
-    int empIdx;    // local index nhân viên
-    int slotIdx;   // local index slot
-    int dayOfWeek;
-};
-QVector<RegEdge> regEdges;
-regEdges.reserve(shifts.size());
-for (Shift* r : shifts) {
-    User* currentUser = nullptr;
-    for (User* u : empList) {
-        if (u->getIdEmployee() == r->getEmployeeID()) {
-            currentUser = u; break;
-        }
-    }
-    if (!currentUser) continue;
-    int ei = empIdx[currentUser];
-    int d  = r->getDate().dayOfWeek() - 1;
-    int si = slotIdx[makeSlotKey(r)];
-    // Priority cost: ít giờ làm lịch sử → cost thấp → ưu tiên cao
-    bool isWeekend = (d >= 5);
-    int  cost = userMinutes[currentUser] / HOUR_SCALE
-               + (isWeekend ? 0 : WEEKDAY_PENALTY);
-    int eid = m_edges.size();
-    addEdge(nDay(ei, d), nSlot(si), 1, cost);
-    regEdges.push_back({r->getShiftId(), eid, ei, si, d});
-}
-for (int j = 0; j < K; ++j) {
-    int cap = slotRegCount.value(j, 0);
-    if (cap > 0)
-        addEdge(nSlot(j), T, qMin(cap, (int)Config::getMaxStaffPerShift()), 0);
-}
-int totalCostLocal = 0;
-int flow = minCostFlow(S, T, INF, totalCostLocal);
-this->feasible  = (flow > 0);
-this->totalFlow = flow;
-this->totalCost = totalCostLocal;
-QMap<int, int>      assignedPerSlot;
-QMap<int, QSet<int>> empDaysAssigned;
-for (int i = 0; i < regEdges.size(); ++i) {
-    const auto& re = regEdges[i];
-    bool assigned = (m_edges[re.edgeIdx].flow == 1);
-    
-    // Tìm Shift tương ứng để update trực tiếp (Vì regEdges và shifts không khớp 1-1 do skip !currentUser)
+
+    QMap<QString, QVector<Shift*>> shiftsByRole;
     for (Shift* s : shifts) {
-        if (s->getShiftId() == re.rowId) {
-            s->setStatus(assigned ? 1 : -1);
-            break;
+        User* u = findUserById(s->getEmployeeID());
+        if (!u) continue;
+        shiftsByRole[u->getRole()].push_back(s);
+    }
+
+    QMap<QString, QMap<User*,int>> minutesByRole;
+    for (auto it = userMinutes.constBegin(); it != userMinutes.constEnd(); ++it)
+        minutesByRole[it.key()->getRole()][it.key()] = it.value();
+
+    bool anyFeasible = false;
+    int sumFlow = 0, sumCost = 0;
+
+    for (auto roleIt = shiftsByRole.constBegin(); roleIt != shiftsByRole.constEnd(); ++roleIt) {
+        const QString& role = roleIt.key();
+        RoleSolveResult r = solveForRole(role, roleIt.value(), minutesByRole.value(role));
+        anyFeasible = anyFeasible || r.feasible;
+        sumFlow += r.totalFlow;
+        sumCost += r.totalCost;
+        warnings += r.warnings;
+    }
+
+    this->feasible  = anyFeasible;
+    this->totalFlow = sumFlow;
+    this->totalCost = sumCost;
+    return this->feasible;
+}
+
+
+// solveForRole() - logic
+//   Phase 1: arrange for full time (5 day)
+//   Phase 2: arrange for full time (2 day 6-7) if assign
+//   Phase 3: part time
+
+
+Optimizer::RoleSolveResult Optimizer::solveForRole(const QString& role,
+                                                   const QVector<Shift*>& roleShifts,
+                                                   const QMap<User*, int>& roleUserMinutes)
+{
+    RoleSolveResult result;
+    if (roleShifts.isEmpty() || roleUserMinutes.isEmpty()) return result;
+
+    // List Employee in Specific Role
+    QMap<User*, int> empIdx;
+    QVector<User*> empList = roleUserMinutes.keys().toVector();
+    for (int i = 0; i < empList.size(); ++i) empIdx[empList[i]] = i;
+    const int E = empList.size();
+
+    QVector<Shift*> fixedShifts, partTimeShifts;
+    for (Shift* s : roleShifts) {
+        User* u = findUserById(s->getEmployeeID());
+        if (!u || !empIdx.contains(u)) continue;
+        if (u->getIsFixedEmployee()) fixedShifts.push_back(s);
+        else partTimeShifts.push_back(s);
+    }
+
+    // Init Graph
+    const int K = 2; // 0 = Sang (7-15), 1 = Toi (15-23 Fixed / 15-22 Part-time)
+    const int S = 0, T = 1;
+    auto nEmp  = [&](int i)          { return 2 + i; };
+    auto nDay  = [&](int i, int d)   { return 2 + E + i * 7 + d; };
+    auto nSlot = [&](int d, int blk) { return 2 + 8 * E + d * K + blk; };
+    init(2 + 8 * E + 7 * K);
+
+    for (int d = 0; d < 7; ++d)
+        for (int blk = 0; blk < K; ++blk)
+            addEdge(nSlot(d, blk), T, Config::getMaxStaffForRole(role), 0);
+
+    struct AssignEdge {
+        Shift* shift;
+        int edgeIdx;
+        int empIdx;
+        int day;
+        int blk;
+        QTime assignStart, assignEnd;
+    };
+    QVector<AssignEdge> assignEdges;
+
+    QMap<QPair<int,int>, bool> dayCapOpened;
+    auto ensureDayCap = [&](int ei, int d) {
+        QPair<int,int> key(ei, d);
+        if (!dayCapOpened.contains(key)) {
+            addEdge(nEmp(ei), nDay(ei, d), 1, 0);
+            dayCapOpened[key] = true;
+        }
+    };
+
+    auto costOf = [&](User* u, int d) {
+        bool isWeekend = (d >= 5);
+        return roleUserMinutes.value(u) / HOUR_SCALE + (isWeekend ? 0 : WEEKDAY_PENALTY);
+    };
+    auto blockOfFixed = [&](const QTime& start) { return start.hour() < 15 ? 0 : 1; };
+
+
+    QMap<int,int> registeredDaysFixed;
+    for (Shift* s : fixedShifts) {
+        User* u = findUserById(s->getEmployeeID());
+        int ei = empIdx[u];
+        registeredDaysFixed[ei] = registeredDaysFixed.value(ei, 0) + 1;
+
+        int d   = s->getDate().dayOfWeek() - 1;
+        int blk = blockOfFixed(s->getStartTime());
+        ensureDayCap(ei, d);
+
+        int cost = costOf(u, d);
+        int eid = m_edges.size();
+        addEdge(nDay(ei, d), nSlot(d, blk), 1, cost);
+        assignEdges.push_back({s, eid, ei, d, blk, s->getStartTime(), s->getEndTime()});
+    }
+
+    // --- PHASE 1
+    const int floorDays = Config::getGuaranteedDaysPerWeek_FT();
+    for (int i = 0; i < E; ++i) {
+        if (!empList[i]->getIsFixedEmployee()) continue;
+        int cap = qMin((int)floorDays, registeredDaysFixed.value(i, 0));
+        if (cap > 0) addEdge(S, nEmp(i), cap, 0);
+    }
+    int cost1 = 0;
+    minCostFlow(S, T, INF, cost1);
+
+    // --- PHASE 2
+    for (int i = 0; i < E; ++i) {
+        if (!empList[i]->getIsFixedEmployee()) continue;
+        int total = registeredDaysFixed.value(i, 0);
+        int floorCap = qMin((int)floorDays, total);
+        int extra = total - floorCap;
+        if (extra > 0) addEdge(S, nEmp(i), extra, 0);
+    }
+    int cost2 = 0;
+    minCostFlow(S, T, INF, cost2);
+
+
+    static const QTime SANG_START(7,0),  SANG_END(15,0);
+    static const QTime TOI_START(15,0),  TOI_END_PT(22,0);
+    const int minMinutesPT = Config::getMinximumHourWorkPerDay_PT() * 60;
+    const int maxMinutesPT = Config::getMaximumHourWorkPerDay_PT() * 60;
+
+    QMap<int,int> registeredDaysPT;
+    for (Shift* s : partTimeShifts) {
+        User* u = findUserById(s->getEmployeeID());
+        int ei = empIdx[u];
+        int d  = s->getDate().dayOfWeek() - 1;
+        bool coCandidate = false;
+
+        for (int blk = 0; blk < K; ++blk) {
+            QTime blkStart = (blk == 0) ? SANG_START : TOI_START;
+            QTime blkEnd   = (blk == 0) ? SANG_END   : TOI_END_PT;
+            QTime ovStart  = qMax(s->getStartTime(), blkStart);
+            QTime ovEnd    = qMin(s->getEndTime(),   blkEnd);
+            if (ovStart >= ovEnd) continue;
+
+            int ovMinutes = ovStart.secsTo(ovEnd) / 60;
+            if (ovMinutes < minMinutesPT) continue;
+
+            int usedMinutes = qMin(ovMinutes, maxMinutesPT);
+            QTime realEnd = ovStart.addSecs(usedMinutes * 60);
+
+            int cost = costOf(u, d);
+            int eid = m_edges.size();
+            addEdge(nDay(ei, d), nSlot(d, blk), 1, cost);
+            assignEdges.push_back({s, eid, ei, d, blk, ovStart, realEnd});
+            coCandidate = true;
+        }
+
+        if (coCandidate) {
+            ensureDayCap(ei, d);
+            registeredDaysPT[ei] = registeredDaysPT.value(ei, 0) + 1;
         }
     }
-    
-    if (assigned) {
-        assignedPerSlot[re.slotIdx]++;
-        empDaysAssigned[re.empIdx].insert(re.dayOfWeek);
+    for (int i = 0; i < E; ++i) {
+        if (empList[i]->getIsFixedEmployee()) continue;
+        int cap = registeredDaysPT.value(i, 0);
+        if (cap > 0) addEdge(S, nEmp(i), cap, 0);
     }
-}
-for (int j = 0; j < K; ++j) {
-    int cnt = assignedPerSlot.value(j, 0);
-    const QStringList parts = slotKeys[j].split("|");
-    if (cnt == 0) {
-        warnings << QString("[Cảnh báo] Ca %1 (%2 - %3): Không có nhân viên nào được xếp.")
-                            .arg(parts[0]).arg(parts[1]).arg(parts[2]);
-    } else if (cnt < Config::getMinStaffPerShift()) {
-        warnings << QString("[Cảnh báo] Ca %1 (%2 - %3): Chỉ xếp được %4/%5 nhân viên.")
-                            .arg(parts[0]).arg(parts[1]).arg(parts[2])
-                            .arg(cnt).arg(Config::getMinStaffPerShift());
+    int cost3 = 0;
+    minCostFlow(S, T, INF, cost3);
+
+
+    QMap<int,int> assignedCount;
+    QMap<int, QSet<int>> empDaysAssigned;
+
+    for (auto& ae : assignEdges) {
+        bool assigned = (m_edges[ae.edgeIdx].flow == 1);
+        ae.shift->setStatus(assigned ? 1 : -1);
+        if (assigned) {
+            ae.shift->setAssignedTime(ae.assignStart, ae.assignEnd);
+            assignedCount[ae.day * K + ae.blk] = assignedCount.value(ae.day * K + ae.blk, 0) + 1;
+            empDaysAssigned[ae.empIdx].insert(ae.day);
+        }
     }
-}
-// Cảnh báo tiêu chí 5: nhân viên có ít hơn minDaysPerEmp ngày được xếp
-for (int i = 0; i < E; ++i) {
-    int days = empDaysAssigned.value(i).size();
-    if (days > 0 && days < Config::getMinDaysPerEmp()) {
-        warnings << QString("[Cảnh báo] Nhân viên ID %1: Chỉ được xếp %2/%3 ngày trong tuần.")
-                            .arg(empList[i]->getIdEmployee())
-                            .arg(days).arg(Config::getMinDaysPerEmp());
+
+    int flowSum = 0;
+    for (auto v : assignedCount) flowSum += v;
+    result.totalFlow = flowSum;
+    result.totalCost = cost1 + cost2 + cost3;
+    result.feasible  = flowSum > 0;
+
+    // insufficient staff
+    static const QStringList BLOCK_NAMES = {"Sáng", "Tối"};
+    for (int d = 0; d < 7; ++d) {
+        for (int blk = 0; blk < K; ++blk) {
+            int cnt = assignedCount.value(d * K + blk, 0);
+            int minNeeded = Config::getMinStaffForRole(role);
+            if (cnt == 0) {
+                result.warnings << QString("[%1] Ngày %2 - Ca %3: không có nhân viên nào được xếp.")
+                                       .arg(role).arg(d + 1).arg(BLOCK_NAMES[blk]);
+            } else if (cnt < minNeeded) {
+                result.warnings << QString("[%1] Ngày %2 - Ca %3: chỉ xếp được %4/%5 người.")
+                                       .arg(role).arg(d + 1).arg(BLOCK_NAMES[blk]).arg(cnt).arg(minNeeded);
+            }
+        }
     }
-}
-return this->feasible;
+
+    // ERROR ASSIGN
+    for (int i = 0; i < E; ++i) {
+        if (!empList[i]->getIsFixedEmployee()) continue;
+        int target = qMin((int)floorDays, registeredDaysFixed.value(i, 0));
+        int days = empDaysAssigned.value(i).size();
+        if (days < target) {
+            result.warnings << QString("[%1] Nhân viên ID %2: chỉ được xếp %3/%4 ngày sàn quy định.")
+                                   .arg(role).arg(empList[i]->getIdEmployee()).arg(days).arg(target);
+        }
+    }
+
+    // PART TIME ERROR
+    for (int i = 0; i < E; ++i) {
+        if (empList[i]->getIsFixedEmployee()) continue;
+        int days = empDaysAssigned.value(i).size();
+        if (days > 0 && days < Config::getMinximumDaysWorkPerWeek_PT()) {
+            result.warnings << QString("[%1] Nhân viên ID %2 (Part-time): chỉ được xếp %3/%4 ngày tối thiểu.")
+                                   .arg(role).arg(empList[i]->getIdEmployee()).arg(days).arg(Config::getMinximumDaysWorkPerWeek_PT());
+        }
+    }
+
+    return result;
 }

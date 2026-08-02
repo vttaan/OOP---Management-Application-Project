@@ -8,6 +8,8 @@
 #include "Employee_Control.h"
 #include "Schedule_Control.h"
 #include "Salary_Control.h"
+#include "utils/Config.h"
+#include "Setting_Control.h"
 // #include "view/View_Navigator.h"
 #include "ViewSchedule_Control.h"
 class View_Navigator;
@@ -24,7 +26,7 @@ public:
     View_Navigator *viewWindow = nullptr;
     SessionManager *currentSession = SessionManager::getInstance();
     ViewSchedule_Control *viewScheduleController = nullptr;
-
+    Setting_Control* settingController = nullptr;
     Control_Navigator();
     void switchTab(int index);
 

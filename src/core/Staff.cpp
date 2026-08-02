@@ -3,9 +3,9 @@
 #include "model/Salary_Model.h"
 
 Staff::Staff(QString r, short int idEmp, QString ava, QString idCit, QString n,
-             QString d, QString add, QString phone, QString gender, int baseSalary)
+             QString d, QString add, QString phone, QString gender, int baseSalary, bool isFixedEmployee)
     : User(r, idEmp, ava, idCit, n, d, add, phone, gender)
-    , hourSalary(baseSalary) {}
+    , hourSalary(baseSalary), isFixedEmployee(isFixedEmployee) {}
 
 double Staff::getBaseSalary() const { return hourSalary; }
 
