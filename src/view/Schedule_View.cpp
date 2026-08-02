@@ -146,6 +146,9 @@ void Schedule_View::setUpUI()
   ui->verticalLayout->setContentsMargins(18, 14, 18, 14);
   ui->verticalLayout->setSpacing(10);
   ui->verticalLayout->setAlignment(Qt::AlignTop);
+  ui->DangKyLich->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+  ui->DangKyLich->setFixedHeight(48);
+  ui->DangKyLich->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 
   // ── Interactive grid (staff mode) ─────────────────────────────────────────
   ui->tableInteractiveGrid->setSelectionMode(QAbstractItemView::MultiSelection);
