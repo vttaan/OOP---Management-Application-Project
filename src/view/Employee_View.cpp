@@ -1,6 +1,11 @@
 #include "global.h"
 #include "Employee_View.h"
 #include "ui_Employee_View.h"
+#include "AddEmployee_Dialog.h"
+#include "EditEmployee_Dialog.h"
+#include "EmployeeDetails_Dialog.h"
+
+#include <QMenu>
 
 // ============================================================
 // Constructor / Destructor
@@ -18,18 +23,18 @@ Employee_View::Employee_View(QWidget *parent) : QWidget(parent), ui(new Ui::Empl
   // Append dynamically created metric cards into the metricsLayout placeholder
   m_payrollCard = createMetricCard(
       ":/images/dolar-svgrepo-com.svg", "#DBEAFE", "#2563EB",
-      "Tổng bảng lương tháng", "-- vnđ",
-      "↑ --% so với tháng trước", "+--% ", "#16A34A");
+      "Lương dự kiến tháng này", "-- vnđ",
+      "");
   m_staffCard = createMetricCard(
       ":/images/people-svgrepo-com.svg", "#DCFCE7", "#16A34A",
       "Nhân viên đang làm việc", "0 / 0", "Hiện đang trong ca");
-  m_absenceCard = createMetricCard(
-      ":/images/warning-circle-svgrepo-com.svg", "#FEF9C3", "#CA8A04",
-      "Vắng mặt chờ duyệt", "0", "0 vắng · 0 chờ phê duyệt");
+  m_managerCard = createMetricCard(
+      ":/images/people-svgrepo-com.svg", "#FEF9C3", "#CA8A04",
+      "Số quản lý", "0", "Hiện đang hoạt động");
 
   ui->metricsLayout->addWidget(m_payrollCard);
   ui->metricsLayout->addWidget(m_staffCard);
-  ui->metricsLayout->addWidget(m_absenceCard);
+  ui->metricsLayout->addWidget(m_managerCard);
 
   setupTableHeader();
   buildFilterDropdown();
@@ -201,31 +206,35 @@ void Employee_View::setupConnections()
   // Sort dropdown toggle
   connect(ui->sortBtn, &QPushButton::clicked, this,
           &Employee_View::toggleSortDropdown);
+          
+  // Double click table to view details
+  connect(ui->employeesTable, &QTableWidget::cellDoubleClicked, this, [this](int row, int col) {
+      if (row < 0 || row >= m_allEmployees.size()) return;
+      User* emp = m_allEmployees[row];
+      EmployeeDetails_Dialog dlg(emp, this);
+      dlg.exec();
+  });
 }
 
 // ============================================================
 // loadEmployees — called by Controller to update the table
 // ============================================================
 
-void Employee_View::loadEmployees(const QList<User *> &employees)
+void Employee_View::loadEmployees(const QList<User *> &employees, long long totalPayroll, int managerCount)
 {
   // The controller already applied filter→search→sort before calling us;
   // just render what we received.
   m_allEmployees = employees;
-  updateMetricCards();
+  updateMetricCards(totalPayroll, managerCount);
   renderTable(employees);
-  m_allEmployees = employees;
-  updateMetricCards();
 }
 
-void Employee_View::updateMetricCards()
+void Employee_View::updateMetricCards(long long totalPayroll, int managerCount)
 {
   int total = m_allEmployees.size();
   // Since there is no status field in the model yet, all employees are
   // treated as "active" ("Đang làm") for now. Placeholders left for future.
   int active = total; // TODO: count by status when field added
-  int absent = 0;     // TODO
-  int pending = 0;    // TODO
 
   // ---- Staff card ----
   if (m_staffCard)
@@ -235,19 +244,23 @@ void Employee_View::updateMetricCards()
       val->setText(QString("%1 / %2").arg(active).arg(total));
   }
 
-  // ---- Absence card ----
-  if (m_absenceCard)
+  // ---- Manager card ----
+  if (m_managerCard)
   {
-    QLabel *val = m_absenceCard->findChild<QLabel *>("metricValue");
+    QLabel *val = m_managerCard->findChild<QLabel *>("metricValue");
     if (val)
-      val->setText(QString::number(absent + pending));
-    QLabel *sub = m_absenceCard->findChild<QLabel *>("metricSubtitle");
-    if (sub)
-      sub->setText(QString("%1 vắng · %2 chờ phê duyệt").arg(absent).arg(pending));
+      val->setText(QString::number(managerCount));
   }
 
-  // ---- Payroll card (UI placeholder — logic not implemented yet) ----
-  // Values left as placeholder; actual computation goes here in the future.
+  // ---- Payroll card ----
+  if (m_payrollCard)
+  {
+      QLabel *val = m_payrollCard->findChild<QLabel *>("metricValue");
+      if (val) {
+          QLocale locale(QLocale::Vietnamese, QLocale::Vietnam);
+          val->setText(locale.toString(totalPayroll) + " vnđ");
+      }
+  }
 }
 
 void Employee_View::renderTable(const QList<User *> &employees)
@@ -316,7 +329,7 @@ void Employee_View::renderTable(const QList<User *> &employees)
     ui->employeesTable->setCellWidget(row, 2, roleWidget);
 
     // Col 3 — Pay Type badge (replaces plain text)
-    bool isHourly = (emp->getRole() == "Staff");
+    bool isHourly = !emp->getIsFixedSalary();
     QString payType = isHourly ? "Theo giờ" : "Cố định";
     QWidget *payWidget = new QWidget();
     payWidget->setContentsMargins(0, 0, 0, 0);
@@ -646,13 +659,18 @@ QLabel *Employee_View::createStatusBadge(const QString &status)
 QLabel *Employee_View::createRoleBadge(const QString &role)
 {
   // Display Vietnamese label but use the English role string for logic checks
-  QString displayRole;
-  if (role == "Manager")
-    displayRole = "Quản lý";
-  else if (role == "Admin")
-    displayRole = "Quản trị viên";
-  else
-    displayRole = "Nhân viên";
+    QString displayRole;
+    if (role == "Manager")
+        displayRole = "Quản lý";
+    else if (role == "Admin")
+        displayRole = "Quản trị viên";
+    else if (role == "Cashier")
+        displayRole = "Thu ngân";
+    else if (role == "HallStaff")
+        displayRole = "Nhân viên sảnh";
+    else if (role == "KitchenAssistant")
+        displayRole = "Phụ bếp";
+    else displayRole = "Nhân viên";
 
   QLabel *badge = new QLabel(displayRole);
   badge->setAlignment(Qt::AlignCenter);
@@ -660,14 +678,24 @@ QLabel *Employee_View::createRoleBadge(const QString &role)
 
   QString style;
   if (role == "Manager")
-    style = "background-color:#EDE9FE;color:#6D28D9;border-radius:12px;"
-            "font-size:11px;font-weight:bold;padding:2px 10px;";
+      style = "background-color:#EDE9FE;color:#6D28D9;border-radius:12px;" // Pastel Tím
+              "font-size:11px;font-weight:bold;padding:2px 10px;";
   else if (role == "Admin")
-    style = "background-color:#DBEAFE;color:#1D4ED8;border-radius:12px;"
-            "font-size:11px;font-weight:bold;padding:2px 10px;";
-  else // Staff — light blue instead of grey
-    style = "background-color:#E0F2FE;color:#0369A1;border-radius:12px;"
-            "font-size:11px;font-weight:bold;padding:2px 10px;";
+      style = "background-color:#DBEAFE;color:#1D4ED8;border-radius:12px;" // Pastel Xanh biển đậm
+              "font-size:11px;font-weight:bold;padding:2px 10px;";
+  else if (role == "Cashier")
+      style = "background-color:#CCFBF1;color:#0F766E;border-radius:12px;" // Pastel Xanh ngọc (Teal)
+              "font-size:11px;font-weight:bold;padding:2px 10px;";
+  else if (role == "HallStaff")
+      style = "background-color:#FFEDD5;color:#C2410C;border-radius:12px;" // Pastel Cam (Orange)
+              "font-size:11px;font-weight:bold;padding:2px 10px;";
+  else if (role == "KitchenAssistant")
+      style = "background-color:#FFE4E6;color:#BE123C;border-radius:12px;" // Pastel Đỏ hồng (Rose)
+              "font-size:11px;font-weight:bold;padding:2px 10px;";
+  else // Staff mặc định
+      style = "background-color:#E0F2FE;color:#0369A1;border-radius:12px;" // Pastel Xanh da trời nhạt
+              "font-size:11px;font-weight:bold;padding:2px 10px;";
+
 
   badge->setStyleSheet(style);
 

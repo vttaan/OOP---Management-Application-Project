@@ -81,8 +81,9 @@ void AddEmployee_Dialog::setupUi()
     inpSalary    = makeInput("vd: 20000");
 
     cmbRole = new QComboBox(scrollContent);
-    cmbRole->addItem("Nhân viên");
-    cmbRole->addItem("Quản lý");
+    cmbRole->addItem("Thu ngân");
+    cmbRole->addItem("Nhân viên sảnh");
+    cmbRole->addItem("Phụ bếp");
     cmbRole->setMinimumHeight(32);
 
     cmbGender = new QComboBox(scrollContent);
@@ -185,7 +186,7 @@ void AddEmployee_Dialog::setupUi()
         }
         // update username
         if (!name.isEmpty() && usernameGeneratorDelegate) {
-            QString role = getRole(); // (Manage // Staff)
+            QString role = getRole(); // (Manage // Staff // ....)
             QString autoUser = usernameGeneratorDelegate(role);
             inpUsername->setText(autoUser);
         } else {
@@ -274,6 +275,9 @@ QString AddEmployee_Dialog::getRole()       const
 {
     QString vn = cmbRole->currentText();
     if (vn == "Quản lý") return "Manager";
+    else if (vn == "Thu ngân") return "Cashier";
+    else if (vn == "Phụ bếp") return "KitchenAssistant";
+    else if (vn == "Nhân viên sảnh") return "HallStaff";
     return "Staff";
 }
 

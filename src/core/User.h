@@ -17,6 +17,7 @@ public:
 	virtual ~User() = default;
 	virtual double getSalary() const = 0;
     virtual double getBaseSalary() const = 0;
+    virtual bool getIsFixedSalary() const { return false; }
 	QString getRole() const;
 	short int getIdEmployee() const;
     QString getIdentityID() const;

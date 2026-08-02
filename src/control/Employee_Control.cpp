@@ -55,7 +55,9 @@ void Employee_Control::handleLoadEmployees()
     m_model->loadData();
 
     if (m_view) {
-          m_view->loadEmployees(m_model->getListEmployee());
+          long long totalPayroll = m_model->calculateExpectedPayrollCurrentMonth();
+          int managerCount = m_model->countManagers();
+          m_view->loadEmployees(m_model->getListEmployee(), totalPayroll, managerCount);
     }
 }
 
@@ -198,6 +200,8 @@ void Employee_Control::handleUpdate(const QString &searchText,
 {
     if (!m_view || !m_model) return;
     QList<User*> result = m_model->SearchSortFilter(searchText, sortDir, contentSort, contentFilter);
-    m_view->loadEmployees(result);
+    long long totalPayroll = m_model->calculateExpectedPayrollCurrentMonth();
+    int managerCount = m_model->countManagers();
+    m_view->loadEmployees(result, totalPayroll, managerCount);
 }
 

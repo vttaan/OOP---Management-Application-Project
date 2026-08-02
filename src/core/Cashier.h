@@ -22,7 +22,11 @@ Cashier(short int idEmp, QString ava, QString idCit, QString n, QString d, QStri
       }
       return Staff::getSalary();
   }
-  bool getIsFixed()const {return isFixed;}
+  double getBaseSalary() const override {
+      if(isFixed) return fixedMonthlySalary;
+      return Staff::getBaseSalary();
+  }
+  bool getIsFixedSalary() const override { return isFixed; }
 };
 
 

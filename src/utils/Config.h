@@ -8,6 +8,7 @@ private:
     static const Qt::DayOfWeek dayOpenRegisShift = Qt::Sunday;
     static const short minStaffPerShift = 4;
     static const short maxStaffPerShift = 6;
+    static const int baseSalaryStaff = 25000;
 
 public:
     static short getOpenHour() { return openHour; }
@@ -15,6 +16,7 @@ public:
     static Qt::DayOfWeek getDayOpenRegisShift() { return dayOpenRegisShift; }
     static short getMinStaffPerShift() { return minStaffPerShift; }
     static short getMaxStaffPerShift() { return maxStaffPerShift; }
+    static int getBaseSalaryStaff() { return baseSalaryStaff; }
 
     // Helper to get the start of the current week for a given date
     static QDate getStartOfCurrentWeek(QDate date)

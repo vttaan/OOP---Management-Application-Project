@@ -8,9 +8,9 @@
 #include <QString>
 
 enum class ShiftStatus {
-    Empty,          // Trống
-    Understaffed,   // Thiếu người
-    Sufficient      // Đủ người
+    Empty,
+    Understaffed,
+    Sufficient
 };
 
 class ShiftBlock {
