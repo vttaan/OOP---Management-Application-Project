@@ -10,24 +10,24 @@ class Schedule_Control : public QObject
 {
     Q_OBJECT
 private:
-    Schedule_View*   view;
-    Schedule_Model*  model;
-    short int        currentEmployeeId;
+    Schedule_View *view;
+    Schedule_Model *model;
+    short int currentEmployeeId;
 
     // Days list provided by business logic (Mon-Sun in the display language)
-    QList<QString>   listDays;
+    QList<QString> listDays;
 
     // Tracks the week being shown in the assign grid
-    QDate            currentAssignMonday;
+    QDate currentAssignMonday;
 
     // Temporary employee registration mode and controller-owned mock data.
     EmployeeScheduleLayoutMode employeeScheduleLayoutMode =
-        EmployeeScheduleLayoutMode::FullTimeMock;
+        EmployeeScheduleLayoutMode::PartTimeHourly;
     FullTimeScheduleGrid fullTimeMockStatuses;
     QDate currentEmployeeRegistrationWeekStart;
 
     // Helper: convert "Monday" display string -> QDate of that day this week
-    QDate dayStringToDate(const QString& day) const;
+    QDate dayStringToDate(const QString &day) const;
     void initializeFullTimeMockStatuses();
 
 public:
@@ -49,18 +49,17 @@ public:
     void chooseDate();
     void handleChangeAlgorithm();
 
-
     // View wiring
-    void setView(Schedule_View* view);
-    Schedule_View* getView() const;
+    void setView(Schedule_View *view);
+    Schedule_View *getView() const;
 
 private slots:
     // Fired by view when the staff presses "Luu / Xac Nhan"
     // selectedHoursByDay: outer index = day (0-6), inner list = selected hour-row indices
-    void onSaveGridRequested(const QList<QList<int>>& selectedHoursByDay);
+    void onSaveGridRequested(const QList<QList<int>> &selectedHoursByDay);
 
     // UI-only full-time mock save; does not call the model or database.
-    void onSaveFullTimeShiftsRequested(const QList<QList<int>>& selectedShiftsByDay);
+    void onSaveFullTimeShiftsRequested(const QList<QList<int>> &selectedShiftsByDay);
 
     // Fired when manager clicks a shift block in the assign grid
     void onShiftBlockClicked(int col, int row);
@@ -73,7 +72,7 @@ private slots:
     void onConfirmRequested();
 
 signals:
-    void scheduleGenerated(bool success, int assignedCount, const QStringList& warnings);
+    void scheduleGenerated(bool success, int assignedCount, const QStringList &warnings);
 };
 
 #endif // SCHEDULE_CONTROL_H

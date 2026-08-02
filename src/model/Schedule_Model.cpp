@@ -472,6 +472,172 @@ bool Schedule_Model::saveDraftShiftsToDatabase()
     return true;
 }
 
+bool Schedule_Model::replacePendingShiftsForWeek(
+    short int employeeId,
+    QDate weekStart,
+    const QList<StaffShiftRegistration> &registrations)
+{
+    if (employeeId < 0 || !weekStart.isValid())
+        return false;
+
+    QDate weekEnd = weekStart.addDays(6);
+    for (int i = 0; i < registrations.size(); ++i)
+    {
+        const StaffShiftRegistration &registration = registrations[i];
+        if (!registration.date.isValid() ||
+            registration.date < weekStart || registration.date > weekEnd ||
+            !registration.startTime.isValid() ||
+            !registration.endTime.isValid() ||
+            registration.startTime >= registration.endTime)
+        {
+            return false;
+        }
+
+        for (int j = i + 1; j < registrations.size(); ++j)
+        {
+            const StaffShiftRegistration &other = registrations[j];
+            if (registration.date == other.date &&
+                registration.startTime < other.endTime &&
+                other.startTime < registration.endTime)
+            {
+                return false;
+            }
+        }
+    }
+
+    QSqlDatabase database = Database::getInstance()->getDbConnect();
+    if (!database.transaction())
+        return false;
+
+    // Approved shifts are immutable from the employee registration screen.
+    // Validate the replacement before deleting any pending rows.
+    QSqlQuery approvedQuery(database);
+    approvedQuery.prepare(
+        "SELECT startTime, endTime FROM SHIFT "
+        "WHERE idEmployee = :id AND workDate = :date AND status = 1");
+    for (const StaffShiftRegistration &registration : registrations)
+    {
+        approvedQuery.bindValue(":id", employeeId);
+        approvedQuery.bindValue(":date", registration.date);
+        if (!approvedQuery.exec())
+        {
+            database.rollback();
+            return false;
+        }
+
+        while (approvedQuery.next())
+        {
+            QTime approvedStart = approvedQuery.value("startTime").toTime();
+            QTime approvedEnd = approvedQuery.value("endTime").toTime();
+            if (registration.startTime < approvedEnd &&
+                approvedStart < registration.endTime)
+            {
+                database.rollback();
+                return false;
+            }
+        }
+    }
+
+    auto registrationKey = [](QDate date, QTime start, QTime end)
+    {
+        return QString("%1|%2|%3")
+            .arg(date.toString(Qt::ISODate),
+                 start.toString("HH:mm:ss"),
+                 end.toString("HH:mm:ss"));
+    };
+
+    QSet<QString> desiredKeys;
+    for (const StaffShiftRegistration &registration : registrations)
+    {
+        desiredKeys.insert(registrationKey(registration.date,
+                                           registration.startTime,
+                                           registration.endTime));
+    }
+
+    QList<QPair<int, QString>> existingPendingRows;
+    QSqlQuery existingQuery(database);
+    existingQuery.prepare(
+        "SELECT rowid, workDate, startTime, endTime FROM SHIFT "
+        "WHERE idEmployee = :id AND status = 0 "
+        "AND workDate BETWEEN :start AND :end");
+    existingQuery.bindValue(":id", employeeId);
+    existingQuery.bindValue(":start", weekStart);
+    existingQuery.bindValue(":end", weekEnd);
+    if (!existingQuery.exec())
+    {
+        database.rollback();
+        return false;
+    }
+    while (existingQuery.next())
+    {
+        existingPendingRows.append(
+            qMakePair(existingQuery.value(0).toInt(),
+                      registrationKey(existingQuery.value(1).toDate(),
+                                      existingQuery.value(2).toTime(),
+                                      existingQuery.value(3).toTime())));
+    }
+
+    QSet<QString> retainedKeys;
+    QList<int> pendingIdsToDelete;
+    for (const QPair<int, QString> &existing : existingPendingRows)
+    {
+        if (desiredKeys.contains(existing.second) &&
+            !retainedKeys.contains(existing.second))
+        {
+            retainedKeys.insert(existing.second);
+        }
+        else
+        {
+            pendingIdsToDelete.append(existing.first);
+        }
+    }
+
+    QSqlQuery deleteQuery(database);
+    deleteQuery.prepare(
+        "DELETE FROM SHIFT WHERE rowid = :shiftId "
+        "AND idEmployee = :id AND status = 0");
+    for (int shiftId : pendingIdsToDelete)
+    {
+        deleteQuery.bindValue(":shiftId", shiftId);
+        deleteQuery.bindValue(":id", employeeId);
+        if (!deleteQuery.exec())
+        {
+            database.rollback();
+            return false;
+        }
+    }
+
+    QSqlQuery insertQuery(database);
+    insertQuery.prepare(
+        "INSERT INTO SHIFT "
+        "(idEmployee, workDate, startTime, endTime, status, isHoliday) "
+        "VALUES (:id, :date, :start, :end, 0, :isHoliday)");
+    const QList<QString> holidays = {"01/01", "30/04", "01/05", "02/09"};
+    for (const StaffShiftRegistration &registration : registrations)
+    {
+        QString key = registrationKey(registration.date,
+                                      registration.startTime,
+                                      registration.endTime);
+        if (retainedKeys.contains(key))
+            continue;
+
+        insertQuery.bindValue(":id", employeeId);
+        insertQuery.bindValue(":date", registration.date);
+        insertQuery.bindValue(":start", registration.startTime);
+        insertQuery.bindValue(":end", registration.endTime);
+        insertQuery.bindValue(
+            ":isHoliday",
+            holidays.contains(registration.date.toString("dd/MM")));
+        if (!insertQuery.exec())
+        {
+            database.rollback();
+            return false;
+        }
+    }
+
+    return database.commit();
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Xếp Lịch Làm helpers
 // ─────────────────────────────────────────────────────────────────────────────

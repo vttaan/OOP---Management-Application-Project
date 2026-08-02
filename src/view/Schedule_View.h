@@ -29,6 +29,7 @@ public:
 
     // for allow registrate, only fixed day to registrate
     void enableRegistration(bool isEnable);
+    void setPartTimeRegistrationState(bool isOpen, QDate nextOpenDate);
 
     // show error when time overlapping
     void showError(const QString& mess);
@@ -77,6 +78,9 @@ private:
     void renderFullTimeCell(int row, int col);
     void updateFullTimeWeekMetadata(QDate weekStart);
     void resetFullTimeFooterHint();
+    void updatePartTimeWeekMetadata(QDate weekStart);
+    void updatePartTimeInfoText();
+    void setPartTimeItemSelected(QTableWidgetItem *item, bool selected);
     bool eventFilter(QObject *watched, QEvent *event) override;
 
     // Manager missing-staff table (created dynamically)
@@ -88,6 +92,10 @@ private:
     QWidget*        fullTimeInfoWidget;
     QLabel*         lblFullTimeWeekRange;
     QLabel*         lblFullTimeFooterMessage;
+    QWidget*        partTimeInfoWidget;
+    QLabel*         lblPartTimeRegistrationState;
+    QLabel*         lblPartTimeWeekRange;
+    QLabel*         lblPartTimeFooterMessage;
 
     // Tracks which mode the manager grid is in (assign vs view)
     int             m_isAssignMode = -1;
@@ -96,6 +104,13 @@ private:
     int             m_openHour  = Config::getOpenHour();
     int             m_closeHour = Config::getCloseHour();
     bool            m_isFullTimeMode = false;
+    bool            m_partTimeRegistrationOpen = false;
+    bool            m_partTimeDragActive = false;
+    bool            m_partTimeDragSelect = true;
+    QDate           m_partTimeNextOpenDate;
+    QSet<QPair<int, int>> m_partTimeDragVisited;
+    QSet<QPair<int, int>> m_partTimePendingCells;
+    QSet<int>       m_partTimeApprovedDays;
     FullTimeScheduleGrid m_fullTimeStatuses;
     QSet<QPair<int, int>> m_fullTimeSelections;
 

@@ -26,6 +26,14 @@ struct BlockCounts {
     int declined = 0;
 };
 
+// Controller-produced time range used to synchronize an employee's editable
+// pending registrations without exposing table row coordinates to the model.
+struct StaffShiftRegistration {
+    QDate date;
+    QTime startTime;
+    QTime endTime;
+};
+
 enum class EmployeeScheduleLayoutMode {
     PartTimeHourly,
     FullTimeMock

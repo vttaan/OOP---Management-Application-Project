@@ -172,7 +172,11 @@ void Schedule_Control::load()
         }
 
         bool registrationOpen = (today.dayOfWeek() == Config::getDayOpenRegisShift());
-        view->enableRegistration(registrationOpen);
+        int daysUntilRegistration =
+            (Config::getDayOpenRegisShift() - today.dayOfWeek() + 7) % 7;
+        QDate nextRegistrationDate = today.addDays(daysUntilRegistration);
+        view->setPartTimeRegistrationState(registrationOpen,
+                                           nextRegistrationDate);
         view->setUpInteractiveGrid(weekStart, Config::getOpenHour(), Config::getCloseHour());
 
         // Update summary table headers to match the registration week
@@ -185,7 +189,12 @@ void Schedule_Control::load()
 
         view->updateStaffInteractiveGridStatus(pendingShifts, acceptedShifts, managerGrid);
 
-        // cleanup managerGrid blocks which are owned locally
+        // Raw shift objects and manager-grid blocks are owned by this load call.
+        for (int col = 0; col < 7; ++col)
+        {
+            qDeleteAll(pendingShifts[col]);
+            qDeleteAll(acceptedShifts[col]);
+        }
         for (int col = 0; col < 7; ++col)
             qDeleteAll(managerGrid[col]);
 
@@ -240,23 +249,24 @@ void Schedule_Control::onSaveGridRequested(const QList<QList<int>>& selectedHour
     if (currentEmployeeId < 0)
         return;
 
-    QDate today = QDate::currentDate();
-    QDate weekStart = Config::getStartOfCurrentWeek(today).addDays(7);
+    QDate weekStart = currentEmployeeRegistrationWeekStart.isValid()
+        ? currentEmployeeRegistrationWeekStart
+        : Config::getStartOfCurrentWeek(QDate::currentDate()).addDays(7);
     int openHour = Config::getOpenHour();
-
-    // Clear any existing drafts so a second save doesn't duplicate
-    model->clearDrafts();
-
-    bool anyAdded = false;
+    int rowCount = Config::getCloseHour() - openHour;
+    QList<StaffShiftRegistration> registrations;
 
     for (int col = 0; col < 7 && col < selectedHoursByDay.size(); ++col)
     {
         QList<int> rows = selectedHoursByDay[col];
+        rows.erase(std::remove_if(rows.begin(), rows.end(),
+                                  [rowCount](int row)
+                                  { return row < 0 || row >= rowCount; }),
+                   rows.end());
+        std::sort(rows.begin(), rows.end());
+        rows.erase(std::unique(rows.begin(), rows.end()), rows.end());
         if (rows.isEmpty())
             continue;
-
-        // Sort rows to detect contiguous blocks
-        std::sort(rows.begin(), rows.end());
 
         QDate shiftDate = weekStart.addDays(col);
 
@@ -271,33 +281,29 @@ void Schedule_Control::onSaveGridRequested(const QList<QList<int>>& selectedHour
             }
             else
             {
-                // Flush current span
-                QTime startT(openHour + spanStart, 0);
-                QTime endT  (openHour + spanEnd + 1, 0);
-                if (model->handleAddShiftSubmission(currentEmployeeId, shiftDate, startT, endT))
-                    anyAdded = true;
+                registrations.append({shiftDate,
+                                      QTime(openHour + spanStart, 0),
+                                      QTime(openHour + spanEnd + 1, 0)});
                 spanStart = rows[k];
                 spanEnd   = rows[k];
             }
         }
-        // Flush final span
-        QTime startT(openHour + spanStart, 0);
-        QTime endT  (openHour + spanEnd + 1, 0);
-        if (model->handleAddShiftSubmission(currentEmployeeId, shiftDate, startT, endT))
-            anyAdded = true;
+        registrations.append({shiftDate,
+                              QTime(openHour + spanStart, 0),
+                              QTime(openHour + spanEnd + 1, 0)});
     }
 
-    if (!anyAdded)
-    {
-        view->showError("Không có ca làm nào được chọn hợp lệ.");
-        return;
-    }
-
-    bool saved = model->saveDraftShiftsToDatabase();
+    bool saved = model->replacePendingShiftsForWeek(
+        currentEmployeeId, weekStart, registrations);
     if (saved)
+    {
         view->showSuccess("Đã lưu lịch đăng ký thành công!");
+        load();
+    }
     else
-        view->showError("Lỗi kết nối cơ sở dữ liệu! Không thể lưu lịch.");
+        view->showError(
+            "Không thể cập nhật lịch chờ duyệt. Lịch đã duyệt hoặc lỗi cơ sở "
+            "dữ liệu có thể đang ngăn thay đổi này.");
 }
 
 void Schedule_Control::handleGenSchedule()

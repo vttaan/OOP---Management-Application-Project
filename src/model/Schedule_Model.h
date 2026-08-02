@@ -55,6 +55,10 @@ signals:
 
     QStringList generateSchedule();
     bool saveDraftShiftsToDatabase();
+    bool replacePendingShiftsForWeek(
+        short int employeeId,
+        QDate weekStart,
+        const QList<StaffShiftRegistration> &registrations);
     void clearDrafts() { draftShifts.clear(); }
 
     ~Schedule_Model();
