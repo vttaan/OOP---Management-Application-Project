@@ -65,3 +65,6 @@
 #include <vector>
 #include <queue>
 #include <climits>
+#include "core/KitchenAssistant.h"
+#include "core/HallStaff.h"
+#include "core/Cashier.h"

@@ -35,8 +35,6 @@ Sidebar_Widget::Sidebar_Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Si
     connect(ui->btnMenu_HR, &QPushButton::clicked, [this]()
             { emit menuClicked(3); updateButtonStyles(3); });
     // connect(ui->btnMenu_Salary, &QPushButton::clicked, [this]() { emit menuClicked(7); updateButtonStyles(7); });
-    connect(ui->btnMenu_Settings, &QPushButton::clicked, [this]()
-            { emit menuClicked(9); updateButtonStyles(9); });
 
     // subTab in Schedule
     connect(ui->buttonRegistrationSchedule, &QPushButton::clicked, [this]()
@@ -47,8 +45,8 @@ Sidebar_Widget::Sidebar_Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Si
             { emit menuClicked(6); updateButtonStyles(6); });
     connect(ui->btnMenu_Salary, &QPushButton::clicked, [this]()
             { emit menuClicked(7); updateButtonStyles(7); });
-    // connect(ui->btnMenu_Salary, &QPushButton::clicked, [this]() { emit menuClicked(8); updateButtonStyles(8); });
-    // connect(ui->btnMenu_Settings, &QPushButton::clicked, [this]() { emit menuClicked(9); updateButtonStyles(9); });
+    connect(ui->btnMenu_Settings, &QPushButton::clicked, [this]()
+            { emit menuClicked(8); updateButtonStyles(8); });
 
     connect(ui->btnLogout, &QPushButton::clicked, [this]()
             { emit logoutClicked(); });
@@ -66,6 +64,7 @@ void Sidebar_Widget::setPermission(const bool &permitted)
     ui->buttonArrangeSchedule->setVisible(permitted);
     ui->buttonRegistrationSchedule->setVisible(!permitted);
     ui->subMenu_Schedule->hide();
+    ui->btnMenu_Settings->setVisible(permitted);
 }
 
 Sidebar_Widget::~Sidebar_Widget() { delete ui; }

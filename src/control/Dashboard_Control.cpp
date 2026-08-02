@@ -69,7 +69,7 @@ void Dashboard_Control::loadShiftPanel(){
     {
         QSqlQuery q(Database::getInstance()->getDbConnect());
         q.prepare(
-            "SELECT P.fullName, S.startTime, S.endTime FROM SHIFT S "
+            "SELECT P.name, S.startTime, S.endTime FROM SHIFT S "
             "JOIN PROFILES P ON S.idEmployee = P.idEmployee "
             "WHERE S.workDate = :today AND S.startTime > :now AND S.status = 1 "
             "ORDER BY S.startTime LIMIT 5");
@@ -85,13 +85,31 @@ void Dashboard_Control::loadShiftPanel(){
     {
         QSqlQuery q(Database::getInstance()->getDbConnect());
         q.prepare(
-            "SELECT P.fullName FROM PROFILES P "
-            "WHERE P.idEmployee NOT IN ("
-            "  SELECT DISTINCT idEmployee FROM SHIFT "
-            "  WHERE workDate = :today AND status = 1) "
-            "ORDER BY P.fullName");
+            "SELECT P.name, 'Nghỉ phép' AS reason "
+            "FROM PROFILES P "
+            "JOIN LEAVE_REQUEST L ON P.idEmployee = L.idEmployee "
+            "WHERE L.leaveDate = :today AND L.status = 'Approved' "
+            
+            "UNION "
+            
+            "SELECT P.name, 'Vắng mặt' AS reason "
+            "FROM PROFILES P "
+            "JOIN SHIFT S ON P.idEmployee = S.idEmployee "
+            "WHERE S.workDate = :today AND S.status = 1 AND S.startTime <= :now "
+            "AND P.idEmployee NOT IN ("
+            "    SELECT idEmployee FROM TIMEKEEPING WHERE checkInDate = :today"
+            ")"
+        );
         q.bindValue(":today", QDate::currentDate().toString(Qt::ISODate));
-        if (q.exec()) while (q.next()) absentNames << q.value(0).toString();
+        q.bindValue(":now", QTime::currentTime().toString("HH:mm"));
+        
+        if (q.exec()) {
+            while (q.next()) {
+                QString name = q.value(0).toString();
+                QString reason = q.value(1).toString();
+                absentNames << QString("%1 (%2)").arg(name, reason); 
+            }
+        }
     }
     view->updateShiftPanel(nextShifts,absentNames);
 }
