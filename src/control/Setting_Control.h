@@ -10,7 +10,8 @@ class Setting_Control : public QObject
     Q_OBJECT
 public:
 
-    explicit Setting_Control(Setting_View *view, Setting_Model *model, QObject *parent = nullptr);
+    explicit Setting_Control(QObject *parent = nullptr);
+    ~Setting_Control();
 
     void setView(Setting_View* v);
     void init();

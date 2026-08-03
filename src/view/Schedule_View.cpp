@@ -1218,7 +1218,7 @@ void Schedule_View::buttonSaveClicked()
   }
 
   // Validate minimum-days rule
-  int minDays = Config::getMinDaysPerEmp();
+  int minDays = Config::getMinimumDaysWorkPerWeek_PT();
   QSet<int> registeredDays = daysWithSelection;
   registeredDays.unite(m_partTimeApprovedDays);
   bool removingAllPending = daysWithSelection.isEmpty() &&

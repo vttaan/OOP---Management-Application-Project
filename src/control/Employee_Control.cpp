@@ -115,6 +115,7 @@ void Employee_Control::handleEditEmployee(int idEmployee)
     // Find employee in the cache by ID
     User *emp = nullptr;
     for (User *u : m_model->getListEmployee()) {
+        if (!u) continue;
         if (u->getIdEmployee() == idEmployee) {
             emp = u;
             break;

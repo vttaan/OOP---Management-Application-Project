@@ -10,20 +10,10 @@ public:
                     QString d, QString add, QString phone, QString gender, double baseSalary, bool isFixedEmployee, double allowence)
         : Staff("Cashier", idEmp, ava, idCit, n, d, add, phone, gender, baseSalary, isFixedEmployee), allowanceCashier(allowence) {}
 
-  double getSalary()const override{
-      if(isFixed){
-          return fixedMonthlySalary;
-      }
-      return Staff::getSalary();
-  }
-  double getBaseSalary() const override {
-      if(isFixed) return fixedMonthlySalary;
-      return Staff::getBaseSalary();
-  }
-  bool getIsFixedSalary() const override { return isFixed; }
+  bool getIsFixedSalary() const override { return isFixedEmployee; }
 
-  double getAllowence() const override;
-  void setAllowence() override;
+  double getAllowence() const override { return allowanceCashier; }
+  void setAllowence() override {}
   void setAllowenceValue(double allowance) override { allowanceCashier = allowance; }
   User* clone() const override { return new Cashier(*this); }
 

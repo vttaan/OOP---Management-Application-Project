@@ -16,7 +16,7 @@ private:
     inline static short closeHour ;
     inline static Qt::DayOfWeek dayOpenRegisShift;
 
-    static const Qt::DayOfWeek dayOpenRegisShift = Qt::Sunday;
+    //static const Qt::DayOfWeek dayOpenRegisShift = Qt::Sunday;
     static const int baseSalaryStaff = 25000;
     // Number of staff min and max in specific role. First is Min, Second is Max
     inline static QMap<QString, QPair<short, short>> numberEmployeeOfRoles;
@@ -55,6 +55,14 @@ public:
     static short getOpenHour() { return openHour; }
     static short getCloseHour() { return closeHour; }
     static Qt::DayOfWeek getDayOpenRegisShift() { return dayOpenRegisShift; }
+
+    static int getMaxStaffPerShift() {
+        int total = 0;
+        for (const QString& role : numberEmployeeOfRoles.keys()) {
+            total += numberEmployeeOfRoles[role].second;
+        }
+        return total > 0 ? total : 6;
+    }
 
     static int getBaseSalaryStaff() { return baseSalaryStaff; }
 

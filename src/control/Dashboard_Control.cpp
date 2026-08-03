@@ -60,6 +60,7 @@ void Dashboard_Control::loadEmployeeCards(const QList<User*>& list)
     QSet<int> workingIds = dashModel->getWorkingEmployeeIds();
 
     for (User* u : list) {
+        if (!u) continue;
         if (!workingIds.contains(u->getIdEmployee())) continue;
 
         EmployeeCard* card = new EmployeeCard();

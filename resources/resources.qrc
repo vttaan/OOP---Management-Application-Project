@@ -35,5 +35,7 @@
         <file>images/report-white.svg</file>
         <file>images/setting-light.svg</file>
         <file>images/exit-light.svg</file>
+        <file>images/up-arrow.svg</file>
+        <file>images/down-arrow.svg</file>
     </qresource>
 </RCC>

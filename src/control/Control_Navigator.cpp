@@ -28,6 +28,8 @@ Control_Navigator::Control_Navigator()
 
     this->salaryController = new Salary_Control(this);
 
+    this->settingController = new Setting_Control(this);
+
     this->viewWindow = new View_Navigator(this); // Initialize viewWindow AFTER controllers
     // switch tab side bar do all
     if (this->viewWindow->getSideBar())

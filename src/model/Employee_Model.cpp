@@ -266,7 +266,11 @@ void Employee_Model::loadData()
     User *nowEmployee = UserFactory::createContainsUser(
         curRole, curID, curAvatarPath, curIdIndentity, curName, curDob,
         curAddress, curPhone, curGender, curSalary, curIsFixed);
-    this->listEmployee.append(nowEmployee);
+    if (nowEmployee) {
+        this->listEmployee.append(nowEmployee);
+    } else {
+        qDebug() << "Failed to load employee ID:" << curID << "Role:" << curRole;
+    }
   }
 }
 

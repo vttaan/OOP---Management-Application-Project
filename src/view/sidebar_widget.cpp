@@ -226,9 +226,6 @@ void Sidebar_Widget::updateButtonStyles(int mainIndex)
         ui->btnMenu_Salary->setStyleSheet(activeMain);
         break;
     case 8:
-        ui->btnMenu_Salary->setStyleSheet(activeMain);
-        break;
-    case 9:
         ui->btnMenu_Settings->setStyleSheet(activeMain);
         break;
     }

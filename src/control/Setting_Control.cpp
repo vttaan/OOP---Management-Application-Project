@@ -1,11 +1,14 @@
 #include "Setting_Control.h"
 
-Setting_Control::Setting_Control(Setting_View *view, Setting_Model *model, QObject *parent)
-    : QObject(parent), view(view), model(model)
+Setting_Control::Setting_Control(QObject *parent)
+    : QObject(parent), view(nullptr), model(new Setting_Model())
 {
-    connect(view, &Setting_View::requestSave, this, &Setting_Control::handleSave);
-    connect(view, &Setting_View::requestCancel, this, &Setting_Control::handleCancel);
 }
+
+Setting_Control::~Setting_Control() {
+    delete model;
+}
+
 void Setting_Control::setView(Setting_View* v) {
     if (v) view = v;
     else return;
