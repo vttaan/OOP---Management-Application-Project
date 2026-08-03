@@ -2,29 +2,30 @@
 #include "core/UserFactory.h"
 
 User *UserFactory::createContainsUser(QString r, short int idEmp, QString ava, QString idCit, QString n, QString d, QString add,
-                                      QString phone, QString gender, int baseSalary, bool isFixed)
+                                      QString phone, QString gender, int baseSalary, bool isFixed, double allowance)
 {
-    if (r == "Manager")
-        return new Manager(r, idEmp, ava, idCit, n, d, add, phone, gender, baseSalary);
-    else if (r == "Staff")
-        return new Staff(r, idEmp, ava, idCit, n, d, add, phone, gender, baseSalary);
-    else if (r == "KitchenAssistant")
-        return new KitchenAssistant(idEmp, ava, idCit, n, d, add, phone, gender, baseSalary);
-    else if (r == "HallStaff")
-        return new HallStaff(idEmp, ava, idCit, n, d, add, phone, gender, baseSalary);
-    else if (r == "Cashier") {
-        if (isFixed)
-            return new Cashier(idEmp, ava, idCit, n, d, add, phone, gender, 0, (double)baseSalary);
-        else
-            return new Cashier(idEmp, ava, idCit, n, d, add, phone, gender, baseSalary);
-    }
-    return nullptr;
+
+    User *user = UserPrototypeRegistry::instance().create(r);
+    if (!user) return nullptr;
+
+    user->setIdEmployee(idEmp);
+    user->setAva(ava);
+    user->setIndentityID(idCit);
+    user->setName(n);
+    user->setDOB(d);
+    user->setAddress(add);
+    user->setPhoneNum(phone);
+    user->setGender(gender);
+    user->setBaseSalary(static_cast<double>(baseSalary));
+    user->setFixedEmployee(isFixed);
+    user->setAllowenceValue(allowance);
+
+    return user;
 }
 
 User *UserFactory::createNewUser(QString r, QString ava, QString idCit, QString n
-                                 , QString d, QString add, QString phone, QString gender, int baseSalary)
+                                 , QString d, QString add, QString phone, QString gender, int baseSalary, double allowance)
 {
-    // Get the MAX idEmployee in the table to create a unique new ID
     QSqlQuery query;
     short int newId = (r == "Manager" || r == "Admin") ? 2000 : 1000;
 
@@ -43,19 +44,23 @@ User *UserFactory::createNewUser(QString r, QString ava, QString idCit, QString 
     }
     else
     {
-        // qDebug() << "createNewUser: could not fetch MAX id —" << query.lastError().text();
+        qDebug() << "createNewUser: could not fetch MAX id —" << query.lastError().text();
     }
     newId++;
 
-    if (r == "Manager")
-        return new Manager(r, newId, ava, idCit, n, d, add, phone, gender, baseSalary);
-    else if (r == "Staff")
-        return new Staff(r, newId, ava, idCit, n, d, add, phone, gender, baseSalary);
-    else if (r == "KitchenAssistant")
-        return new KitchenAssistant(newId, ava, idCit, n, d, add, phone, gender, baseSalary);
-    else if (r == "HallStaff")
-        return new HallStaff(newId, ava, idCit, n, d, add, phone, gender, baseSalary);
-    else if (r == "Cashier")
-        return new Cashier(newId, ava, idCit, n, d, add, phone, gender, baseSalary);
-    return nullptr;
+    User *user = UserPrototypeRegistry::instance().create(r);
+    if (!user) return nullptr;
+
+    user->setIdEmployee(newId);
+    user->setAva(ava);
+    user->setIndentityID(idCit);
+    user->setName(n);
+    user->setDOB(d);
+    user->setAddress(add);
+    user->setPhoneNum(phone);
+    user->setGender(gender);
+    user->setBaseSalary(static_cast<double>(baseSalary));
+    user->setAllowenceValue(allowance);
+
+    return user;
 }

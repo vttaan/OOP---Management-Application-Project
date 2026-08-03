@@ -57,6 +57,9 @@ Control_Navigator::Control_Navigator()
                      {
                          // set permission of side bar for display feature
                          this->viewWindow->getSideBar()->setPermission(currentSession->checkPermission("Manager"));
+                         // init Policys for setting page
+                         this->settingController->init();
+
                          this->switchTab(1); // Switch to Dashboard (index 1)
                          this->profileController->currentSession = this->currentSession;
                          this->profileController->loadUserData();
@@ -125,7 +128,8 @@ void Control_Navigator::switchTab(int index)
         targetPageIndex = 6;
         break;
     case 8:
-        // this->settingsController->init();
+        this->settingController->init();
+        targetPageIndex = 7;
         break;
 
     default:
@@ -154,6 +158,7 @@ Control_Navigator::~Control_Navigator()
     delete employeeController;
     delete scheduleController;
     delete viewScheduleController;
+    delete settingController;
     currentSession = nullptr;
     viewWindow = nullptr;
     loginController = nullptr;
@@ -162,4 +167,5 @@ Control_Navigator::~Control_Navigator()
     employeeController = nullptr;
     scheduleController = nullptr;
     viewScheduleController = nullptr;
+    settingController = nullptr;
 }

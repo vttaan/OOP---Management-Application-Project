@@ -26,12 +26,17 @@ set(PROJECT_SOURCES
         src/core/UserFactory.h
         src/core/ShiftBlock.h
         src/core/Optimizer.h
+        src/core/KitchenAssistant.h
+        src/core/HallStaff.h
+        src/core/Cashier.h
+        src/core/userprototyperegistry.h
         # CPP
         src/core/User.cpp
         src/core/Staff.cpp
         src/core/Manager.cpp
         src/core/UserFactory.cpp
         src/core/Optimizer.cpp
+        src/core/userprototyperegistry.cpp
 
     # file in Utils
         # HEADER
@@ -39,6 +44,7 @@ set(PROJECT_SOURCES
         src/utils/SessionManage.h
         src/utils/Security.h
         src/utils/Config.h
+        src/utils/ScheduleDTOs.h
         # CPP
         src/utils/Database.cpp
         src/utils/SessionManage.cpp
@@ -149,6 +155,13 @@ qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
     src/core/KitchenAssistant.h
     src/core/HallStaff.h
     src/core/Cashier.h
+    src/core/userprototyperegistry.h src/core/userprototyperegistry.cpp
+    src/core/Cashier.cpp
+    src/core/HallStaff.cpp
+    src/core/KitchenAssistant.cpp
+    src/view/Setting_View.h src/view/Setting_View.cpp src/view/Setting_View.ui
+    src/model/Setting_Model.h src/model/Setting_Model.cpp
+    src/control/Setting_Control.h src/control/Setting_Control.cpp
     )
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core Qt6::Widgets Qt6::Sql Qt6::Charts)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)

@@ -10,5 +10,10 @@ public:
             , QString d, QString add, QString phone, QString gender, int baseSalary);
 	double getSalary() const override;
     double getBaseSalary() const override;
+
     bool getIsFixedSalary() const override { return true; }
+
+    void setBaseSalary(double salary) override;
+    User* clone() const override;
+
 };

@@ -3,6 +3,7 @@
 
 Shift::Shift(short int id, QDate date, QTime start, QTime end)
     : status(0), EmployeeID(id), date(date), startTime(start), endTime(end)
+    , assignedStartTime(start), assignedEndTime(end) // mac dinh = gio dang ky, Optimizer se ghi de neu can
 {
     setDayOfWeek();
 }
@@ -42,3 +43,10 @@ short int Shift::getEmployeeID() const { return EmployeeID; }
 QTime Shift::getStartTime() const { return startTime; }
 QTime Shift::getEndTime() const { return endTime; }
 short int Shift::getStatus() const { return status; }
+
+void Shift::setAssignedTime(QTime start, QTime end) {
+    this->assignedStartTime = start;
+    this->assignedEndTime = end;
+}
+QTime Shift::getAssignedStartTime() const { return assignedStartTime; }
+QTime Shift::getAssignedEndTime() const { return assignedEndTime; }

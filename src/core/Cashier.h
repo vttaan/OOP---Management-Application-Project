@@ -4,17 +4,11 @@
 #include "core/Staff.h"
 class Cashier:public Staff{
 private:
-    // Cashier co the la fulltime
-    double fixedMonthlySalary=0;
-    bool isFixed=false;
+    double allowanceCashier;
 public:
   Cashier(short int idEmp, QString ava, QString idCit, QString n,
-                    QString d, QString add, QString phone, QString gender, int baseSalary)
-            : Staff("Cashier", idEmp, ava, idCit, n, d, add, phone, gender, baseSalary)
-, isFixed(false) {}
-Cashier(short int idEmp, QString ava, QString idCit, QString n, QString d, QString add, QString phone, QString gender, int baseSalary, double fixedSalary)
-        : Staff("Cashier", idEmp, ava, idCit, n, d, add, phone, gender, baseSalary)
-        , fixedMonthlySalary(fixedSalary), isFixed(true) {}
+                    QString d, QString add, QString phone, QString gender, double baseSalary, bool isFixedEmployee, double allowence)
+        : Staff("Cashier", idEmp, ava, idCit, n, d, add, phone, gender, baseSalary, isFixedEmployee), allowanceCashier(allowence) {}
 
   double getSalary()const override{
       if(isFixed){
@@ -27,7 +21,12 @@ Cashier(short int idEmp, QString ava, QString idCit, QString n, QString d, QStri
       return Staff::getBaseSalary();
   }
   bool getIsFixedSalary() const override { return isFixed; }
-};
 
+  double getAllowence() const override;
+  void setAllowence() override;
+  void setAllowenceValue(double allowance) override { allowanceCashier = allowance; }
+  User* clone() const override { return new Cashier(*this); }
+
+};
 
 #endif // CASHIER_H

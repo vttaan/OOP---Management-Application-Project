@@ -1,7 +1,6 @@
 #include "global.h"
 #include "AddEmployee_Dialog.h"
 
-#include "model/Employee_Model.h"
 #include <QScrollArea>
 
 AddEmployee_Dialog::AddEmployee_Dialog(QWidget *parent)
