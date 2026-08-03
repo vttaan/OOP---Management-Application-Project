@@ -9,9 +9,11 @@ Database::Database() {
     dbConnect.setDatabaseName("database/Systems.db");
 
     // isOpen -> open
-    if (!dbConnect.open()) qDebug() << "ERROR CAN NOT OPEN DATABASE\n";
-
-	else qDebug() << "OPEN DATABASE SUCCESS\n";
+    if (!dbConnect.open()) {
+        qDebug() << "ERROR CAN NOT OPEN DATABASE\n";
+    } else {
+        qDebug() << "OPEN DATABASE SUCCESS\n";
+    }
 }
 
 Database* Database::getInstance() {
