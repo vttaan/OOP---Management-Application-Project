@@ -11,7 +11,6 @@ Schedule_Control::Schedule_Control(QObject *parent)
 {
     // Default day labels (Vietnamese, Monday first)
     listDays = {"Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "CN"};
-    initializeFullTimeMockStatuses();
 }
 
 Schedule_Control::~Schedule_Control()
@@ -39,20 +38,6 @@ void Schedule_Control::setEmployeeScheduleLayoutMode(EmployeeScheduleLayoutMode 
     employeeScheduleLayoutMode = mode;
 }
 
-void Schedule_Control::initializeFullTimeMockStatuses()
-{
-    using Status = FullTimeShiftStatus;
-    fullTimeMockStatuses = {
-        {Status::Registered,   Status::Unregistered, Status::StaffShortage},
-        {Status::Unregistered, Status::Registered,   Status::Unregistered},
-        {Status::StaffShortage, Status::Unregistered, Status::Registered},
-        {Status::Unregistered, Status::Unregistered, Status::Unregistered},
-        {Status::Registered,   Status::StaffShortage, Status::Unregistered},
-        {Status::Unregistered, Status::Registered,   Status::Unregistered},
-        {Status::StaffShortage, Status::Unregistered, Status::Registered}
-    };
-}
-
 // ─────────────────────────────────────────────
 // View wiring
 // ─────────────────────────────────────────────
@@ -67,8 +52,8 @@ void Schedule_Control::setView(Schedule_View *v)
     connect(view, &Schedule_View::requestSaveGridShifts,
             this, &Schedule_Control::onSaveGridRequested);
 
-    connect(view, &Schedule_View::requestSaveFullTimeShifts,
-            this, &Schedule_Control::onSaveFullTimeShiftsRequested);
+    connect(view, &Schedule_View::requestSaveFullTimeSchedule,
+            this, &Schedule_Control::onSaveFullTimeScheduleRequested);
 
     connect(view, &Schedule_View::requestGenSchedule,
             this, &Schedule_Control::handleGenSchedule);
@@ -84,6 +69,11 @@ void Schedule_Control::setView(Schedule_View *v)
 
     connect(view, &Schedule_View::requestDeclineShift,
             this, &Schedule_Control::onDeclineShift);
+
+    connect(view, &Schedule_View::requestAddEmployee,
+            this, &Schedule_Control::onAddEmployeeToShift);
+    connect(view, &Schedule_View::requestRemoveAssignedShift,
+            this, &Schedule_Control::onRemoveAssignedShift);
 }
 
 Schedule_View *Schedule_Control::getView() const
@@ -100,8 +90,15 @@ void Schedule_Control::load()
     if (!view)
         return;
 
-    bool isManager = SessionManager::getInstance()->checkPermission("Manager");
+    User *currentUser = SessionManager::getInstance()->getCurrentUser();
+    bool isManager = currentUser && currentUser->getRole() == "Manager";
     view->setManagerMode(isManager);
+
+    if (!isManager && currentUser)
+    {
+        employeeScheduleLayoutMode = scheduleLayoutModeForPayType(
+            currentUser->getIsFixedSalary());
+    }
 
     if (isManager)
     {
@@ -136,13 +133,14 @@ void Schedule_Control::load()
                 ShiftBlock *block = acceptedGrid[col][row];
                 if (!block)
                     continue;
-                if (block->getStatus() == ShiftStatus::Sufficient)
+                BlockCounts blockCounts = counts.value(col).value(row);
+                if (blockCounts.required <= blockCounts.accepted && blockCounts.pending == 0)
                     continue;
                 MissingShiftInfo info;
                 info.dateStr = currentAssignMonday.addDays(col).toString("dd/MM/yyyy");
                 info.shiftName = (row < shiftNames.size()) ? shiftNames[row] : "";
-                info.required = 0;//Config::getMinStaffPerShift();
-                info.assigned = block->getStaffCount();
+                info.required = blockCounts.required;
+                info.assigned = blockCounts.accepted;
                 missingList.append(info);
             }
         }
@@ -151,7 +149,13 @@ void Schedule_Control::load()
         for (int col = 0; col < 7; ++col)
             qDeleteAll(acceptedGrid[col]);
 
+        int pendingTotal = 0;
+        for (const auto &day : counts)
+            for (const auto &cell : day)
+                pendingTotal += cell.pending;
         view->updateManagerMissingShifts(missingList);
+        view->updateManagerSummary(21, missingList.size(), pendingTotal,
+                                   managerDraftChanges.size());
     }
     else
     {
@@ -162,12 +166,13 @@ void Schedule_Control::load()
         QDate weekStart = Config::getStartOfCurrentWeek(today).addDays(7);
         currentEmployeeRegistrationWeekStart = weekStart;
 
-        if (employeeScheduleLayoutMode == EmployeeScheduleLayoutMode::FullTimeMock)
+        if (employeeScheduleLayoutMode == EmployeeScheduleLayoutMode::FullTimeSchedule)
         {
-            // UI-only demo mode. Future role logic can select this mode and replace
-            // fullTimeMockStatuses with real data.
             view->enableRegistration(true);
-            view->setUpFullTimeGrid(weekStart, fullTimeMockStatuses);
+            fullTimeScheduleStatuses =
+                model->getFullTimeScheduleGrid(currentEmployeeId, weekStart);
+            view->setUpFullTimeScheduleGrid(weekStart,
+                                            fullTimeScheduleStatuses);
             return;
         }
 
@@ -202,39 +207,50 @@ void Schedule_Control::load()
     }
 }
 
-void Schedule_Control::onSaveFullTimeShiftsRequested(
+void Schedule_Control::onSaveFullTimeScheduleRequested(
     const QList<QList<int>>& selectedShiftsByDay)
 {
-    if (!view || employeeScheduleLayoutMode != EmployeeScheduleLayoutMode::FullTimeMock)
+    if (!model || !view || currentEmployeeId < 0 ||
+        employeeScheduleLayoutMode != EmployeeScheduleLayoutMode::FullTimeSchedule)
         return;
 
-    for (int day = 0; day < fullTimeMockStatuses.size() && day < 7; ++day)
+    static const QTime shiftStarts[3] = {
+        QTime(7, 0), QTime(12, 0), QTime(17, 0)};
+    static const QTime shiftEnds[3] = {
+        QTime(12, 0), QTime(17, 0), QTime(22, 0)};
+
+    QDate weekStart = currentEmployeeRegistrationWeekStart.isValid()
+        ? currentEmployeeRegistrationWeekStart
+        : Config::getStartOfCurrentWeek(QDate::currentDate()).addDays(7);
+    QList<StaffShiftRegistration> registrations;
+    for (int day = 0; day < selectedShiftsByDay.size() && day < 7; ++day)
     {
-        QSet<int> selectedRows;
-        if (day < selectedShiftsByDay.size())
-            selectedRows = QSet<int>(selectedShiftsByDay[day].begin(),
-                                     selectedShiftsByDay[day].end());
-
-        for (int shift = 0; shift < fullTimeMockStatuses[day].size() && shift < 3; ++shift)
+        QSet<int> uniqueRows(selectedShiftsByDay[day].begin(),
+                             selectedShiftsByDay[day].end());
+        for (int shift : uniqueRows)
         {
-            if (fullTimeMockStatuses[day][shift] == FullTimeShiftStatus::StaffShortage)
+            if (shift < 0 || shift >= 3)
                 continue;
-
-            fullTimeMockStatuses[day][shift] = selectedRows.contains(shift)
-                ? FullTimeShiftStatus::Registered
-                : FullTimeShiftStatus::Unregistered;
+            registrations.append({weekStart.addDays(day),
+                                  shiftStarts[shift],
+                                  shiftEnds[shift]});
         }
     }
 
-    if (!currentEmployeeRegistrationWeekStart.isValid())
+    if (model->replacePendingShiftsForWeek(currentEmployeeId,
+                                           weekStart,
+                                           registrations))
     {
-        currentEmployeeRegistrationWeekStart =
-            Config::getStartOfCurrentWeek(QDate::currentDate()).addDays(7);
+        load();
+        view->showFullTimeSaveFeedback(
+            "Đã lưu lịch đăng ký chờ duyệt thành công.");
     }
-    view->setUpFullTimeGrid(currentEmployeeRegistrationWeekStart,
-                            fullTimeMockStatuses);
-    view->showFullTimeSaveFeedback(
-        "Đã lưu lịch đăng ký mô phỏng thành công.");
+    if (false)
+    {
+        view->showError(
+            "Không thể cập nhật lịch toàn thời gian. Ca đã duyệt hoặc lỗi "
+            "cơ sở dữ liệu có thể đang ngăn thay đổi này.");
+    }
 }
 
 // ─────────────────────────────────────────────
@@ -246,6 +262,8 @@ void Schedule_Control::onSaveGridRequested(const QList<QList<int>>& selectedHour
 {
     if (!model || !view)
         return;
+    if (true)
+    {
     if (currentEmployeeId < 0)
         return;
 
@@ -300,7 +318,7 @@ void Schedule_Control::onSaveGridRequested(const QList<QList<int>>& selectedHour
         view->showSuccess("Đã lưu lịch đăng ký thành công!");
         load();
     }
-    else
+    }
         view->showError(
             "Không thể cập nhật lịch chờ duyệt. Lịch đã duyệt hoặc lỗi cơ sở "
             "dữ liệu có thể đang ngăn thay đổi này.");
@@ -364,34 +382,57 @@ void Schedule_Control::onShiftBlockClicked(int col, int row)
     QString shiftLabel = QString("%1 (%2) — %3")
                              .arg(SHIFT_NAMES[row], SHIFT_TIMES[row], colLabel);
 
-    view->showShiftRequestsDialog(requests, shiftLabel);
+    QList<EligibleEmployeeInfo> eligible =
+        model->getEligibleEmployees(currentAssignMonday.addDays(col),
+                                    QTime(7 + row * 5, 0), QTime(12 + row * 5, 0));
+    QTime blockStart(7 + row * 5, 0);
+    QTime blockEnd(12 + row * 5, 0);
+    view->showShiftRequestsDialog(requests, shiftLabel, eligible,
+                                  currentAssignMonday.addDays(col),
+                                  blockStart, blockEnd);
 }
 
 // ─────────────────────────────────────────────
 // Manager: approve/decline a shift request
 // ─────────────────────────────────────────────
 
-void Schedule_Control::onApproveShift(int shiftId)
+void Schedule_Control::onApproveShift(PendingShiftInfo request)
 {
     if (!model || !view)
         return;
-    if (model->approveShift(shiftId))
-    {
-        // Refresh the assign grid to reflect updated counts
-        QMap<int, QMap<int, BlockCounts>> counts =
-            model->getAssignBlockCounts(currentAssignMonday);
-        view->updateAssignGrid(counts);
-    }
-    else
-    {
-        view->showError("Không thể duyệt ca làm vui lòng thử lại.");
-    }
+    ManagerScheduleChange change;
+    change.type = ManagerScheduleChangeType::Approve;
+    change.shiftId = request.shiftId;
+    change.employeeId = request.employeeId;
+    change.employeeName = request.employeeName;
+    change.role = request.role;
+    change.startTime = request.startTime;
+    change.endTime = request.endTime;
+    change.reason = "Manager approval";
+    managerDraftChanges.append(change);
+    view->setManagerDraftStatus(managerDraftChanges.size());
+    view->showSuccess("Đã thêm duyệt vào bản nháp. Hãy xác nhận lịch để lưu.");
 }
 
-void Schedule_Control::onDeclineShift(int shiftId)
+void Schedule_Control::onDeclineShift(PendingShiftInfo request)
 {
     if (!model || !view)
         return;
+    const int shiftId = request.shiftId;
+    ManagerScheduleChange change;
+    change.type = ManagerScheduleChangeType::Decline;
+    change.shiftId = request.shiftId;
+    change.employeeId = request.employeeId;
+    change.employeeName = request.employeeName;
+    change.role = request.role;
+    change.startTime = request.startTime;
+    change.endTime = request.endTime;
+    change.reason = "Manager decline";
+    managerDraftChanges.append(change);
+    view->setManagerDraftStatus(managerDraftChanges.size());
+    view->showSuccess("Đã thêm từ chối vào bản nháp. Hãy xác nhận lịch để lưu.");
+    return;
+#if 0
     if (model->declineShift(shiftId))
     {
         // Refresh the assign grid to reflect updated counts
@@ -403,6 +444,7 @@ void Schedule_Control::onDeclineShift(int shiftId)
     {
         view->showError("Không thể từ chối ca làm, vui lòng thử lại.");
     }
+#endif
 }
 
 // ─────────────────────────────────────────────
@@ -411,12 +453,69 @@ void Schedule_Control::onDeclineShift(int shiftId)
 
 void Schedule_Control::onConfirmRequested()
 {
+    if (!managerDraftChanges.isEmpty())
+    {
+        QStringList summary;
+        for (const ManagerScheduleChange &change : managerDraftChanges)
+        {
+            QString action;
+            switch (change.type)
+            {
+            case ManagerScheduleChangeType::Approve: action = "Duyệt"; break;
+            case ManagerScheduleChangeType::Decline: action = "Từ chối"; break;
+            case ManagerScheduleChangeType::Add: action = "Thêm"; break;
+            case ManagerScheduleChangeType::Cancel: action = "Gỡ"; break;
+            }
+            QString employee = change.employeeName.isEmpty()
+                ? QString("ID %1").arg(change.employeeId) : change.employeeName;
+            summary << QString("• %1: %2 (%3)").arg(action, employee, change.reason);
+        }
+        if (QMessageBox::question(view, "Xem thay đổi & xác nhận",
+                                  summary.join("\n"), QMessageBox::Yes | QMessageBox::No,
+                                  QMessageBox::Yes) != QMessageBox::Yes)
+            return;
+    }
+    QStringList errors;
+    if (!model->applyManagerScheduleChanges(managerDraftChanges, &errors))
+    {
+        view->showError(errors.isEmpty() ? "Không thể lưu thay đổi lịch." : errors.join("\n"));
+        return;
+    }
+    managerDraftChanges.clear();
     // Refresh and show current state as confirmation
     load();
+    view->setManagerDraftStatus(0);
     view->showSuccess("Đã xác nhận lịch làm việc!");
 }
 
 // ─────────────────────────────────────────────
+void Schedule_Control::onAddEmployeeToShift(int employeeId, QDate date,
+                                             QTime startTime, QTime endTime,
+                                             const QString &reason)
+{
+    ManagerScheduleChange change;
+    change.type = ManagerScheduleChangeType::Add;
+    change.employeeId = employeeId;
+    change.date = date;
+    change.startTime = startTime;
+    change.endTime = endTime;
+    change.reason = reason;
+    managerDraftChanges.append(change);
+    view->setManagerDraftStatus(managerDraftChanges.size());
+}
+
+void Schedule_Control::onRemoveAssignedShift(int shiftId, int employeeId,
+                                               const QString &reason)
+{
+    ManagerScheduleChange change;
+    change.type = ManagerScheduleChangeType::Cancel;
+    change.shiftId = shiftId;
+    change.employeeId = employeeId;
+    change.reason = reason;
+    managerDraftChanges.append(change);
+    view->setManagerDraftStatus(managerDraftChanges.size());
+}
+
 // Private helpers
 // ─────────────────────────────────────────────
 

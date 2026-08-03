@@ -187,13 +187,13 @@ This module acts as the intermediary between the View and Model layers, orchestr
     *   `view` (Pointer to `Schedule_View`).
     *   `model` (Pointer to `Schedule_Model`).
     *   `currentEmployeeId` (ID of the employee being managed).
-    *   `employeeScheduleLayoutMode`, `fullTimeMockStatuses`, `currentEmployeeRegistrationWeekStart` (Temporary controller-owned mode, mock data, and configured week anchor for the full-time registration demo).
+    *   `employeeScheduleLayoutMode`, `fullTimeScheduleStatuses`, `currentEmployeeRegistrationWeekStart` (Pay-type-selected layout, database-backed full-time cell state, and configured registration week anchor).
 *   **Functions:**
-    *   `load()`: Loads schedule data.
+    *   `load()`: Selects `FullTimeSchedule` or `PartTimeHourly` from the current employee's `PROFILES.isFixed` value and loads the corresponding schedule data.
     *   `onSaveGridRequested(...)`: Converts the part-time grid selection into contiguous time ranges and synchronizes the displayed week's pending registrations. Approved shifts remain immutable. *Calls `Schedule_Model::replacePendingShiftsForWeek`.*
-    *   `onSaveFullTimeShiftsRequested(...)`: Commits 3x7 full-time selections to mock controller state without database access.
+    *   `onSaveFullTimeScheduleRequested(...)`: Converts the 3x7 full-time selection into canonical shift ranges and synchronizes pending `SHIFT` rows. Approved shifts remain immutable.
     *   `handleGenSchedule()`: Triggers automated schedule generation.
-    *   `onShiftBlockClicked(...)`, `onApproveShift(...)`, `onDeclineShift(...)`: Manager actions for processing shift requests.
+    *   `onShiftBlockClicked(...)`, `onApproveShift(...)`, `onDeclineShift(...)`, `onAddEmployeeToShift(...)`, `onRemoveAssignedShift(...)`: Manager draft actions for reviewing requests and manually adjusting a shift before weekly confirmation.
 
 #### 5.1.8. `ViewSchedule_Control`
 *   **Role:** Manages logic for viewing existing schedules.
@@ -295,7 +295,7 @@ This module handles database queries, business rules, and state management.
     *   `getSalarySummary(...)`, `getNormalDaysData(...)`: Aggregates shift data into salary metrics. *Calls `Database::execQuery` and `Shift` getters.*
 
 #### 5.3.6. `Schedule_Model`
-*   **Role:** Manages schedule data, drafts, and coordinates auto-generation.
+*   **Role:** Manages schedule data, manager drafts, audit history, and coordinates auto-generation.
 *   **Variables:**
     *   `shiftList`, `draftShifts`, `currentWeeklyUsers`.
 *   **Functions:**
@@ -303,6 +303,8 @@ This module handles database queries, business rules, and state management.
     *   `generateSchedule()`: Runs the auto-scheduler. *Calls `Optimizer::solve`.*
     *   `saveDraftShiftsToDatabase()`: Commits drafts to the DB.
     *   `replacePendingShiftsForWeek(...)`: Atomically replaces only one employee's pending registrations for one configured week, rejecting overlaps with approved shifts and rolling back on failure.
+    *   `getEligibleEmployees(...)`, `applyManagerScheduleChanges(...)`: Validates manager additions/removals and commits approved, declined, added, and cancelled changes atomically. Cancelled assignments remain in history through `SHIFT_AUDIT`.
+    *   `getFullTimeScheduleGrid(...)`: Maps one fixed-salary employee's pending, approved, and declined `SHIFT` rows to the canonical 3x7 grid and derives staffing-shortage cells from approved staffing data.
 
 #### 5.3.7. `Validator`
 *   **Role:** Utility class providing static methods to validate common user inputs.
@@ -355,7 +357,7 @@ This module contains the UI components constructed using Qt (Widgets and Dialogs
 *   **`Employee_View`**: A complex view containing the employee table, filter dropdowns, and pagination. Emits complex signals for search/sort/filter. *Controller: `Employee_Control`.*
 *   **`Profile_View`**: Displays user info. *Controller: `Profile_Control`.*
 *   **`Salary_View`**: Displays salary breakdowns in tables. *Controller: `Salary_Control`.*
-*   **`Schedule_View` / `ViewSchedule_View`**: Interfaces for managers to create schedules and for all users to view them. `Schedule_View` supports the existing 15x7 hourly registration grid and a controller-selected 3x7 full-time shift grid. A shared view-owned grid delegate renders full-time status cards and color-first part-time staffing states. The part-time view receives its open/closed state and next configured opening date from `Schedule_Control`, presents a muted read-only staffing preview while closed, and keeps the database-backed hourly save workflow unchanged. Both staff grids preserve the configured seven-day sequence supplied by `Schedule_Control` and `Config`. *Controllers: `Schedule_Control`, `ViewSchedule_Control`.*
+*   **`Schedule_View` / `ViewSchedule_View`**: Interfaces for managers to create schedules and for all users to view them. `Schedule_View` supports the existing 15x7 hourly registration grid and a `PROFILES.isFixed`-selected 3x7 `FullTimeSchedule` grid. Both grids persist pending registrations in `SHIFT`; approved rows are locked, and managers approve or decline pending rows through the shared assignment workflow. A shared view-owned grid delegate renders full-time status cards and color-first part-time staffing states. The part-time view receives its open/closed state and next configured opening date from `Schedule_Control` and presents a muted read-only staffing preview while closed. Both staff grids preserve the configured seven-day sequence supplied by `Schedule_Control` and `Config`. *Controllers: `Schedule_Control`, `ViewSchedule_Control`.*
 
 #### 5.5.3. Custom Widgets
 *   **`EmployeeCard`**: A small widget to display a summary of a single employee in grid layouts.

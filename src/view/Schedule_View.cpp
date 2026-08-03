@@ -21,6 +21,8 @@ constexpr int SHIFT_BOUNDARY_ROLE = Qt::UserRole + 4;
 enum FullTimeVisualState {
   VisualUnregistered = 0,
   VisualRegistered,
+  VisualApproved,
+  VisualDeclined,
   VisualSelected,
   VisualPendingRemoval,
   VisualStaffShortage
@@ -71,6 +73,16 @@ public:
         background = QColor("#ECFDF5");
         border = QColor("#A7F3D0");
         foreground = QColor("#047857");
+        break;
+      case VisualApproved:
+        background = QColor("#D1FAE5");
+        border = QColor("#6EE7B7");
+        foreground = QColor("#065F46");
+        break;
+      case VisualDeclined:
+        background = QColor("#FFF7ED");
+        border = QColor("#FDBA74");
+        foreground = QColor("#C2410C");
         break;
       case VisualSelected:
         background = QColor("#EFF6FF");
@@ -228,7 +240,8 @@ QLabel *makeLegendPill(const QString &text, const QString &background,
 Schedule_View::Schedule_View(QWidget *parent)
     : QWidget(parent), ui(new Ui::Schedule_View), missingStaffWidget(nullptr),
       lblMissingStaffHeader(nullptr), lblMissingCount(nullptr),
-      tableMissingStaff(nullptr), fullTimeInfoWidget(nullptr),
+      tableMissingStaff(nullptr), lblManagerDraftStatus(nullptr),
+      lblManagerSummary(nullptr), fullTimeInfoWidget(nullptr),
       lblFullTimeWeekRange(nullptr), lblFullTimeFooterMessage(nullptr),
       partTimeInfoWidget(nullptr), lblPartTimeRegistrationState(nullptr),
       lblPartTimeWeekRange(nullptr), lblPartTimeFooterMessage(nullptr)
@@ -253,6 +266,20 @@ void Schedule_View::setUpUI()
   ui->DangKyLich->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
   ui->DangKyLich->setFixedHeight(48);
   ui->DangKyLich->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+
+  QWidget *managerSummaryBar = new QWidget(this);
+  managerSummaryBar->setObjectName("managerSummaryBar");
+  auto *summaryLayout = new QHBoxLayout(managerSummaryBar);
+  summaryLayout->setContentsMargins(0, 0, 0, 0);
+  summaryLayout->setSpacing(8);
+  lblManagerSummary = new QLabel("Tổng số ca: 0   |   Ca thiếu nhân sự: 0   |   Yêu cầu chờ xử lý: 0", managerSummaryBar);
+  lblManagerSummary->setStyleSheet("background:#EFF6FF;color:#1E3A8A;border:1px solid #BFDBFE;border-radius:8px;padding:8px 12px;font-weight:600;");
+  lblManagerDraftStatus = new QLabel("Đã xác nhận", managerSummaryBar);
+  lblManagerDraftStatus->setStyleSheet("background:#ECFDF5;color:#047857;border-radius:8px;padding:8px 12px;font-weight:600;");
+  summaryLayout->addWidget(lblManagerSummary, 1);
+  summaryLayout->addWidget(lblManagerDraftStatus);
+  ui->verticalLayout->insertWidget(1, managerSummaryBar);
+  managerSummaryBar->setVisible(false);
 
   // ── Interactive grid (staff mode) ─────────────────────────────────────────
   ui->tableInteractiveGrid->setSelectionMode(QAbstractItemView::MultiSelection);
@@ -697,7 +724,7 @@ void Schedule_View::buildFullTimeGrid()
                                           QSizePolicy::Expanding);
 }
 
-void Schedule_View::setUpFullTimeGrid(
+void Schedule_View::setUpFullTimeScheduleGrid(
     QDate weekStart, const FullTimeScheduleGrid &statuses)
 {
   m_isFullTimeMode = true;
@@ -708,7 +735,7 @@ void Schedule_View::setUpFullTimeGrid(
   if (lblPartTimeFooterMessage)
     lblPartTimeFooterMessage->setVisible(false);
   m_fullTimeStatuses = FullTimeScheduleGrid(
-      7, QList<FullTimeShiftStatus>(3, FullTimeShiftStatus::Unregistered));
+      7, QList<FullTimeShiftStatus>(3, FullTimeShiftStatus::Available));
 
   for (int day = 0; day < statuses.size() && day < 7; ++day)
     for (int shift = 0; shift < statuses[day].size() && shift < 3; ++shift)
@@ -733,7 +760,7 @@ void Schedule_View::setUpFullTimeGrid(
   {
     for (int shift = 0; shift < 3; ++shift)
     {
-      if (m_fullTimeStatuses[day][shift] == FullTimeShiftStatus::Registered)
+      if (m_fullTimeStatuses[day][shift] == FullTimeShiftStatus::Pending)
         m_fullTimeSelections.insert(qMakePair(shift, day));
       renderFullTimeCell(shift, day);
     }
@@ -808,21 +835,36 @@ void Schedule_View::renderFullTimeCell(int row, int col)
     return;
   }
 
+  if (savedStatus == FullTimeShiftStatus::Approved)
+  {
+    item->setText("Đã duyệt");
+    item->setData(FULL_TIME_VISUAL_ROLE, VisualApproved);
+    item->setFlags(Qt::NoItemFlags);
+    item->setToolTip("Ca đã duyệt và không thể thay đổi");
+    return;
+  }
+
   item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-  if (savedStatus == FullTimeShiftStatus::Registered && !selected)
+  if (savedStatus == FullTimeShiftStatus::Pending && !selected)
   {
     item->setText("Bỏ đăng ký");
     item->setData(FULL_TIME_VISUAL_ROLE, VisualPendingRemoval);
   }
-  else if (savedStatus == FullTimeShiftStatus::Unregistered && selected)
+  else if (savedStatus == FullTimeShiftStatus::Pending && selected)
+  {
+    item->setText("Chờ duyệt");
+    item->setData(FULL_TIME_VISUAL_ROLE, VisualRegistered);
+  }
+  else if (selected)
   {
     item->setText("Đã chọn");
     item->setData(FULL_TIME_VISUAL_ROLE, VisualSelected);
   }
-  else if (selected)
+  else if (savedStatus == FullTimeShiftStatus::Declined)
   {
-    item->setText("Đã đăng ký");
-    item->setData(FULL_TIME_VISUAL_ROLE, VisualRegistered);
+    item->setText("Đã từ chối\nNhấn để chọn lại");
+    item->setData(FULL_TIME_VISUAL_ROLE, VisualDeclined);
+    item->setToolTip("Ca từng bị từ chối; nhấn để đăng ký lại");
   }
   else
   {
@@ -838,7 +880,8 @@ void Schedule_View::onFullTimeCellClicked(int row, int col)
 {
   if (!m_isFullTimeMode || row < 0 || row >= 3 || col < 0 || col >= 7)
     return;
-  if (m_fullTimeStatuses[col][row] == FullTimeShiftStatus::StaffShortage)
+  if (m_fullTimeStatuses[col][row] == FullTimeShiftStatus::StaffShortage ||
+      m_fullTimeStatuses[col][row] == FullTimeShiftStatus::Approved)
     return;
 
   QPair<int, int> coordinate = qMakePair(row, col);
@@ -908,8 +951,10 @@ bool Schedule_View::eventFilter(QObject *watched, QEvent *event)
           index.column() < m_fullTimeStatuses.size() &&
           index.row() < m_fullTimeStatuses[index.column()].size())
       {
-        bool unavailable = m_fullTimeStatuses[index.column()][index.row()] ==
-                           FullTimeShiftStatus::StaffShortage;
+        FullTimeShiftStatus status =
+            m_fullTimeStatuses[index.column()][index.row()];
+        bool unavailable = status == FullTimeShiftStatus::StaffShortage ||
+                           status == FullTimeShiftStatus::Approved;
         ui->tableInteractiveGrid->viewport()->setCursor(
             unavailable ? Qt::ForbiddenCursor : Qt::PointingHandCursor);
       }
@@ -1198,7 +1243,7 @@ void Schedule_View::buttonSaveClicked()
     for (QList<int> &selectedRows : selectedByDay)
       std::sort(selectedRows.begin(), selectedRows.end());
 
-    emit requestSaveFullTimeShifts(selectedByDay);
+    emit requestSaveFullTimeSchedule(selectedByDay);
     return;
   }
 
@@ -1285,6 +1330,8 @@ void Schedule_View::setManagerMode(bool isManager)
 
   if (isManager)
   {
+    if (QWidget *summaryBar = findChild<QWidget *>("managerSummaryBar"))
+      summaryBar->setVisible(true);
     if (fullTimeInfoWidget)
       fullTimeInfoWidget->setVisible(false);
     if (lblFullTimeFooterMessage)
@@ -1302,6 +1349,7 @@ void Schedule_View::setManagerMode(bool isManager)
     ui->btnGenSchedule->setEnabled(true);
     ui->btnConfirm->setVisible(true);
     ui->btnConfirm->setEnabled(true);
+    ui->btnConfirm->setText("Xem thay đổi & xác nhận");
     ui->XacNhanLich->setVisible(true);
     ui->frameTableContainer->setVisible(true);
     ui->XacNhanLich->setText("<html><head/><body><p><span style=\" "
@@ -1349,6 +1397,8 @@ void Schedule_View::setManagerMode(bool isManager)
   }
   else
   {
+    if (QWidget *summaryBar = findChild<QWidget *>("managerSummaryBar"))
+      summaryBar->setVisible(false);
     ui->DangKyLich->setVisible(true);
     ui->tableInteractiveGrid->setVisible(true);
     ui->frameDangKyContainer->setVisible(true);
@@ -1411,6 +1461,15 @@ void Schedule_View::updateManagerPendingGrid(
       QString countText = QString("%1 nhân viên").arg(count);
 
       // Single Rich Text label instead of a full widget tree
+#if 0
+      pills = QString("<div style='color:#374151;font-size:12px;font-weight:bold;'>Cần %1 · Đã xếp %2 · Thiếu %3</div>")
+                  .arg(bc.required).arg(bc.accepted).arg(shortage);
+      if (bc.pending > 0)
+        pills += QString("<div style='color:#92400E;font-size:11px;margin-top:4px;'>%1 yêu cầu chờ xử lý</div>").arg(bc.pending);
+      if (bc.declined > 0)
+        pills += QString("<div style='color:#991B1B;font-size:10px;margin-top:2px;'>%1 từ chối</div>").arg(bc.declined);
+
+#endif
       QString html = QString(
           "<div style='background-color:%1;border-radius:6px;padding:5px;'>"
           "<div style='color:#6B7280;font-size:9px;font-style:italic;'>Quan ly: ---</div>"
@@ -1450,19 +1509,22 @@ void Schedule_View::updateAssignGrid(
         continue;
       BlockCounts bc = counts.value(col).value(row);
 
-      int total = bc.pending + bc.accepted + bc.declined;
+      int total = bc.pending + bc.accepted;
+      int shortage = qMax(0, bc.required - bc.accepted);
 
       // Determine total badge colour
       QString totalBadgeStyle;
-      if (bc.pending > 0)
+      if (shortage > 0)
+        totalBadgeStyle = "background-color:#FEE2E2;color:#991B1B";
+      else if (bc.pending > 0)
         totalBadgeStyle = "background-color:#DBEAFE;color:#1D4ED8";
       else if (total == 0)
         totalBadgeStyle = "background-color:#F3F4F6;color:#6B7280";
       else
         totalBadgeStyle = "background-color:#D1FAE5;color:#065F46";
 
-      QString cellBg = (bc.pending > 0) ? "#EFF6FF" : "#F9FAFB";
-      QString cellBorder = (bc.pending > 0) ? "#BFDBFE" : "#E5E7EB";
+      QString cellBg = shortage > 0 ? "#FEF2F2" : (bc.pending > 0 ? "#EFF6FF" : "#F9FAFB");
+      QString cellBorder = shortage > 0 ? "#FECACA" : (bc.pending > 0 ? "#BFDBFE" : "#E5E7EB");
 
       // Build pills as inline HTML spans — no extra QLabel objects
       QString pills;
@@ -1478,6 +1540,13 @@ void Schedule_View::updateAssignGrid(
                        "border-radius:4px;padding:4px 6px;font-size:11px;"
                        "font-weight:bold;'>%1 từ chối</div>")
                    .arg(bc.declined);
+
+      pills = QString("<div style='color:#374151;font-size:12px;font-weight:bold;'>Cần %1 · Đã xếp %2 · Thiếu %3</div>")
+                  .arg(bc.required).arg(bc.accepted).arg(shortage);
+      if (bc.pending > 0)
+        pills += QString("<div style='color:#92400E;font-size:11px;margin-top:4px;'>%1 yêu cầu chờ xử lý</div>").arg(bc.pending);
+      if (bc.declined > 0)
+        pills += QString("<div style='color:#991B1B;font-size:10px;margin-top:2px;'>%1 từ chối</div>").arg(bc.declined);
 
       // Single Rich Text label instead of container widget + layout + multiple labels
       QString html = QString(
@@ -1506,12 +1575,15 @@ void Schedule_View::updateAssignGrid(
 
 // ─── Shift Requests Popup Dialog ─────────────────────────────────────────────
 void Schedule_View::showShiftRequestsDialog(
-    const QList<PendingShiftInfo> &requests, const QString &shiftLabel)
+    const QList<PendingShiftInfo> &requests, const QString &shiftLabel,
+    const QList<EligibleEmployeeInfo> &eligibleEmployees,
+    QDate shiftDate, QTime blockStart, QTime blockEnd)
 {
   QDialog *dlg = new QDialog(this);
   dlg->setWindowTitle(QString("Yêu cầu — %1").arg(shiftLabel));
   dlg->setMinimumWidth(720);
   dlg->setMinimumHeight(400);
+  dlg->setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
   dlg->setStyleSheet("QDialog { background-color: #F8FAFC; }");
 
   QVBoxLayout *mainLayout = new QVBoxLayout(dlg);
@@ -1570,13 +1642,35 @@ void Schedule_View::showShiftRequestsDialog(
     tbl->setItem(i, 2, makeItem(info.employeeName));
 
     // Role badge
-    QString roleDisplay = (info.role == "Staff") ? "Nhân viên" : "Quản lý";
-    QString roleStyle =
-        (info.role == "Staff")
-            ? "background-color:#DBEAFE; color:#1D4ED8; border-radius:4px; "
-              "padding:2px 8px; font-weight:bold; font-size:12px;"
-            : "background-color:#EDE9FE; color:#5B21B6; border-radius:4px; "
-              "padding:2px 8px; font-weight:bold; font-size:12px;";
+    QString roleDisplay = "Nhân viên";
+    QString roleColors = "background-color:#DBEAFE;color:#1D4ED8;";
+    if (info.role == "Manager")
+    {
+      roleDisplay = "Quản lý";
+      roleColors = "background-color:#EDE9FE;color:#6D28D9;";
+    }
+    else if (info.role == "Admin")
+    {
+      roleDisplay = "Quản trị viên";
+      roleColors = "background-color:#DBEAFE;color:#1D4ED8;";
+    }
+    else if (info.role == "Cashier")
+    {
+      roleDisplay = "Thu ngân";
+      roleColors = "background-color:#CCFBF1;color:#0F766E;";
+    }
+    else if (info.role == "HallStaff")
+    {
+      roleDisplay = "Nhân viên sảnh";
+      roleColors = "background-color:#FFEDD5;color:#C2410C;";
+    }
+    else if (info.role == "KitchenAssistant")
+    {
+      roleDisplay = "Phụ bếp";
+      roleColors = "background-color:#FFE4E6;color:#BE123C;";
+    }
+    QString roleStyle = roleColors +
+        "border-radius:4px;padding:2px 8px;font-weight:bold;font-size:12px;";
     QLabel *roleLabel = new QLabel(roleDisplay, tbl);
     roleLabel->setStyleSheet(roleStyle);
     roleLabel->setAlignment(Qt::AlignCenter);
@@ -1617,13 +1711,13 @@ void Schedule_View::showShiftRequestsDialog(
           "QPushButton:hover { background-color: #C81E1E; }");
 
       int shiftId = info.shiftId;
-      connect(btnApprove, &QPushButton::clicked, this, [this, shiftId, dlg]()
+      connect(btnApprove, &QPushButton::clicked, this, [this, info, dlg]()
               {
-        emit requestApproveShift(shiftId);
+        emit requestApproveShift(info);
         dlg->accept(); });
-      connect(btnDecline, &QPushButton::clicked, this, [this, shiftId, dlg]()
+      connect(btnDecline, &QPushButton::clicked, this, [this, info, dlg]()
               {
-        emit requestDeclineShift(shiftId);
+        emit requestDeclineShift(info);
         dlg->accept(); });
 
       actionLayout->addWidget(btnApprove);
@@ -1637,9 +1731,22 @@ void Schedule_View::showShiftRequestsDialog(
           "background-color:#D1FAE5; color:#065F46; border-radius:4px; "
           "padding:3px 8px; font-weight:bold; font-size:11px;");
       badge->setAlignment(Qt::AlignCenter);
-      actionLayout->addStretch();
+      QPushButton *btnRemove = new QPushButton("Gỡ khỏi ca", actionCell);
+      btnRemove->setStyleSheet("QPushButton { background:#F97316;color:white;border-radius:4px;padding:4px 8px;font-weight:bold;font-size:11px; }");
+      connect(btnRemove, &QPushButton::clicked, this, [this, info, dlg]()
+      {
+        bool ok = false;
+        QString reason = QInputDialog::getText(dlg, "Gỡ nhân viên khỏi ca",
+                                               "Lý do:", QLineEdit::Normal,
+                                               "Điều chỉnh phân ca", &ok);
+        if (ok && !reason.trimmed().isEmpty())
+        {
+          emit requestRemoveAssignedShift(info.shiftId, info.employeeId, reason.trimmed());
+          dlg->accept();
+        }
+      });
       actionLayout->addWidget(badge);
-      actionLayout->addStretch();
+      actionLayout->addWidget(btnRemove);
     }
     else
     {
@@ -1667,6 +1774,76 @@ void Schedule_View::showShiftRequestsDialog(
 
   mainLayout->addWidget(tbl);
 
+  QPushButton *btnAddEmployee = new QPushButton("+ Thêm nhân viên", dlg);
+  btnAddEmployee->setStyleSheet("QPushButton { background:#2563EB;color:white;border-radius:6px;padding:7px 14px;font-weight:bold; }");
+  connect(btnAddEmployee, &QPushButton::clicked, this,
+          [this, dlg, requests, eligibleEmployees, shiftDate, blockStart, blockEnd]()
+  {
+    if (!shiftDate.isValid() || !blockStart.isValid() || !blockEnd.isValid())
+    {
+      QMessageBox::information(dlg, "Thêm nhân viên",
+                               "Ca này chưa có yêu cầu để lấy khung giờ. Hãy tạo yêu cầu trước hoặc dùng phân ca tự động.");
+      return;
+    }
+    QStringList choices;
+    for (const EligibleEmployeeInfo &employee : eligibleEmployees)
+    {
+      if (!employee.eligible) continue;
+      choices << QString("%1 — %2 (%3)").arg(employee.employeeName)
+                                           .arg(employee.role)
+                                           .arg(employee.isFixedSalary ? "Lương cố định" : "Lương giờ");
+    }
+    if (choices.isEmpty())
+    {
+      QMessageBox::information(dlg, "Thêm nhân viên", "Không có nhân viên đủ điều kiện cho ca này.");
+      return;
+    }
+    bool ok = false;
+    QString selected = QInputDialog::getItem(dlg, "Thêm nhân viên vào ca",
+                                             "Nhân viên đủ điều kiện:", choices, 0, false, &ok);
+    if (!ok) return;
+    int selectedIndex = choices.indexOf(selected);
+    QList<EligibleEmployeeInfo> eligibleOnly;
+    for (const EligibleEmployeeInfo &employee : eligibleEmployees)
+      if (employee.eligible) eligibleOnly.append(employee);
+    if (selectedIndex < 0 || selectedIndex >= eligibleOnly.size()) return;
+    const EligibleEmployeeInfo &selectedEmployee = eligibleOnly[selectedIndex];
+    QTime addStart = blockStart;
+    QTime addEnd = blockEnd;
+    if (!selectedEmployee.isFixedSalary)
+    {
+      bool startOk = false;
+      bool endOk = false;
+      QString startText = QInputDialog::getText(dlg, "Giờ bắt đầu",
+                                                "Nhập giờ bắt đầu (HH:mm):",
+                                                QLineEdit::Normal,
+                                                blockStart.toString("HH:mm"), &startOk);
+      if (!startOk) return;
+      QString endText = QInputDialog::getText(dlg, "Giờ kết thúc",
+                                              "Nhập giờ kết thúc (HH:mm):",
+                                              QLineEdit::Normal,
+                                              blockEnd.toString("HH:mm"), &endOk);
+      if (!endOk) return;
+      addStart = QTime::fromString(startText.trimmed(), "HH:mm");
+      addEnd = QTime::fromString(endText.trimmed(), "HH:mm");
+      if (!addStart.isValid() || !addEnd.isValid() || addStart >= addEnd)
+      {
+        QMessageBox::warning(dlg, "Khoảng giờ không hợp lệ", "Giờ bắt đầu phải nhỏ hơn giờ kết thúc.");
+        return;
+      }
+    }
+    emit requestAddEmployee(selectedEmployee.employeeId, shiftDate,
+                            addStart, addEnd,
+                            selectedEmployee.isFixedSalary
+                                ? "Quản lý bổ sung nhân sự cố định"
+                                : "Quản lý bổ sung nhân sự theo giờ");
+    dlg->accept();
+  });
+  QHBoxLayout *addRow = new QHBoxLayout();
+  addRow->addWidget(btnAddEmployee);
+  addRow->addStretch();
+  mainLayout->addLayout(addRow);
+
   // Close button
   QHBoxLayout *btnRow = new QHBoxLayout();
   btnRow->addStretch();
@@ -1680,8 +1857,35 @@ void Schedule_View::showShiftRequestsDialog(
   btnRow->addWidget(btnClose);
   mainLayout->addLayout(btnRow);
 
+  dlg->adjustSize();
+  if (parentWidget())
+    dlg->move(parentWidget()->mapToGlobal(QPoint(parentWidget()->width() - dlg->width() - 24, 70)));
   dlg->exec();
   dlg->deleteLater();
+}
+
+void Schedule_View::setManagerDraftStatus(int changeCount)
+{
+  if (!lblManagerDraftStatus) return;
+  if (changeCount > 0)
+  {
+    lblManagerDraftStatus->setText(QString("%1 thay đổi chưa lưu").arg(changeCount));
+    lblManagerDraftStatus->setStyleSheet("background:#FEF3C7;color:#92400E;border-radius:8px;padding:8px 12px;font-weight:600;");
+  }
+  else
+  {
+    lblManagerDraftStatus->setText("Đã xác nhận");
+    lblManagerDraftStatus->setStyleSheet("background:#ECFDF5;color:#047857;border-radius:8px;padding:8px 12px;font-weight:600;");
+  }
+}
+
+void Schedule_View::updateManagerSummary(int totalShifts, int shortageShifts,
+                                          int pendingRequests, int draftChanges)
+{
+  if (lblManagerSummary)
+    lblManagerSummary->setText(QString("Tổng số ca: %1   |   Ca thiếu nhân sự: %2   |   Yêu cầu chờ xử lý: %3")
+                                   .arg(totalShifts).arg(shortageShifts).arg(pendingRequests));
+  setManagerDraftStatus(draftChanges);
 }
 
 void Schedule_View::updateManagerMissingShifts(
@@ -1708,7 +1912,7 @@ void Schedule_View::updateManagerMissingShifts(
   for (int i = 0; i < missingList.size(); ++i)
   {
     const MissingShiftInfo &info = missingList[i];
-    int deficit = info.assigned - info.required; // negative number
+    int deficit = qMax(0, info.required - info.assigned);
 
     auto makeItem = [](const QString &text) -> QTableWidgetItem *
     {

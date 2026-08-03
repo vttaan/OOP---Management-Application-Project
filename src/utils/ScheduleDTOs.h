@@ -13,7 +13,8 @@ struct PendingShiftInfo {
     int     shiftId = 0;        // DB rowid — used to approve / decline
     int     employeeId = 0;
     QString employeeName;
-    QString role;           // "Staff" | "Manager"
+    QString role;           // Manager/Admin or a concrete staff role from PROFILES
+    QDate   date;
     QTime   startTime;
     QTime   endTime;
     short   status = 0;         // 0 = pending, 1 = approved, -1 = declined
@@ -24,6 +25,38 @@ struct BlockCounts {
     int pending = 0;
     int accepted = 0;
     int declined = 0;
+    int required = 0;
+    int cancelled = 0;
+};
+
+enum class ManagerScheduleChangeType {
+    Approve,
+    Decline,
+    Add,
+    Cancel
+};
+
+// A manager edit is kept in memory until the weekly confirmation action.
+// This keeps the grid reversible and lets the model commit all edits atomically.
+struct ManagerScheduleChange {
+    ManagerScheduleChangeType type = ManagerScheduleChangeType::Add;
+    int shiftId = 0;
+    int employeeId = 0;
+    QString employeeName;
+    QString role;
+    QDate date;
+    QTime startTime;
+    QTime endTime;
+    QString reason;
+};
+
+struct EligibleEmployeeInfo {
+    int employeeId = 0;
+    QString employeeName;
+    QString role;
+    bool isFixedSalary = false;
+    bool eligible = false;
+    QString reason;
 };
 
 // Controller-produced time range used to synchronize an employee's editable
@@ -36,12 +69,22 @@ struct StaffShiftRegistration {
 
 enum class EmployeeScheduleLayoutMode {
     PartTimeHourly,
-    FullTimeMock
+    FullTimeSchedule
 };
 
+inline EmployeeScheduleLayoutMode scheduleLayoutModeForPayType(
+    bool isFixedSalary)
+{
+    return isFixedSalary
+        ? EmployeeScheduleLayoutMode::FullTimeSchedule
+        : EmployeeScheduleLayoutMode::PartTimeHourly;
+}
+
 enum class FullTimeShiftStatus {
-    Unregistered,
-    Registered,
+    Available,
+    Pending,
+    Approved,
+    Declined,
     StaffShortage
 };
 

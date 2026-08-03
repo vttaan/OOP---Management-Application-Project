@@ -37,8 +37,9 @@ public:
     // Populate the interactive grid with date-labelled column headers
     void setUpInteractiveGrid(QDate weekStart, int openTime, int closeTime);
 
-    // Populate the full-time 3-shift registration grid from controller-owned state.
-    void setUpFullTimeGrid(QDate weekStart, const FullTimeScheduleGrid &statuses);
+    // Populate the database-backed full-time 3-shift registration grid.
+    void setUpFullTimeScheduleGrid(QDate weekStart,
+                                   const FullTimeScheduleGrid &statuses);
     void showFullTimeSaveFeedback(const QString &message);
 
     // Update column headers of the summary (manager) table
@@ -62,11 +63,17 @@ public:
 
     // Missing staff table (manager only, shown below the grid in Xep lich page)
     void updateManagerMissingShifts(const QList<MissingShiftInfo>& missingList);
+    void setManagerDraftStatus(int changeCount);
+    void updateManagerSummary(int totalShifts, int shortageShifts,
+                              int pendingRequests, int draftChanges);
 
     // Opens a popup dialog showing the requests for a given shift block.
     // The dialog emits approve/decline signals back to the controller.
     void showShiftRequestsDialog(const QList<PendingShiftInfo>& requests,
-                                 const QString& shiftLabel);
+                                 const QString& shiftLabel,
+                                 const QList<EligibleEmployeeInfo>& eligibleEmployees = {},
+                                 QDate shiftDate = {}, QTime blockStart = {},
+                                 QTime blockEnd = {});
 
 private:
     Ui::Schedule_View *ui;
@@ -88,6 +95,8 @@ private:
     QLabel*         lblMissingStaffHeader;
     QLabel*         lblMissingCount;
     QTableWidget*   tableMissingStaff;
+    QLabel*         lblManagerDraftStatus;
+    QLabel*         lblManagerSummary;
 
     QWidget*        fullTimeInfoWidget;
     QLabel*         lblFullTimeWeekRange;
@@ -120,8 +129,8 @@ signals:
     // Outer QList index = day (0-6), inner QList = selected hour indices (row indices)
     void requestSaveGridShifts(const QList<QList<int>>& selectedHoursByDay);
 
-    // Full-time mock registration: selected shift-row indices grouped by day.
-    void requestSaveFullTimeShifts(const QList<QList<int>>& selectedShiftsByDay);
+    // Full-time registration: selected pending shift rows grouped by day.
+    void requestSaveFullTimeSchedule(const QList<QList<int>>& selectedShiftsByDay);
 
     // switch tab
     void profileClicked();
@@ -132,8 +141,12 @@ signals:
     void shiftBlockClicked(int col, int row);
 
     // Fired from the popup dialog
-    void requestApproveShift(int shiftId);
-    void requestDeclineShift(int shiftId);
+    void requestApproveShift(PendingShiftInfo request);
+    void requestDeclineShift(PendingShiftInfo request);
+    void requestAddEmployee(int employeeId, QDate date, QTime startTime,
+                            QTime endTime, const QString &reason);
+    void requestRemoveAssignedShift(int shiftId, int employeeId,
+                                    const QString &reason);
 
 private slots:
     void buttonSaveClicked();
