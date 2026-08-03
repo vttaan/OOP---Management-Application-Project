@@ -54,6 +54,9 @@ public:
     // removals are retained as status -2 (cancelled), never hard-deleted.
     bool applyManagerScheduleChanges(const QList<ManagerScheduleChange> &changes,
                                      QStringList *errors = nullptr);
+    QStringList validateManagerScheduleChanges(
+        const QList<ManagerScheduleChange> &changes) const;
+    AutoSchedulePreview previewGeneratedSchedule(QDate weekStart);
 
     // Raw shifts for 15x7 rendering
     QMap<int, QList<Shift*>> getRawStaffShifts(short int id, QDate monday, int status);

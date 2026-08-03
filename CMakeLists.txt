@@ -114,6 +114,8 @@ set(PROJECT_SOURCES
         src/view/EditEmployee_Dialog.cpp
         src/view/EmployeeDetails_Dialog.cpp
         src/view/Schedule_View.cpp
+        src/view/Schedule_View_Manager.cpp
+        src/view/Schedule_View_Staff.cpp
         src/view/sidebar_widget.cpp
         src/view/Salary_View.cpp
         # UI
@@ -167,8 +169,11 @@ qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core Qt6::Widgets Qt6::Sql Qt6::Charts)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_precompile_headers(${PROJECT_NAME} PRIVATE src/global.h)
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/database 
-     DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+option(OPTIMUS_COPY_DATABASE "Copy the runtime SQLite database into the build tree" ON)
+if(OPTIMUS_COPY_DATABASE)
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/database
+         DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+endif()
 
 if(BUILD_TESTING)
     find_package(Qt6 REQUIRED COMPONENTS Test)

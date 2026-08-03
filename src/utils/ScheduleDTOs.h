@@ -50,6 +50,15 @@ struct ManagerScheduleChange {
     QString reason;
 };
 
+// Dry-run result from the optimizer. Proposed changes stay in memory until the
+// manager accepts the preview and later publishes the weekly draft.
+struct AutoSchedulePreview {
+    QList<ManagerScheduleChange> changes;
+    QStringList warnings;
+    int approvedCount = 0;
+    int declinedCount = 0;
+};
+
 struct EligibleEmployeeInfo {
     int employeeId = 0;
     QString employeeName;

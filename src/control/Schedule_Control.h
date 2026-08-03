@@ -19,6 +19,7 @@ private:
 
     // Tracks the week being shown in the assign grid
     QDate currentAssignMonday;
+    bool managerWeekInitialized = false;
 
     // Employee registration mode and the current database-backed full-time grid.
     EmployeeScheduleLayoutMode employeeScheduleLayoutMode =
@@ -26,6 +27,8 @@ private:
     FullTimeScheduleGrid fullTimeScheduleStatuses;
     QDate currentEmployeeRegistrationWeekStart;
     QList<ManagerScheduleChange> managerDraftChanges;
+    int selectedManagerDay = -1;
+    int selectedManagerShift = -1;
 
     // Helper: convert "Monday" display string -> QDate of that day this week
     QDate dayStringToDate(const QString &day) const;
@@ -74,6 +77,11 @@ private slots:
 
     // Fired when the manager clicks "Xac Nhan"
     void onConfirmRequested();
+    void onPreviousManagerWeek();
+    void onNextManagerWeek();
+    void onCurrentManagerWeek();
+    void onUndoManagerDraft();
+    void onClearManagerDraft();
 
 
 signals:

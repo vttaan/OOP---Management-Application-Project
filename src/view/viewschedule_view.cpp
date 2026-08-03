@@ -36,6 +36,30 @@ void ViewSchedule_View::setUpUI()
         "QPushButton:hover { background-color: #E5E7EB; }");
     ui->btnCurrentWeek->setStyleSheet(ScheduleStyle::BtnHighlight);
 
+    managerViewMode = new QComboBox(ui->scheduleHeader);
+    managerViewMode->addItems({"Tổng quan", "Chi tiết"});
+    managerRoleFilter = new QComboBox(ui->scheduleHeader);
+    managerRoleFilter->addItems(
+        {"Tất cả vai trò", "Quản lý", "Thu ngân", "Nhân viên sảnh", "Phụ bếp"});
+    const QString managerFilterStyle =
+        "QComboBox { background:#FFFFFF;border:1px solid #CBD5E1;border-radius:6px;"
+        "padding:6px 9px;color:#334155;min-width:105px; }";
+    managerViewMode->setStyleSheet(managerFilterStyle);
+    managerRoleFilter->setStyleSheet(managerFilterStyle);
+    managerViewMode->setVisible(false);
+    managerRoleFilter->setVisible(false);
+    ui->headerLayout->insertWidget(ui->headerLayout->count() - 1, managerViewMode);
+    ui->headerLayout->insertWidget(ui->headerLayout->count() - 1, managerRoleFilter);
+    connect(managerViewMode, qOverload<int>(&QComboBox::currentIndexChanged), this,
+            [this](int) { if (!m_managerGrid.isEmpty()) updateManagerTable(m_managerGrid); });
+    connect(managerRoleFilter, qOverload<int>(&QComboBox::currentIndexChanged), this,
+            [this](int) {
+                if (!m_managerGrid.isEmpty()) updateManagerTable(m_managerGrid);
+                int row = ui->tableSchedule->currentRow();
+                int col = ui->tableSchedule->currentColumn();
+                if (row >= 0 && col >= 0) emit shiftClicked(row, col);
+            });
+
     // ── Pending table (staff mode — 1 row x 7 cols) ──
     ui->tablePending->setRowCount(1);
     ui->tablePending->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
@@ -101,33 +125,65 @@ void ViewSchedule_View::setUpUI()
     detailsWidget->setStyleSheet(
         "QFrame#detailsCard { "
         "background-color: #FFFFFF; "
-        "border: 1px solid #E5E7EB; "
+        "border: 1px solid #E2E8F0; "
         "border-radius: 14px; "
-        "}");
+        "}"
+        "QLabel { background: transparent; border: none; }");
 
     QVBoxLayout *detailsLayout = new QVBoxLayout(detailsWidget);
-    detailsLayout->setContentsMargins(16, 16, 16, 16);
+    detailsLayout->setContentsMargins(20, 16, 20, 18);
+    detailsLayout->setSpacing(12);
 
-    lblShiftDetailTitle = new QLabel("THÔNG TIN NHÂN VIÊN TRONG CA LÀM", detailsWidget);
-    lblShiftDetailTitle->setStyleSheet("font-size: 14px; font-weight: bold; color: #1F2937; padding: 6px 10px; background-color: #E5E7EB; border-radius: 6px;");
+    QHBoxLayout *detailHeader = new QHBoxLayout();
+    detailHeader->setSpacing(12);
+    QVBoxLayout *detailHeading = new QVBoxLayout();
+    detailHeading->setSpacing(2);
+    lblShiftDetailTitle = new QLabel("Thông tin nhân viên", detailsWidget);
+    lblShiftDetailTitle->setStyleSheet(
+        "font-size:16px;font-weight:800;color:#0F172A;");
+    lblShiftDetailSubtitle = new QLabel(
+        "Chọn một ca để xem danh sách nhân sự đã được xếp.", detailsWidget);
+    lblShiftDetailSubtitle->setStyleSheet(
+        "font-size:11px;color:#64748B;");
+    detailHeading->addWidget(lblShiftDetailTitle);
+    detailHeading->addWidget(lblShiftDetailSubtitle);
+    lblShiftDetailCount = new QLabel("0 nhân viên", detailsWidget);
+    lblShiftDetailCount->setAlignment(Qt::AlignCenter);
+    lblShiftDetailCount->setMinimumWidth(92);
+    lblShiftDetailCount->setStyleSheet(
+        "background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;"
+        "border-radius:13px;padding:5px 10px;font-size:11px;font-weight:700;");
+    detailHeader->addLayout(detailHeading, 1);
+    detailHeader->addWidget(lblShiftDetailCount, 0, Qt::AlignVCenter);
 
-    tableShiftDetails = new QTableWidget(this);
-    tableShiftDetails->setColumnCount(6);
-    tableShiftDetails->setHorizontalHeaderLabels({"STT", "ID", "TÊN", "VAI TRÒ", "SĐT", "GIỜ LÀM"});
-    tableShiftDetails->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    tableShiftDetails->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-    tableShiftDetails->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+    tableShiftDetails = new QTableWidget(detailsWidget);
+    tableShiftDetails->setColumnCount(4);
+    tableShiftDetails->setHorizontalHeaderLabels(
+        {"NHÂN VIÊN", "VAI TRÒ", "LIÊN HỆ", "GIỜ LÀM"});
+    tableShiftDetails->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    tableShiftDetails->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    tableShiftDetails->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
+    tableShiftDetails->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
+    tableShiftDetails->horizontalHeader()->setMinimumSectionSize(120);
+    tableShiftDetails->horizontalHeader()->setFixedHeight(38);
+    tableShiftDetails->verticalHeader()->setVisible(false);
+    tableShiftDetails->verticalHeader()->setDefaultSectionSize(54);
     tableShiftDetails->setSelectionMode(QAbstractItemView::NoSelection);
     tableShiftDetails->setEditTriggers(QAbstractItemView::NoEditTriggers);
     tableShiftDetails->setFocusPolicy(Qt::NoFocus);
+    tableShiftDetails->setShowGrid(false);
+    tableShiftDetails->setWordWrap(false);
     tableShiftDetails->setStyleSheet(
-        "QTableWidget { background-color: transparent; border: none; }"
-        "QHeaderView::section { background-color: #2F80ED; color: white; font-weight: bold; padding: 6px; border: none; }"
-        "QTableWidget::item { padding: 6px; color: #1F2937; }"
-        "QTableWidget::item:alternate { background-color: #EFF6FF; }");
+        "QTableWidget { background:#FFFFFF;border:1px solid #E2E8F0;"
+        "border-radius:10px;color:#334155;gridline-color:transparent; }"
+        "QHeaderView::section { background:#F8FAFC;color:#64748B;font-size:10px;"
+        "font-weight:700;padding:8px 12px;border:none;border-bottom:1px solid #E2E8F0; }"
+        "QTableWidget::item { padding:8px 12px;border:none;"
+        "border-bottom:1px solid #F1F5F9;color:#334155; }"
+        "QTableWidget::item:alternate { background:#F8FAFC; }");
     tableShiftDetails->setAlternatingRowColors(true);
 
-    detailsLayout->addWidget(lblShiftDetailTitle);
+    detailsLayout->addLayout(detailHeader);
     detailsLayout->addWidget(tableShiftDetails);
 
     ui->verticalLayout->addWidget(detailsWidget, 3);
@@ -249,6 +305,17 @@ void ViewSchedule_View::updatePendingTable(const QMap<int, QList<Shift*>> &weekl
 // ─── Manager view: render employee-card widgets inside each shift cell ────────
 void ViewSchedule_View::updateManagerTable(const QMap<int, QMap<int, ShiftBlock *>> &gridData)
 {
+    m_managerGrid = gridData;
+    QString selectedRole;
+    switch (managerRoleFilter ? managerRoleFilter->currentIndex() : 0)
+    {
+    case 1: selectedRole = "Manager"; break;
+    case 2: selectedRole = "Cashier"; break;
+    case 3: selectedRole = "HallStaff"; break;
+    case 4: selectedRole = "KitchenAssistant"; break;
+    default: break;
+    }
+    const bool overviewMode = !managerViewMode || managerViewMode->currentIndex() == 0;
     ui->tableSchedule->clearContents();
     for (int row = 0; row < 3; ++row)
         for (int col = 0; col < 7; ++col)
@@ -268,7 +335,16 @@ void ViewSchedule_View::updateManagerTable(const QMap<int, QMap<int, ShiftBlock 
             if (!block)
                 continue;
 
-            int count = block->getStaffCount();
+            QList<User *> visibleEmployees;
+            for (User *employee : block->getEmployees())
+            {
+                QString role = employee->getRole();
+                bool matches = selectedRole.isEmpty() ||
+                    role.compare(selectedRole, Qt::CaseInsensitive) == 0 ||
+                    (selectedRole == "Manager" && role.compare("Manage", Qt::CaseInsensitive) == 0);
+                if (matches) visibleEmployees.append(employee);
+            }
+            int count = visibleEmployees.size();
 
             // Build the entire cell as Rich Text HTML — one QLabel per cell instead
             // of a full widget tree, which is much faster for Qt to create and paint.
@@ -289,39 +365,47 @@ void ViewSchedule_View::updateManagerTable(const QMap<int, QMap<int, ShiftBlock 
                 cellBg          = "#F0FDF4";
             }
 
-            int minStaff = 0; //Config::getMinStaffPerShift();
             QString countText;
-            if (count == 0) {
-                countText = QString("Chưa có NV (Thiếu %1)").arg(minStaff);
-            } else if (count < minStaff) {
-                countText = QString("%1 NV (Thiếu %2)").arg(count).arg(minStaff - count);
-            } else {
-                countText = QString("Đủ %1 NV").arg(count);
-            }
+            if (count == 0)
+                countText = selectedRole.isEmpty() ? "Chưa có nhân viên"
+                                                   : "Không có vai trò này";
+            else
+                countText = QString("%1 nhân viên").arg(count);
 
             QString html = QString(
-                "<div style='background-color:%1;border-radius:6px;padding:4px;'>"
-                "<div style='color:#6B7280;font-size:9px;font-style:italic;'>Quan ly: ---</div>"
+                "<div style='background-color:%1;border-radius:6px;padding:5px;'>"
                 "<div style='%2;border-radius:4px;padding:2px 4px;"
                 "font-weight:bold;font-size:11px;text-align:center;margin:2px 0;'>%3</div>")
                 .arg(cellBg, countBadgeStyle, countText);
 
-            for (User *u : block->getEmployees())
+            if (overviewMode)
             {
-                QString role = u->getRole();
-                QString cardStyle = (role == "Manager" || role == "Manage")
-                    ? "background-color:#EDE9FE;color:#5B21B6"
-                    : "background-color:#DBEAFE;color:#1D4ED8";
-
-                QString name = u->getName();
-                if (name.length() > 14)
-                    name = name.left(12) + "…";
-
-                html += QString(
-                    "<div style='%1;border-radius:4px;padding:2px 4px;"
-                    "font-size:11px;font-weight:bold;margin-top:2px;'>"
-                    "%2<br><span style='font-size:9px;font-weight:normal;'>%3</span></div>")
-                    .arg(cardStyle, name, role.toUpper());
+                QMap<QString, int> roleCounts;
+                for (User *employee : visibleEmployees)
+                    roleCounts[employee->getRole()]++;
+                for (auto it = roleCounts.constBegin(); it != roleCounts.constEnd(); ++it)
+                    html += QString(
+                        "<div style='background:#FFFFFF;color:#334155;border:1px solid #E2E8F0;"
+                        "border-radius:4px;padding:3px 5px;font-size:10px;margin-top:3px;'>"
+                        "%1 <b>%2</b></div>").arg(it.key()).arg(it.value());
+            }
+            else
+            {
+                for (User *u : visibleEmployees)
+                {
+                    QString role = u->getRole();
+                    QString cardStyle = (role == "Manager" || role == "Manage")
+                        ? "background-color:#EDE9FE;color:#5B21B6"
+                        : "background-color:#DBEAFE;color:#1D4ED8";
+                    QString name = u->getName();
+                    if (name.length() > 14)
+                        name = name.left(12) + "…";
+                    html += QString(
+                        "<div style='%1;border-radius:4px;padding:2px 4px;"
+                        "font-size:11px;font-weight:bold;margin-top:2px;'>"
+                        "%2<br><span style='font-size:9px;font-weight:normal;'>%3</span></div>")
+                        .arg(cardStyle, name, role.toUpper());
+                }
             }
             html += "</div>";
 
@@ -393,59 +477,118 @@ void ViewSchedule_View::highlightToday(int currentDayIndex)
 
 void ViewSchedule_View::updateShiftDetails(const QList<User *> &employees, const QString &timeLabel)
 {
-    tableShiftDetails->setRowCount(employees.size());
+    QString selectedRole;
+    switch (managerRoleFilter ? managerRoleFilter->currentIndex() : 0)
+    {
+    case 1: selectedRole = "Manager"; break;
+    case 2: selectedRole = "Cashier"; break;
+    case 3: selectedRole = "HallStaff"; break;
+    case 4: selectedRole = "KitchenAssistant"; break;
+    default: break;
+    }
+    QList<User *> visibleEmployees;
+    for (User *employee : employees)
+    {
+        QString role = employee->getRole();
+        if (selectedRole.isEmpty() || role.compare(selectedRole, Qt::CaseInsensitive) == 0 ||
+            (selectedRole == "Manager" && role.compare("Manage", Qt::CaseInsensitive) == 0))
+            visibleEmployees.append(employee);
+    }
+    tableShiftDetails->clearSpans();
+    tableShiftDetails->setRowCount(qMax(1, visibleEmployees.size()));
     tableShiftDetails->clearContents();
 
     if (!timeLabel.isEmpty())
     {
-        lblShiftDetailTitle->setText(QString("THÔNG TIN NHÂN VIÊN - %1").arg(timeLabel.toUpper()));
+        lblShiftDetailSubtitle->setText(
+            QString("Ca làm %1 · Danh sách nhân sự đã công bố").arg(timeLabel));
     }
     else
     {
-        lblShiftDetailTitle->setText("THÔNG TIN NHÂN VIÊN TRONG CA LÀM");
+        lblShiftDetailSubtitle->setText(
+            "Chọn một ca để xem danh sách nhân sự đã được xếp.");
+    }
+    lblShiftDetailCount->setText(QString("%1 nhân viên").arg(visibleEmployees.size()));
+
+    if (visibleEmployees.isEmpty())
+    {
+        tableShiftDetails->setSpan(0, 0, 1, tableShiftDetails->columnCount());
+        QTableWidgetItem *emptyItem = new QTableWidgetItem(
+            timeLabel.isEmpty()
+                ? "Chưa chọn ca làm"
+                : "Không có nhân viên phù hợp với bộ lọc hiện tại");
+        emptyItem->setTextAlignment(Qt::AlignCenter);
+        emptyItem->setForeground(QBrush(QColor("#94A3B8")));
+        tableShiftDetails->setItem(0, 0, emptyItem);
+        tableShiftDetails->setRowHeight(0, 64);
+        return;
     }
 
-    for (int i = 0; i < employees.size(); ++i)
+    for (int i = 0; i < visibleEmployees.size(); ++i)
     {
-        User *emp = employees[i];
+        User *emp = visibleEmployees[i];
 
-        QString roleDisplay = (emp->getRole() == "Staff") ? "Nhân viên" : "Quản lý";
+        QString roleDisplay = emp->getRole();
+        if (roleDisplay == "Manager" || roleDisplay == "Manage") roleDisplay = "Quản lý";
+        else if (roleDisplay == "Cashier") roleDisplay = "Thu ngân";
+        else if (roleDisplay == "HallStaff") roleDisplay = "Nhân viên sảnh";
+        else if (roleDisplay == "KitchenAssistant") roleDisplay = "Phụ bếp";
 
-        auto makeItem = [](const QString &text) -> QTableWidgetItem *
+        auto makeItem = [](const QString &text, Qt::Alignment alignment = Qt::AlignVCenter | Qt::AlignLeft) -> QTableWidgetItem *
         {
             QTableWidgetItem *item = new QTableWidgetItem(text);
-            item->setTextAlignment(Qt::AlignCenter);
+            item->setTextAlignment(alignment);
             item->setForeground(QBrush(QColor(0x1F, 0x29, 0x37)));
-            QFont f = item->font();
-            f.setBold(true);
-            item->setFont(f);
             return item;
         };
 
-        tableShiftDetails->setItem(i, 0, makeItem(QString::number(i + 1)));
-        tableShiftDetails->setItem(i, 1, makeItem(QString::number(emp->getIdEmployee())));
-        tableShiftDetails->setItem(i, 2, makeItem(emp->getName()));
+        QTableWidgetItem *employeeItem = makeItem(emp->getName());
+        employeeItem->setData(Qt::UserRole, emp->getIdEmployee());
+        QFont employeeFont = employeeItem->font();
+        employeeFont.setBold(true);
+        employeeItem->setFont(employeeFont);
+        employeeItem->setToolTip(QString("Mã nhân viên: %1").arg(emp->getIdEmployee()));
+        tableShiftDetails->setItem(i, 0, employeeItem);
 
-        QTableWidgetItem *roleItem = makeItem(roleDisplay);
-        roleItem->setForeground(QBrush(
-            (emp->getRole() == "Staff") ? QColor(0x1D, 0x4E, 0xD8) : QColor(0x5B, 0x21, 0xB6)));
-        tableShiftDetails->setItem(i, 3, roleItem);
-        tableShiftDetails->setItem(i, 4, makeItem(emp->getPhoneNum()));
-        // Column 5 (GIO LAM): filled by updateShiftDetailsWithTimes
-        tableShiftDetails->setItem(i, 5, makeItem("---"));
+        QWidget *roleCell = new QWidget(tableShiftDetails);
+        roleCell->setStyleSheet("background:transparent;");
+        QHBoxLayout *roleLayout = new QHBoxLayout(roleCell);
+        roleLayout->setContentsMargins(10, 7, 10, 7);
+        QLabel *roleBadge = new QLabel(roleDisplay, roleCell);
+        const bool isManager = emp->getRole() == "Manager" || emp->getRole() == "Manage";
+        roleBadge->setAlignment(Qt::AlignCenter);
+        roleBadge->setStyleSheet(
+            isManager
+                ? "background:#F3E8FF;color:#6D28D9;border-radius:11px;padding:4px 9px;font-weight:700;"
+                : "background:#DBEAFE;color:#1D4ED8;border-radius:11px;padding:4px 9px;font-weight:700;");
+        roleLayout->addWidget(roleBadge, 0, Qt::AlignLeft | Qt::AlignVCenter);
+        roleLayout->addStretch();
+        tableShiftDetails->setCellWidget(i, 1, roleCell);
+
+        tableShiftDetails->setItem(
+            i, 2, makeItem(emp->getPhoneNum(), Qt::AlignCenter));
+        QTableWidgetItem *timeItem = makeItem(
+            timeLabel.isEmpty() ? "Chưa cập nhật" : timeLabel, Qt::AlignCenter);
+        timeItem->setForeground(QBrush(QColor("#1D4ED8")));
+        QFont timeFont = timeItem->font();
+        timeFont.setBold(true);
+        timeItem->setFont(timeFont);
+        tableShiftDetails->setItem(i, 3, timeItem);
+        tableShiftDetails->setRowHeight(i, 54);
     }
 }
 
 void ViewSchedule_View::updateShiftDetails(const QList<User *> &employees, const QString &timeLabel,
                                            const QMap<int, QString> &employeeTimes)
 {
-    // Populate rows the same way then overwrite column 5 with actual times
+    // Populate rows the same way then overwrite the working-time column.
     updateShiftDetails(employees, timeLabel);
 
-    for (int i = 0; i < employees.size(); ++i)
+    for (int i = 0; i < tableShiftDetails->rowCount(); ++i)
     {
-        User *emp = employees[i];
-        int empId = emp->getIdEmployee();
+        QTableWidgetItem *employeeItem = tableShiftDetails->item(i, 0);
+        if (!employeeItem) continue;
+        int empId = employeeItem->data(Qt::UserRole).toInt();
         if (employeeTimes.contains(empId))
         {
             QTableWidgetItem *timeItem = new QTableWidgetItem(employeeTimes[empId]);
@@ -454,7 +597,7 @@ void ViewSchedule_View::updateShiftDetails(const QList<User *> &employees, const
             QFont f = timeItem->font();
             f.setBold(true);
             timeItem->setFont(f);
-            tableShiftDetails->setItem(i, 5, timeItem);
+            tableShiftDetails->setItem(i, 3, timeItem);
         }
     }
 }
@@ -469,6 +612,12 @@ void ViewSchedule_View::setManagerFeaturesVisible(bool visible)
     // Hide pending section for managers — it is staff-only
     if (ui->pendingFrame)
         ui->pendingFrame->setVisible(!visible);
+    if (managerViewMode)
+        managerViewMode->setVisible(visible);
+    if (managerRoleFilter)
+        managerRoleFilter->setVisible(visible);
+    ui->scheduleTitle->setText(visible ? "Lịch làm việc toàn bộ nhân sự"
+                                      : "Lịch làm việc cá nhân");
 
     // Only re-polish styles if the mode is actually changing — this is expensive
     // and causes a visible stutter when triggered on every tab navigation.

@@ -521,11 +521,11 @@ Schedule_Model::fetchAllEmployeeInfos(const QDate &weekStart)
     return employeeMinutesWorked;
 }
 
-QStringList Schedule_Model::generateSchedule()
+AutoSchedulePreview Schedule_Model::previewGeneratedSchedule(QDate weekStart)
 {
-    QDate today = QDate::currentDate();
-    // Thuật toán sẽ luôn chạy cho tuần SAU (Next Week)
-    QDate weekStart = Config::getStartOfCurrentWeek(today).addDays(7);
+    AutoSchedulePreview preview;
+    if (!weekStart.isValid())
+        weekStart = Config::getStartOfCurrentWeek(QDate::currentDate()).addDays(7);
     QDate weekEnd = weekStart.addDays(6);
 
     QVector<Shift *> pendingShifts = fetchPendingShifts(weekStart, weekEnd);
@@ -533,35 +533,50 @@ QStringList Schedule_Model::generateSchedule()
 
     Optimizer opt(pendingShifts, employeeMinutes);
     opt.solve();
+    preview.warnings = opt.getWarnings();
 
-    QStringList warnings = opt.getWarnings();
+    QHash<int, User *> usersById;
+    for (User *user : currentWeeklyUsers)
+        if (user) usersById.insert(user->getIdEmployee(), user);
 
-    if (opt.isFeasible() && !pendingShifts.isEmpty())
+    for (Shift *shift : pendingShifts)
     {
-        QSqlDatabase db = Database::getInstance()->getDbConnect();
-        db.transaction();
-        QSqlQuery q(db);
-        q.prepare("UPDATE SHIFT SET status = :status WHERE rowid = :rowid");
-        for (Shift *s : pendingShifts)
+        if (!shift || shift->getStatus() == 0) continue;
+        ManagerScheduleChange change;
+        change.type = shift->getStatus() == 1
+            ? ManagerScheduleChangeType::Approve
+            : ManagerScheduleChangeType::Decline;
+        change.shiftId = shift->getShiftId();
+        change.employeeId = shift->getEmployeeID();
+        change.date = shift->getDate();
+        change.startTime = shift->getStartTime();
+        change.endTime = shift->getEndTime();
+        change.reason = "Đề xuất bởi xếp lịch tự động";
+        if (User *user = usersById.value(change.employeeId, nullptr))
         {
-            // Chỉ cập nhật nếu status đã được thay đổi (thuật toán xét duyệt)
-            if (s->getStatus() != 0)
-            {
-                q.bindValue(":status", s->getStatus());
-                q.bindValue(":rowid", s->getShiftId());
-                if (!q.exec())
-                    warnings << QString("[DB Error] rowid=%1: %2")
-                                    .arg(s->getShiftId())
-                                    .arg(q.lastError().text());
-            }
+            change.employeeName = user->getName();
+            change.role = user->getRole();
         }
-        db.commit();
+        preview.changes.append(change);
+        if (change.type == ManagerScheduleChangeType::Approve)
+            ++preview.approvedCount;
+        else
+            ++preview.declinedCount;
     }
 
     qDeleteAll(pendingShifts);
-    pendingShifts.clear();
+    return preview;
+}
 
-    return warnings;
+QStringList Schedule_Model::generateSchedule()
+{
+    AutoSchedulePreview preview = previewGeneratedSchedule(
+        Config::getStartOfCurrentWeek(QDate::currentDate()).addDays(7));
+    QStringList errors;
+    if (!preview.changes.isEmpty() &&
+        !applyManagerScheduleChanges(preview.changes, &errors))
+        preview.warnings.append(errors);
+    return preview.warnings;
 }
 
 bool Schedule_Model::saveDraftShiftsToDatabase()
@@ -881,11 +896,102 @@ QList<EligibleEmployeeInfo> Schedule_Model::getEligibleEmployees(
     return result;
 }
 
+QStringList Schedule_Model::validateManagerScheduleChanges(
+    const QList<ManagerScheduleChange> &changes) const
+{
+    QStringList errors;
+    QSet<int> touchedShiftIds;
+    QList<ManagerScheduleChange> draftAdds;
+    QSqlDatabase db = Database::getInstance()->getDbConnect();
+
+    for (const ManagerScheduleChange &change : changes)
+    {
+        const QString employeeLabel = change.employeeName.isEmpty()
+            ? QString("ID %1").arg(change.employeeId) : change.employeeName;
+        if (change.employeeId <= 0)
+        {
+            errors << "Có thay đổi chứa nhân viên không hợp lệ.";
+            continue;
+        }
+
+        if (change.type == ManagerScheduleChangeType::Add)
+        {
+            if (!change.date.isValid() || !change.startTime.isValid() ||
+                !change.endTime.isValid() || change.startTime >= change.endTime)
+            {
+                errors << QString("%1: ngày hoặc khoảng giờ thêm vào không hợp lệ.")
+                              .arg(employeeLabel);
+                continue;
+            }
+
+            QSqlQuery overlap(db);
+            overlap.prepare(
+                "SELECT 1 FROM SHIFT WHERE idEmployee = :id AND workDate = :date "
+                "AND status IN (0,1) AND startTime < :end AND endTime > :start LIMIT 1");
+            overlap.bindValue(":id", change.employeeId);
+            overlap.bindValue(":date", change.date);
+            overlap.bindValue(":start", change.startTime);
+            overlap.bindValue(":end", change.endTime);
+            if (!overlap.exec())
+                errors << overlap.lastError().text();
+            else if (overlap.next())
+                errors << QString("%1 đã có ca trùng ngày %2.")
+                              .arg(employeeLabel, change.date.toString("dd/MM/yyyy"));
+
+            for (const ManagerScheduleChange &other : draftAdds)
+                if (other.employeeId == change.employeeId && other.date == change.date &&
+                    other.startTime < change.endTime && other.endTime > change.startTime)
+                    errors << QString("%1 có hai thay đổi nháp bị trùng ngày %2.")
+                                  .arg(employeeLabel, change.date.toString("dd/MM/yyyy"));
+            draftAdds.append(change);
+            continue;
+        }
+
+        if (change.shiftId <= 0)
+        {
+            errors << QString("%1: mã ca làm không hợp lệ.").arg(employeeLabel);
+            continue;
+        }
+        if (touchedShiftIds.contains(change.shiftId))
+        {
+            errors << QString("Ca %1 có nhiều hành động mâu thuẫn trong bản nháp.")
+                          .arg(change.shiftId);
+            continue;
+        }
+        touchedShiftIds.insert(change.shiftId);
+
+        QSqlQuery exists(db);
+        exists.prepare("SELECT status FROM SHIFT WHERE rowid = :id");
+        exists.bindValue(":id", change.shiftId);
+        if (!exists.exec())
+            errors << exists.lastError().text();
+        else if (!exists.next())
+            errors << QString("Ca %1 không còn tồn tại.").arg(change.shiftId);
+        else
+        {
+            int status = exists.value(0).toInt();
+            if (status != 0 && status != 1)
+                errors << QString("Ca %1 đã được xử lý bởi thay đổi khác.")
+                              .arg(change.shiftId);
+        }
+    }
+
+    errors.removeDuplicates();
+    return errors;
+}
+
 bool Schedule_Model::applyManagerScheduleChanges(
     const QList<ManagerScheduleChange> &changes, QStringList *errors)
 {
     if (changes.isEmpty())
         return true;
+
+    QStringList validationErrors = validateManagerScheduleChanges(changes);
+    if (!validationErrors.isEmpty())
+    {
+        if (errors) errors->append(validationErrors);
+        return false;
+    }
 
     QSqlDatabase db = Database::getInstance()->getDbConnect();
     if (!db.transaction())
