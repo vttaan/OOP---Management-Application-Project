@@ -40,7 +40,7 @@ public:
 
     bool addEmployee(const QString &role, const QString &avatarPath, const QString &citizenId,
                      const QString &name, const QString &dob, const QString &address,
-                     const QString &phone, const QString &gender, const int& baseSalary,
+                     const QString &phone, const QString &gender, const int& baseSalary, bool isFixedSalary,
                      const QString &username, const QString &password);
 
     long long calculateExpectedPayrollCurrentMonth();
