@@ -20,7 +20,6 @@ public:
 
     virtual bool getIsFixedSalary() const { return false; }
 
-
     virtual User* clone() const = 0;
 
 

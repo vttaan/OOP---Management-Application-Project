@@ -91,6 +91,11 @@ void AddEmployee_Dialog::setupUi()
     cmbGender->addItem("Khác");
     cmbGender->setMinimumHeight(32);
 
+    cmbIsFixedSalary = new QComboBox(scrollContent);
+    cmbIsFixedSalary->addItem("Toàn thời gian (Cố định)");
+    cmbIsFixedSalary->addItem("Bán thời gian (Theo giờ)");
+    cmbIsFixedSalary->setMinimumHeight(32);
+
     // Avatar upload section
     lblAvatarPreview = new QLabel("Chưa có ảnh", scrollContent);
     lblAvatarPreview->setObjectName("lblAvatarPreview");
@@ -150,6 +155,7 @@ void AddEmployee_Dialog::setupUi()
     form->addRow(makeLabel("Ngày sinh"),        inpDob);
     form->addRow(makeLabel("Địa chỉ"),          inpAddress);
     form->addRow(makeLabel("CCCD / CMND *"),    inpCitizenId);
+    form->addRow(makeLabel("Loại lương *"),     cmbIsFixedSalary);
     form->addRow(makeLabel("Lương(VNĐ) *"),          inpSalary);
 
     QLabel *lblAccount = new QLabel("— Thông tin tài khoản (Tự động cấp) —", scrollContent);
@@ -287,6 +293,7 @@ QString AddEmployee_Dialog::getAddress()    const { return inpAddress->text().tr
 QString AddEmployee_Dialog::getCitizenId()  const { return inpCitizenId->text().trimmed(); }
 QString AddEmployee_Dialog::getAvatarPath() const { return m_avatarPath; }
 int AddEmployee_Dialog::getSalary() const { return inpSalary->text().trimmed().toInt(); }
+bool AddEmployee_Dialog::getIsFixedSalary() const { return cmbIsFixedSalary->currentIndex() == 0; }
 
 // Auto-generated credentials — username and password from real input fields
 QString AddEmployee_Dialog::getUsername()   const { return inpUsername->text().trimmed(); }

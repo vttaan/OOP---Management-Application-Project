@@ -17,6 +17,7 @@ public:
     void setBaseSalary(double salary) override;
     void setFixedEmployee(bool isFixed) override;
     bool getIsFixedEmployee() const override { return isFixedEmployee; }
+    bool getIsFixedSalary() const override { return isFixedEmployee; }
     virtual double getAllowence() const = 0;
     void setAllowence() override = 0;
     void setAllowenceValue(double allowance) override = 0;

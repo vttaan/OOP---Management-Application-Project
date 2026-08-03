@@ -20,6 +20,7 @@ public:
     QString getCitizenId()  const;
     QString getAvatarPath() const;
     int getSalary()     const;
+    bool getIsFixedSalary() const;
     // Auto-generated (not shown in UI): username = citizenId, password = default
     QString getUsername()   const;
     QString getPassword()   const;
@@ -46,6 +47,7 @@ private:
     QLineEdit *inpSalary;
     QComboBox *cmbRole;
     QComboBox *cmbGender;
+    QComboBox *cmbIsFixedSalary;
 
     // Avatar UI
     QLabel      *lblAvatarPreview;

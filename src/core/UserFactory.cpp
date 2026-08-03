@@ -24,7 +24,7 @@ User *UserFactory::createContainsUser(QString r, short int idEmp, QString ava, Q
 }
 
 User *UserFactory::createNewUser(QString r, QString ava, QString idCit, QString n
-                                 , QString d, QString add, QString phone, QString gender, int baseSalary, double allowance)
+                                 , QString d, QString add, QString phone, QString gender, int baseSalary, bool isFixedSalary, double allowance)
 {
     QSqlQuery query;
     short int newId = (r == "Manager" || r == "Admin") ? 2000 : 1000;
@@ -60,6 +60,7 @@ User *UserFactory::createNewUser(QString r, QString ava, QString idCit, QString 
     user->setPhoneNum(phone);
     user->setGender(gender);
     user->setBaseSalary(static_cast<double>(baseSalary));
+    user->setFixedEmployee(isFixedSalary);
     user->setAllowenceValue(allowance);
 
     return user;
