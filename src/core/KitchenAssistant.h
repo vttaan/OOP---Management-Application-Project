@@ -9,8 +9,8 @@ public:
     KitchenAssistant(short int idEmp,QString ava,QString idCit,QString n,QString d,QString add,QString phone , QString gender,int baseSalary,
 bool isFixedEmployee, double allowence)
         :Staff("KitchenAssistant",idEmp,ava,idCit,n,d,add,phone,gender,baseSalary, isFixedEmployee), allowenceKitchen(allowence){}
-    double getAllowence() const override;
-    void setAllowence() override;
+    double getAllowence() const override { return allowenceKitchen; }
+    void setAllowence() override {}
     void setAllowenceValue(double allowance) override { allowenceKitchen = allowance; }
     User* clone() const override { return new KitchenAssistant(*this); }
 };

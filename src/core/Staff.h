@@ -3,7 +3,7 @@
 #include "core/User.h"
 
 class Staff: public User {
-private:
+protected:
     double hourSalary = 0;
     double hourWork = 0;
     bool isFixedEmployee;

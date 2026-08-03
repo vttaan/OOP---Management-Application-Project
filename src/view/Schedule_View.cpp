@@ -1218,7 +1218,7 @@ void Schedule_View::buttonSaveClicked()
   }
 
   // Validate minimum-days rule
-  int minDays = Config::getMinDaysPerEmp();
+  int minDays = Config::getMinimumDaysWorkPerWeek_PT();
   QSet<int> registeredDays = daysWithSelection;
   registeredDays.unite(m_partTimeApprovedDays);
   bool removingAllPending = daysWithSelection.isEmpty() &&
@@ -1397,7 +1397,7 @@ void Schedule_View::updateManagerPendingGrid(
         cellBg     = "#FFF5F5";
         countStyle = "background-color:#FEE2E2;color:#991B1B";
       }
-      else if (count < Config::getMinStaffPerShift())
+      else if (count < 0) //Config::getMinStaffForRole(this->controller))
       {
         cellBg     = "#FFFBEB";
         countStyle = "background-color:#FEF9C3;color:#854D0E";

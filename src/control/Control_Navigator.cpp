@@ -4,7 +4,6 @@
 #include "Dashboard_Control.h"
 #include "Profile_Control.h"
 #include "Employee_Control.h"
-#include "overview_control.h"
 #include "view/View_Navigator.h"
 #include "view/Dashboard_View.h"
 #include "utils/SessionManage.h"
@@ -28,6 +27,8 @@ Control_Navigator::Control_Navigator()
     this->viewScheduleController->currentSession = this->currentSession;
 
     this->salaryController = new Salary_Control(this);
+
+    this->settingController = new Setting_Control(this);
 
     this->viewWindow = new View_Navigator(this); // Initialize viewWindow AFTER controllers
     // switch tab side bar do all

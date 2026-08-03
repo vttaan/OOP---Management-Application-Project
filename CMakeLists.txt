@@ -9,7 +9,7 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 # set(CMAKE_PREFIX_PATH "C:/Qt/6.11.1/mingw_64")
-find_package(Qt6 REQUIRED COMPONENTS Core Widgets Sql)
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Sql Charts)
 
 
 # LIST OF FILE CODE
@@ -58,6 +58,7 @@ set(PROJECT_SOURCES
         src/model/Profile_Model.h
         src/model/validator.h
         src/model/Salary_Model.h
+        src/model/Dashboard_Model.h
         # CPP
         src/model/Login_Model.cpp
         src/model/Change_password.cpp
@@ -65,6 +66,7 @@ set(PROJECT_SOURCES
         src/model/Profile_Model.cpp
         src/model/validator.cpp
         src/model/Salary_Model.cpp
+        src/model/Dashboard_Model.cpp
 
     # file in Control
         # HEADER
@@ -94,6 +96,7 @@ set(PROJECT_SOURCES
         src/view/employeecard.h
         src/view/AddEmployee_Dialog.h
         src/view/EditEmployee_Dialog.h
+        src/view/EmployeeDetails_Dialog.h
         src/view/Schedule_View.h
         src/view/sidebar_widget.h
         src/view/Salary_View.h
@@ -108,6 +111,7 @@ set(PROJECT_SOURCES
         src/view/employeecard.cpp
         src/view/AddEmployee_Dialog.cpp
         src/view/EditEmployee_Dialog.cpp
+        src/view/EmployeeDetails_Dialog.cpp
         src/view/Schedule_View.cpp
         src/view/sidebar_widget.cpp
         src/view/Salary_View.cpp
@@ -139,8 +143,6 @@ qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
     src/core/Shift.cpp
     src/model/Schedule_Model.h src/model/Schedule_Model.cpp
     src/control/Schedule_Control.h src/control/Schedule_Control.cpp
-    src/view/overview_view.h src/view/overview_view.cpp src/view/overview_view.ui
-    src/control/overview_control.h src/control/overview_control.cpp
     src/model/Validator.h src/model/Validator.cpp
     src/view/viewschedule_view.h src/view/viewschedule_view.cpp src/view/viewschedule_view.ui
     src/control/viewschedule_control.h src/control/viewschedule_control.cpp
@@ -161,7 +163,7 @@ qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
     src/model/Setting_Model.h src/model/Setting_Model.cpp
     src/control/Setting_Control.h src/control/Setting_Control.cpp
     )
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core Qt6::Widgets Qt6::Sql)
+target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core Qt6::Widgets Qt6::Sql Qt6::Charts)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_precompile_headers(${PROJECT_NAME} PRIVATE src/global.h)
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/database 

@@ -6,6 +6,7 @@ Setting_View::Setting_View(QWidget *parent)
     , ui(new Ui::Setting_View)
 {
     ui->setupUi(this);
+    initUI();
     setupComboBox();
     setupSpinBox();
     setupTable();
@@ -48,7 +49,12 @@ void Setting_View::setupTable()
     ui->tableRoles->setHorizontalHeaderLabels({"Tên Vị Trí", "Tối Thiểu (Min)", "Tối Đa (Max)"});
 
     ui->tableRoles->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    ui->tableRoles->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
+    ui->tableRoles->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Fixed);
+    ui->tableRoles->setColumnWidth(1, 130);
+    ui->tableRoles->setColumnWidth(2, 130);
     ui->tableRoles->verticalHeader()->setVisible(false);
+    ui->tableRoles->verticalHeader()->setDefaultSectionSize(32);
 }
 
 void Setting_View::loadData(short openHour, short closeHour, Qt::DayOfWeek dayOpenRegis,
@@ -71,30 +77,35 @@ void Setting_View::loadData(short openHour, short closeHour, Qt::DayOfWeek dayOp
     ui->spinBoxHourMaxPartTime->setValue(maxHourPT);
 
     // load data to table roles
-    ui->tableRoles->setRowCount(0); // clear before load data
+    ui->tableRoles->setRowCount(roles.size());
     int row = 0;
 
-
     for (auto it = roles.constBegin(); it != roles.constEnd(); ++it) {
-        ui->tableRoles->insertRow(row);
-
-        // col 1: Roles READ ONLY
+        // col 1: Roles READ ONLY - bold + larger font
         QTableWidgetItem* roleItem = new QTableWidgetItem(it.key());
         roleItem->setFlags(roleItem->flags() ^ Qt::ItemIsEditable);
+        QFont roleFont = roleItem->font();
+        roleFont.setBold(true);
+        roleFont.setPointSize(11);
+        roleItem->setFont(roleFont);
         ui->tableRoles->setItem(row, 0, roleItem);
 
-        // col 2:  Min Staff
-        QSpinBox* spinMin = new QSpinBox();
+        // col 2: Min Staff - compact spinbox
+        QSpinBox* spinMin = new QSpinBox(ui->tableRoles);
         spinMin->setMinimum(0);
         spinMin->setMaximum(999);
         spinMin->setValue(it.value().first);
+        spinMin->setFixedHeight(32);
+        spinMin->setButtonSymbols(QAbstractSpinBox::UpDownArrows);
         ui->tableRoles->setCellWidget(row, 1, spinMin);
 
-        // col 3: Max Staff
-        QSpinBox* spinMax = new QSpinBox();
+        // col 3: Max Staff - compact spinbox
+        QSpinBox* spinMax = new QSpinBox(ui->tableRoles);
         spinMax->setMinimum(0);
         spinMax->setMaximum(999);
         spinMax->setValue(it.value().second);
+        spinMax->setFixedHeight(32);
+        spinMax->setButtonSymbols(QAbstractSpinBox::UpDownArrows);
         ui->tableRoles->setCellWidget(row, 2, spinMax);
 
         row++;
@@ -131,4 +142,118 @@ void Setting_View::saveClicked()
     emit requestSave(openHour, closeHour, dayOpen,
                      rolesMap, maxLeaveFT,
                      maxDaysPT, maxHourPT);
+}
+
+void Setting_View::initUI()
+{
+    this->setStyleSheet(
+        "QWidget#Setting_View {"
+        "   background-color: #F3F4F6;"
+        "}"
+        "QGroupBox {"
+        "   background-color: #FFFFFF;"
+        "   border: 1px solid #E5E7EB;"
+        "   border-radius: 12px;"
+        "   margin-top: 24px;"
+        "   font-weight: bold;"
+        "   font-size: 14px;"
+        "   color: #1F2937;"
+        "}"
+        "QGroupBox::title {"
+        "   subcontrol-origin: margin;"
+        "   subcontrol-position: top left;"
+        "   left: 16px;"
+        "   padding: 0 4px;"
+        "   color: #1a73e8;"
+        "}"
+        "QLabel {"
+        "   color: #374151;"
+        "   font-size: 13px;"
+        "   font-weight: bold;"
+        "}"
+        "QSpinBox, QComboBox, QLineEdit {"
+        "   background-color: #F9FAFB;"
+        "   border: 1px solid #D1D5DB;"
+        "   border-radius: 6px;"
+        "   padding: 4px 8px;"
+        "   min-height: 24px;"
+        "   color: #1F2937;"
+        "}"
+        "QSpinBox::up-button {"
+        "   subcontrol-origin: border;"
+        "   subcontrol-position: top right;"
+        "   width: 24px;"
+        "   background-color: #1a73e8;"
+        "   border-top-right-radius: 5px;"
+        "}"
+        "QSpinBox::down-button {"
+        "   subcontrol-origin: border;"
+        "   subcontrol-position: bottom right;"
+        "   width: 24px;"
+        "   background-color: #1a73e8;"
+        "   border-bottom-right-radius: 5px;"
+        "}"
+        "QSpinBox::up-button:hover, QSpinBox::down-button:hover {"
+        "   background-color: #1558d6;"
+        "}"
+        "QSpinBox::up-button:pressed, QSpinBox::down-button:pressed {"
+        "   background-color: #174ea6;"
+        "}"
+        "QSpinBox::up-arrow {"
+        "   image: url(:/images/up-arrow.svg);"
+        "   width: 12px; height: 12px;"
+        "}"
+        "QSpinBox::down-arrow {"
+        "   image: url(:/images/down-arrow.svg);"
+        "   width: 12px; height: 12px;"
+        "}"
+        "QComboBox::drop-down {"
+        "   subcontrol-origin: padding;"
+        "   subcontrol-position: top right;"
+        "   width: 24px;"
+        "   background-color: #1a73e8;"
+        "   border-top-right-radius: 5px;"
+        "   border-bottom-right-radius: 5px;"
+        "}"
+        "QComboBox::drop-down:hover {"
+        "   background-color: #1558d6;"
+        "}"
+        "QComboBox::down-arrow {"
+        "   image: url(:/images/down-arrow.svg);"
+        "   width: 12px; height: 12px;"
+        "}"
+        "QTableWidget {"
+        "   background-color: #FFFFFF;"
+        "   border: 1px solid #E5E7EB;"
+        "   border-radius: 8px;"
+        "   gridline-color: #F3F4F6;"
+        "   color: #1F2937;"
+        "}"
+        "QHeaderView::section {"
+        "   background-color: #F9FAFB;"
+        "   color: #4B5563;"
+        "   font-weight: bold;"
+        "   border: none;"
+        "   border-bottom: 1px solid #E5E7EB;"
+        "   padding: 6px;"
+        "}"
+        "QPushButton {"
+        "   background-color: #1a73e8;"
+        "   color: white;"
+        "   border-radius: 6px;"
+        "   padding: 8px 16px;"
+        "   font-weight: bold;"
+        "}"
+        "QPushButton:hover {"
+        "   background-color: #1558d6;"
+        "}"
+        "QPushButton#buttonCancel {"
+        "   background-color: #FFFFFF;"
+        "   color: #374151;"
+        "   border: 1px solid #D1D5DB;"
+        "}"
+        "QPushButton#buttonCancel:hover {"
+        "   background-color: #F3F4F6;"
+        "}"
+    );
 }

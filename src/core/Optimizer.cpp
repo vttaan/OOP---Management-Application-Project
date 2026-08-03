@@ -220,7 +220,7 @@ Optimizer::RoleSolveResult Optimizer::solveForRole(const QString& role,
 
     static const QTime SANG_START(7,0),  SANG_END(15,0);
     static const QTime TOI_START(15,0),  TOI_END_PT(22,0);
-    const int minMinutesPT = Config::getMinximumHourWorkPerDay_PT() * 60;
+    const int minMinutesPT = Config::getMinimumHourWorkPerDay_PT() * 60;
     const int maxMinutesPT = Config::getMaximumHourWorkPerDay_PT() * 60;
 
     QMap<int,int> registeredDaysPT;
@@ -314,9 +314,9 @@ Optimizer::RoleSolveResult Optimizer::solveForRole(const QString& role,
     for (int i = 0; i < E; ++i) {
         if (empList[i]->getIsFixedEmployee()) continue;
         int days = empDaysAssigned.value(i).size();
-        if (days > 0 && days < Config::getMinximumDaysWorkPerWeek_PT()) {
+        if (days > 0 && days < Config::getMinimumDaysWorkPerWeek_PT()) {
             result.warnings << QString("[%1] Nhân viên ID %2 (Part-time): chỉ được xếp %3/%4 ngày tối thiểu.")
-                                   .arg(role).arg(empList[i]->getIdEmployee()).arg(days).arg(Config::getMinximumDaysWorkPerWeek_PT());
+                                   .arg(role).arg(empList[i]->getIdEmployee()).arg(days).arg(Config::getMinimumDaysWorkPerWeek_PT());
         }
     }
 

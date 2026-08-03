@@ -27,19 +27,26 @@ User *UserFactory::createNewUser(QString r, QString ava, QString idCit, QString 
                                  , QString d, QString add, QString phone, QString gender, int baseSalary, double allowance)
 {
     QSqlQuery query;
-    short int newId = 1;
-    query.prepare("SELECT MAX(idEmployee) AS MaxID FROM PROFILES WHERE role = :u");
-    query.bindValue(":u", r);
+    short int newId = (r == "Manager" || r == "Admin") ? 2000 : 1000;
+
+    if (r == "Manager" || r == "Admin") {
+        query.prepare("SELECT MAX(idEmployee) AS MaxID FROM PROFILES WHERE role IN ('Manager', 'Admin')");
+    } else {
+        query.prepare("SELECT MAX(idEmployee) AS MaxID FROM PROFILES WHERE role NOT IN ('Manager', 'Admin')");
+    }
+
     if (query.exec() && query.next())
     {
         QVariant v = query.value("MaxID");
-        if (!v.isNull())
-            newId = static_cast<short int>(v.toInt() + 1);
+        if (!v.isNull()) {
+            newId = std::max((int)newId, v.toInt());
+        }
     }
     else
     {
         qDebug() << "createNewUser: could not fetch MAX id —" << query.lastError().text();
     }
+    newId++;
 
     User *user = UserPrototypeRegistry::instance().create(r);
     if (!user) return nullptr;

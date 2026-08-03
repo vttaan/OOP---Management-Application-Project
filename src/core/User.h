@@ -18,6 +18,8 @@ public:
     virtual double getSalary() const = 0;
     virtual double getBaseSalary() const = 0;
 
+    virtual bool getIsFixedSalary() const { return false; }
+
 
     virtual User* clone() const = 0;
 
@@ -31,7 +33,6 @@ public:
     virtual void setAllowenceValue(double allowance) {}
 
     virtual bool getIsFixedEmployee() const { return false; }
-
 
 	QString getRole() const;
 	short int getIdEmployee() const;

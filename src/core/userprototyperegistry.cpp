@@ -21,6 +21,11 @@ User* UserPrototypeRegistry::create(const QString& role) const
     return it.value()->clone();
 }
 
+QList<QString> UserPrototypeRegistry::getAvailableRoles() const
+{
+    return prototypes.keys();
+}
+
 UserPrototypeRegistry::~UserPrototypeRegistry()
 {
     for (auto* p : prototypes)

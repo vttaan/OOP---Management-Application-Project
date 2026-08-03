@@ -16,19 +16,20 @@ private:
     inline static short closeHour;
     inline static Qt::DayOfWeek dayOpenRegisShift;
 
-    static const Qt::DayOfWeek dayOpenRegisShift = Qt::Sunday;
+    < < < < < < < < < Temporary merge branch 1 static const Qt::DayOfWeek dayOpenRegisShift = Qt::Sunday;
     static const short minStaffPerShift = 4;
     static const short maxStaffPerShift = 6;
-    // Number of staff min and max in specific role. First is Min, Second is Max
-    inline static QMap<QString, QPair<short, short>> numberEmployeeOfRoles;
+    == == == == =
+                    // Number of staff min and max in specific role. First is Min, Second is Max
+        inline static QMap<QString, QPair<short, short>> numberEmployeeOfRoles;
 
     // Rule for full time
-    inline static short minximumDaysWorkPerWeek_FT;
+    inline static short minimumDaysWorkPerWeek_FT;
     inline static short maximumLeavePerMonth_FT;
 
     // Rule for part time
-    inline static short minximumDaysWorkPerWeek_PT;
-    inline static short minximumHourWorkPerDay_PT;
+    inline static short minimumDaysWorkPerWeek_PT;
+    inline static short minimumHourWorkPerDay_PT;
     inline static short maximumHourWorkPerDay_PT;
 
     inline static short guaranteedDaysPerWeek_FT = 0;
@@ -44,11 +45,11 @@ public:
         numberEmployeeOfRoles = roles;
     }
 
-    static void setMinximumDaysWorkPerWeek_FT(short days) { minximumDaysWorkPerWeek_FT = days; }
+    static void setMinimumDaysWorkPerWeek_FT(short days) { minimumDaysWorkPerWeek_FT = days; }
     static void setMaximumLeavePerMonth_FT(short days) { maximumLeavePerMonth_FT = days; }
 
-    static void setMinximumDaysWorkPerWeek_PT(short days) { minximumDaysWorkPerWeek_PT = days; }
-    static void setMinximumHourWorkPerDay_PT(short hours) { minximumHourWorkPerDay_PT = hours; }
+    static void setMinimumDaysWorkPerWeek_PT(short days) { minimumDaysWorkPerWeek_PT = days; }
+    static void setMinimumHourWorkPerDay_PT(short hours) { minimumHourWorkPerDay_PT = hours; }
     static void setMaximumHourWorkPerDay_PT(short hours) { maximumHourWorkPerDay_PT = hours; }
 
     static void setGuaranteedDaysPerWeek_FT(short days) { guaranteedDaysPerWeek_FT = days; }
@@ -57,6 +58,18 @@ public:
     static short getOpenHour() { return openHour; }
     static short getCloseHour() { return closeHour; }
     static Qt::DayOfWeek getDayOpenRegisShift() { return dayOpenRegisShift; }
+
+    static int getMaxStaffPerShift()
+    {
+        int total = 0;
+        for (const QString &role : numberEmployeeOfRoles.keys())
+        {
+            total += numberEmployeeOfRoles[role].second;
+        }
+        return total > 0 ? total : 6;
+    }
+
+    static int getBaseSalaryStaff() { return baseSalaryStaff; }
 
     static QDate getStartOfCurrentWeek(QDate date)
     {
@@ -85,11 +98,11 @@ public:
         return numberEmployeeOfRoles.keys();
     }
 
-    static short getMinximumDaysWorkPerWeek_FT() { return minximumDaysWorkPerWeek_FT; }
+    static short getMinimumDaysWorkPerWeek_FT() { return minimumDaysWorkPerWeek_FT; }
     static short getMaximumLeavePerMonth_FT() { return maximumLeavePerMonth_FT; }
 
-    static short getMinximumDaysWorkPerWeek_PT() { return minximumDaysWorkPerWeek_PT; }
-    static short getMinximumHourWorkPerDay_PT() { return minximumHourWorkPerDay_PT; }
+    static short getMinimumDaysWorkPerWeek_PT() { return minimumDaysWorkPerWeek_PT; }
+    static short getMinimumHourWorkPerDay_PT() { return minimumHourWorkPerDay_PT; }
     static short getMaximumHourWorkPerDay_PT() { return maximumHourWorkPerDay_PT; }
     static short getGuaranteedDaysPerWeek_FT()
     {

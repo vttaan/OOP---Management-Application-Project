@@ -43,8 +43,8 @@ public:
                      const QString &phone, const QString &gender, const int& baseSalary,
                      const QString &username, const QString &password);
 
-
-
+    long long calculateExpectedPayrollCurrentMonth();
+    int countManagers();
 
     bool updateEmployee(User* emp);
     bool deleteEmployee(short idEmployee);

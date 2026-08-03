@@ -2,26 +2,9 @@
 <ui version="4.0">
  <class>EmployeeCard</class>
  <widget class="QWidget" name="EmployeeCard">
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>230</width>
-    <height>320</height>
-   </rect>
-  </property>
-  <property name="minimumSize">
-   <size>
-    <width>230</width>
-    <height>320</height>
-   </size>
-  </property>
-  <property name="maximumSize">
-   <size>
-    <width>230</width>
-    <height>320</height>
-   </size>
-  </property>
+  
+  
+  
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="leftMargin">
     <number>0</number>
@@ -71,18 +54,8 @@ QFrame#frameCard:hover {
         </property>
         <item>
          <widget class="QLabel" name="lblAvatar">
-          <property name="minimumSize">
-           <size>
-            <width>60</width>
-            <height>60</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>60</width>
-            <height>60</height>
-           </size>
-          </property>
+          
+          
           <property name="styleSheet">
            <string notr="true">background-color: #e8f0fe;
 border-radius: 30px;</string>
@@ -104,12 +77,12 @@ border-radius: 30px;</string>
            <widget class="QLabel" name="lblName">
             <property name="font">
              <font>
-              <pointsize>11</pointsize>
+              <pointsize>10</pointsize>
               <bold>true</bold>
              </font>
             </property>
             <property name="styleSheet">
-             <string notr="true">color: #212b36;</string>
+             <string notr="true">color: #212b36; border: none; background: transparent;</string>
             </property>
             <property name="text">
              <string>Nhân viên A</string>
@@ -126,11 +99,11 @@ border-radius: 30px;</string>
            <widget class="QLabel" name="lblRole">
             <property name="font">
              <font>
-              <pointsize>9</pointsize>
+              <pointsize>8</pointsize>
              </font>
             </property>
             <property name="styleSheet">
-             <string notr="true">color: #637381;</string>
+             <string notr="true">color: #637381; border: none; background: transparent;</string>
             </property>
             <property name="text">
              <string>Nhân viên</string>
@@ -157,20 +130,11 @@ border-radius: 30px;</string>
         </property>
        </spacer>
       </item>
-      <item>
-       <widget class="QLabel" name="lblEmail">
-        <property name="styleSheet">
-         <string notr="true">color: #454f5b;</string>
-        </property>
-        <property name="text">
-         <string>✉️ a@congty.com</string>
-        </property>
-       </widget>
-      </item>
+      
       <item>
        <widget class="QLabel" name="lblPhone">
         <property name="styleSheet">
-         <string notr="true">color: #454f5b;</string>
+         <string notr="true">color: #454f5b; border: none; background: transparent; font-size: 11px;</string>
         </property>
         <property name="text">
          <string>📞 0901 111 111</string>
@@ -180,7 +144,7 @@ border-radius: 30px;</string>
       <item>
        <widget class="QLabel" name="lblID">
         <property name="styleSheet">
-         <string notr="true">color: #454f5b;</string>
+         <string notr="true">color: #454f5b; border: none; background: transparent; font-size: 11px;</string>
         </property>
         <property name="text">
          <string>🆔 1001</string>
@@ -190,7 +154,7 @@ border-radius: 30px;</string>
       <item>
        <widget class="QLabel" name="lblDOB">
         <property name="styleSheet">
-         <string notr="true">color: #454f5b;</string>
+         <string notr="true">color: #454f5b; border: none; background: transparent; font-size: 11px;</string>
         </property>
         <property name="text">
          <string>🎂 2000-01-01</string>
@@ -200,7 +164,7 @@ border-radius: 30px;</string>
       <item>
        <widget class="QLabel" name="lblGender">
         <property name="styleSheet">
-         <string notr="true">color: #454f5b;</string>
+         <string notr="true">color: #454f5b; border: none; background: transparent; font-size: 11px;</string>
         </property>
         <property name="text">
          <string>🚻 Nam</string>
@@ -222,12 +186,7 @@ border-radius: 30px;</string>
       </item>
       <item>
        <widget class="QPushButton" name="btnStatus">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>28</height>
-         </size>
-        </property>
+        
         <property name="font">
          <font>
           <pointsize>8</pointsize>
@@ -256,3 +215,7 @@ border-radius: 30px;</string>
  <resources/>
  <connections/>
 </ui>
+
+
+
+

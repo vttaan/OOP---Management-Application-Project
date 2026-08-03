@@ -18,6 +18,10 @@ double Manager::getSalary() const {
                                           , QDate::currentDate().month(), QDate::currentDate().year()).totalSalary;
 }
 
+void Manager::setBaseSalary(double salary) {
+    fixSalary = salary;
+}
+
 User* Manager::clone() const {
     return new Manager(*this);
 }

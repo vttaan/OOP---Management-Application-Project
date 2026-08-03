@@ -2,6 +2,8 @@
 #include "model/Employee_Model.h"
 #include "utils/Database.h"
 #include "utils/Security.h"
+#include "model/Salary_Model.h"
+#include "utils/Config.h"
 
 Employee_Model::Employee_Model() {}
 
@@ -9,18 +11,21 @@ Employee_Model::Employee_Model() {}
 
 int Employee_Model::getNextId(const QString& role) {
     QSqlQuery query;
-    int newId = 1;
+    int newId = (role == "Manager" || role == "Admin") ? 2000 : 1000;
 
-    query.prepare("SELECT MAX(idEmployee) AS MaxID FROM PROFILES WHERE role = :u");
-    query.bindValue(":u", role);
+    if (role == "Manager" || role == "Admin") {
+        query.prepare("SELECT MAX(idEmployee) AS MaxID FROM PROFILES WHERE role IN ('Manager', 'Admin')");
+    } else {
+        query.prepare("SELECT MAX(idEmployee) AS MaxID FROM PROFILES WHERE role NOT IN ('Manager', 'Admin')");
+    }
 
     if (query.exec() && query.next()) {
         QVariant v = query.value("MaxID");
         if (!v.isNull()) {
-            newId = v.toInt() + 1;
+            newId = std::max(newId, v.toInt());
         }
     }
-    return newId;
+    return newId + 1;
 }
 bool Employee_Model::addUserInList(User *emp)
 {
@@ -261,7 +266,11 @@ void Employee_Model::loadData()
     User *nowEmployee = UserFactory::createContainsUser(
         curRole, curID, curAvatarPath, curIdIndentity, curName, curDob,
         curAddress, curPhone, curGender, curSalary, curIsFixed);
-    this->listEmployee.append(nowEmployee);
+    if (nowEmployee) {
+        this->listEmployee.append(nowEmployee);
+    } else {
+        qDebug() << "Failed to load employee ID:" << curID << "Role:" << curRole;
+    }
   }
 }
 
@@ -469,7 +478,7 @@ QList<User *> Employee_Model::searchInEmployee(QList<User *> inputList, QString 
 }
 
 QString Employee_Model::generateAutoUsername(int id, QString& role){
-    QString res = (role=="Staff")? "NV_" : "QL_";
+    QString res = (role=="Manager")? "QL_" : "NV_";
     res += QString::number(id).rightJustified(3, '0');
     // can memories 3 number 0 leading.
     return res;
@@ -492,4 +501,50 @@ QString Employee_Model::generateAutoPassword(QString &name, QString &dob){
 
     return res + '#' + dd + mm;
     // TQT#0609
+}
+
+long long Employee_Model::calculateExpectedPayrollCurrentMonth()
+{
+    long long expectedTotal = 0;
+    QDate today = QDate::currentDate();
+    int daysInMonth = today.daysInMonth();
+    
+    // 1. Calculate Staff Expected Cost
+    // Shifts per day = 3
+    // Max staff per shift = Config::getMaxStaffPerShift()
+    // Shift duration = (Config::getCloseHour() - Config::getOpenHour()) / 3 
+    // Shift cost per staff = Config::getBaseSalaryStaff() * shiftDuration
+    int shiftsPerDay = 3;
+    int shiftDuration = (Config::getCloseHour() - Config::getOpenHour()) / shiftsPerDay;
+    long long staffShiftCost = Config::getBaseSalaryStaff() * shiftDuration;
+    
+    long long totalStaffExpected = (long long)daysInMonth * shiftsPerDay * Config::getMaxStaffPerShift() * staffShiftCost;
+    expectedTotal += totalStaffExpected;
+
+    // 2. Calculate Manager Expected Cost
+    // Manager base salary is daily. So monthly cost = baseSalary * daysInMonth.
+    for (User* emp : listEmployee) {
+        if (!emp) continue;
+        if (emp->getIsFixedSalary()) {
+            if (emp->getRole() == "Manager" || emp->getRole() == "Admin") {
+                expectedTotal += (long long)emp->getBaseSalary() * daysInMonth;
+            } else {
+                // Cashier with fixed salary
+                expectedTotal += (long long)emp->getBaseSalary();
+            }
+        }
+    }
+    
+    return expectedTotal;
+}
+
+int Employee_Model::countManagers()
+{
+    int count = 0;
+    for (User* emp : listEmployee) {
+        if (emp && emp->getRole() == "Manager") {
+            count++;
+        }
+    }
+    return count;
 }

@@ -22,7 +22,7 @@ private:
     QList<User*> employees;
 
 public:
-    ShiftBlock(QDate d, QTime s, QTime e, QString role)
+    ShiftBlock(QDate d, QTime s, QTime e, QString role = "Manager")
         : date(d), startTime(s), endTime(e), role(role) {}
 
     // Memory management: The ShiftBlock DOES NOT own the User objects

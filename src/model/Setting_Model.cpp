@@ -1,4 +1,5 @@
 #include "Setting_Model.h"
+#include "core/userprototyperegistry.h"
 
 Setting_Model::Setting_Model() {}
 bool Setting_Model::loadData(short &openHour, short &closeHour, Qt::DayOfWeek &dayOpenRegis,
@@ -10,7 +11,7 @@ bool Setting_Model::loadData(short &openHour, short &closeHour, Qt::DayOfWeek &d
 
     QSqlQuery querySys(db);
     QString sqlSys = "SELECT openHour, closeHour, dayOpenRegisShift, "
-                     "MaximumLeavePerMonth_FT, MinximunDaysWorkPerWeek_PT, MaximumHourWorkPerDay_PT "
+                     "MaximumLeavePerMonth_FT, MinimumDaysWorkPerWeek_PT, MaximumHourWorkPerDay_PT "
                      "FROM SYSTEM_CONFIG";
 
     if (querySys.exec(sqlSys)) {
@@ -20,8 +21,8 @@ bool Setting_Model::loadData(short &openHour, short &closeHour, Qt::DayOfWeek &d
             dayOpenRegis = static_cast<Qt::DayOfWeek>(querySys.value("dayOpenRegisShift").toInt());
             maxLeaveFT = querySys.value("MaximumLeavePerMonth_FT").toInt();
 
-            // Map maxDaysPT của View vào MinximunDaysWorkPerWeek_PT của Database
-            maxDaysPT = querySys.value("MinximunDaysWorkPerWeek_PT").toInt();
+            // Map maxDaysPT của View vào MinimumDaysWorkPerWeek_PT của Database
+            maxDaysPT = querySys.value("MinimumDaysWorkPerWeek_PT").toInt();
             maxHourPT = querySys.value("MaximumHourWorkPerDay_PT").toInt();
         }
     } else {
@@ -39,14 +40,25 @@ bool Setting_Model::loadData(short &openHour, short &closeHour, Qt::DayOfWeek &d
             roles[role] = qMakePair(minVal, maxVal);
         }
     } else {
-        qDebug() << "Lỗi load PolicyForRole_CONFIG:" << queryRole.lastError().text();
-        return false;
+        qDebug() << "Lỗi load PolicyForRole_CONFIG, tiến hành tạo bảng mới:" << queryRole.lastError().text();
+    }
+
+    if (roles.isEmpty()) {
+        qDebug() << "Bảng PolicyForRole_CONFIG trống. Tự động thêm các chức vụ mặc định.";
+        QList<QString> defaultRoles = {"Cashier", "HallStaff", "KitchenAssistant", "Manager"};
+        for (const QString& role : defaultRoles) {
+            roles[role] = qMakePair<short, short>(1, 6); // Default 1 min, 6 max
+            QSqlQuery insertQuery(db);
+            insertQuery.prepare("INSERT INTO PolicyForRole_CONFIG (roleName, MinimumNumberOfEmployee, MaximumNumberOfEmployee) VALUES (:role, 1, 6)");
+            insertQuery.bindValue(":role", role);
+            insertQuery.exec();
+        }
     }
     Config::setOpenHour(openHour);
     Config::setCloseHour(closeHour);
     Config::setDayOpenRegisShift(dayOpenRegis);
     Config::setMaximumLeavePerMonth_FT(maxLeaveFT);
-    Config::setMinximumDaysWorkPerWeek_PT(maxDaysPT);
+    Config::setMinimumDaysWorkPerWeek_PT(maxDaysPT);
     Config::setMaximumHourWorkPerDay_PT(maxHourPT);
     Config::setRoles(roles);
     Config::setGuaranteedDaysPerWeek_FT(7 - maxLeaveFT);
@@ -68,7 +80,7 @@ bool Setting_Model::saveData(short openHour, short closeHour, Qt::DayOfWeek dayO
                  "closeHour = :closeHour, "
                  "dayOpenRegisShift = :dayOpen, "
                  "MaximumLeavePerMonth_FT = :maxLeaveFT, "
-                 "MinximunDaysWorkPerWeek_PT = :maxDaysPT, "
+                 "MinimumDaysWorkPerWeek_PT = :maxDaysPT, "
                  "MaximumHourWorkPerDay_PT = :maxHourPT");
 
     qSys.bindValue(":openHour", openHour);
@@ -104,7 +116,7 @@ bool Setting_Model::saveData(short openHour, short closeHour, Qt::DayOfWeek dayO
         Config::setCloseHour(closeHour);
         Config::setDayOpenRegisShift(dayOpenRegis);
         Config::setMaximumLeavePerMonth_FT(maxLeaveFT);
-        Config::setMinximumDaysWorkPerWeek_PT(maxDaysPT);
+        Config::setMinimumDaysWorkPerWeek_PT(maxDaysPT);
         Config::setMaximumHourWorkPerDay_PT(maxHourPT);
         Config::setRoles(roles);
         return true;

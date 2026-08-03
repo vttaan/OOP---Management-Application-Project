@@ -55,7 +55,9 @@ void Employee_Control::handleLoadEmployees()
     m_model->loadData();
 
     if (m_view) {
-          m_view->loadEmployees(m_model->getListEmployee());
+          long long totalPayroll = m_model->calculateExpectedPayrollCurrentMonth();
+          int managerCount = m_model->countManagers();
+          m_view->loadEmployees(m_model->getListEmployee(), totalPayroll, managerCount);
     }
 }
 
@@ -113,6 +115,7 @@ void Employee_Control::handleEditEmployee(int idEmployee)
     // Find employee in the cache by ID
     User *emp = nullptr;
     for (User *u : m_model->getListEmployee()) {
+        if (!u) continue;
         if (u->getIdEmployee() == idEmployee) {
             emp = u;
             break;
@@ -198,6 +201,8 @@ void Employee_Control::handleUpdate(const QString &searchText,
 {
     if (!m_view || !m_model) return;
     QList<User*> result = m_model->SearchSortFilter(searchText, sortDir, contentSort, contentFilter);
-    m_view->loadEmployees(result);
+    long long totalPayroll = m_model->calculateExpectedPayrollCurrentMonth();
+    int managerCount = m_model->countManagers();
+    m_view->loadEmployees(result, totalPayroll, managerCount);
 }
 

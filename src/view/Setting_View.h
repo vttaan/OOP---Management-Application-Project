@@ -32,6 +32,7 @@ private:
     void setupComboBox();
     void setupSpinBox();
     void setupTable();
+    void initUI();
 };
 
 #endif // SETTING_VIEW_H

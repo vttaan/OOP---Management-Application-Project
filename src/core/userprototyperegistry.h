@@ -12,6 +12,7 @@ public:
 
 
     User* create(const QString& role) const;
+    QList<QString> getAvailableRoles() const;
 
 private:
     UserPrototypeRegistry() = default;

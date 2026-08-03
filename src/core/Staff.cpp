@@ -13,3 +13,11 @@ double Staff::getSalary() const { return Salary_Model::getSalarySummary(this->id
                                           , QDate::currentDate().month(), QDate::currentDate().year()).totalSalary; }
 
 double Staff::getHourWork() { return hourWork; }
+
+void Staff::setBaseSalary(double salary) {
+    hourSalary = salary;
+}
+
+void Staff::setFixedEmployee(bool isFixed) {
+    isFixedEmployee = isFixed;
+}
