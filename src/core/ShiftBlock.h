@@ -20,6 +20,7 @@ private:
     QTime endTime;
     QString role;
     QList<User*> employees;
+    QList<int> shiftIds;
 
 public:
     ShiftBlock(QDate d, QTime s, QTime e, QString role = "Manager")
@@ -31,7 +32,10 @@ public:
         employees.clear();
     }
 
-    void addStaff(User* u) { employees.append(u); }
+    void addStaff(User* u, int shiftId = -1) { 
+        employees.append(u); 
+        shiftIds.append(shiftId);
+    }
 
     // Getters
     QDate getDate() const { return date; }
@@ -41,6 +45,7 @@ public:
 
     // 1. Employee List
     QList<User*> getEmployees() const { return employees; }
+    QList<int> getShiftIds() const { return shiftIds; }
     bool isEmpty() const { return employees.isEmpty(); }
 
     // 2. Count

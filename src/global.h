@@ -77,3 +77,4 @@
 #include "core/HallStaff.h"
 #include "core/Cashier.h"
 #include "utils/Database.h"
+#include "utils/ScheduleDTOs.h"

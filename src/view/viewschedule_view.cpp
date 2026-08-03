@@ -4,6 +4,12 @@
 #include "core/User.h"
 #include "core/Shift.h"
 
+#include "utils/ScheduleDTOs.h"
+#include <QDialog>
+#include <QVBoxLayout>
+#include <QLabel>
+#include <QPushButton>
+
 ViewSchedule_View::ViewSchedule_View(QWidget *parent) : QWidget(parent),
                                                         ui(new Ui::ViewSchedule_View)
 {
@@ -113,10 +119,10 @@ void ViewSchedule_View::setUpUI()
 
     tableShiftDetails = new QTableWidget(this);
     tableShiftDetails->setColumnCount(6);
-    tableShiftDetails->setHorizontalHeaderLabels({"STT", "ID", "TÊN", "VAI TRÒ", "SĐT", "GIỜ LÀM"});
+    tableShiftDetails->setHorizontalHeaderLabels({"ID", "TÊN", "VAI TRÒ", "SĐT", "GIỜ LÀM", "HÀNH ĐỘNG"});
     tableShiftDetails->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     tableShiftDetails->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-    tableShiftDetails->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+    tableShiftDetails->horizontalHeader()->setSectionResizeMode(5, QHeaderView::ResizeToContents);
     tableShiftDetails->setSelectionMode(QAbstractItemView::NoSelection);
     tableShiftDetails->setEditTriggers(QAbstractItemView::NoEditTriggers);
     tableShiftDetails->setFocusPolicy(Qt::NoFocus);
@@ -268,7 +274,32 @@ void ViewSchedule_View::updateManagerTable(const QMap<int, QMap<int, ShiftBlock 
             if (!block)
                 continue;
 
-            int count = block->getStaffCount();
+            auto isManager = [](const QString &roleStr) {
+                QString rUpper = roleStr.toUpper();
+                return rUpper.contains("MANAGER") || rUpper.contains("MANAGE") ||
+                       rUpper.contains("ADMIN") || rUpper.contains("QUẢN LÝ");
+            };
+
+            QStringList managerNames;
+            QList<User *> staffList;
+
+            for (User *u : block->getEmployees())
+            {
+                if (isManager(u->getRole()))
+                {
+                    managerNames.append(u->getName());
+                }
+                else
+                {
+                    staffList.append(u);
+                }
+            }
+
+            QString managerDisplay = managerNames.isEmpty() ? "---" : managerNames.join(", ");
+            if (managerDisplay.length() > 20)
+                managerDisplay = managerDisplay.left(18) + "…";
+
+            int count = staffList.size();
 
             // Build the entire cell as Rich Text HTML — one QLabel per cell instead
             // of a full widget tree, which is much faster for Qt to create and paint.
@@ -301,17 +332,28 @@ void ViewSchedule_View::updateManagerTable(const QMap<int, QMap<int, ShiftBlock 
 
             QString html = QString(
                 "<div style='background-color:%1;border-radius:6px;padding:4px;'>"
-                "<div style='color:#6B7280;font-size:9px;font-style:italic;'>Quan ly: ---</div>"
-                "<div style='%2;border-radius:4px;padding:2px 4px;"
-                "font-weight:bold;font-size:11px;text-align:center;margin:2px 0;'>%3</div>")
-                .arg(cellBg, countBadgeStyle, countText);
+                "<div style='color:#6B7280;font-size:9px;font-style:italic;'>Quan ly: %2</div>"
+                "<div style='%3;border-radius:4px;padding:2px 4px;"
+                "font-weight:bold;font-size:11px;text-align:center;margin:2px 0;'>%4</div>")
+                .arg(cellBg, managerDisplay, countBadgeStyle, countText);
 
-            for (User *u : block->getEmployees())
+            for (User *u : staffList)
             {
                 QString role = u->getRole();
-                QString cardStyle = (role == "Manager" || role == "Manage")
-                    ? "background-color:#EDE9FE;color:#5B21B6"
-                    : "background-color:#DBEAFE;color:#1D4ED8";
+                QString rUpper = role.toUpper();
+
+                QString displayRoleTag;
+                if (rUpper.contains("CASHIER") || rUpper.contains("THU NGÂN")) {
+                    displayRoleTag = "THU NGÂN";
+                } else if (rUpper.contains("HALL") || rUpper.contains("SẢNH")) {
+                    displayRoleTag = "NV SẢNH";
+                } else if (rUpper.contains("KITCHEN") || rUpper.contains("PHỤ BẾP") || rUpper.contains("BEP")) {
+                    displayRoleTag = "PHỤ BẾP";
+                } else {
+                    displayRoleTag = "NHÂN VIÊN";
+                }
+
+                QString cardStyle = "background-color:#DBEAFE;color:#1D4ED8";
 
                 QString name = u->getName();
                 if (name.length() > 14)
@@ -321,7 +363,7 @@ void ViewSchedule_View::updateManagerTable(const QMap<int, QMap<int, ShiftBlock 
                     "<div style='%1;border-radius:4px;padding:2px 4px;"
                     "font-size:11px;font-weight:bold;margin-top:2px;'>"
                     "%2<br><span style='font-size:9px;font-weight:normal;'>%3</span></div>")
-                    .arg(cardStyle, name, role.toUpper());
+                    .arg(cardStyle, name, displayRoleTag);
             }
             html += "</div>";
 
@@ -391,7 +433,7 @@ void ViewSchedule_View::highlightToday(int currentDayIndex)
     }
 }
 
-void ViewSchedule_View::updateShiftDetails(const QList<User *> &employees, const QString &timeLabel)
+void ViewSchedule_View::updateShiftDetails(const QList<User *> &employees, const QList<int>& shiftIds, const QString &timeLabel)
 {
     tableShiftDetails->setRowCount(employees.size());
     tableShiftDetails->clearContents();
@@ -408,8 +450,29 @@ void ViewSchedule_View::updateShiftDetails(const QList<User *> &employees, const
     for (int i = 0; i < employees.size(); ++i)
     {
         User *emp = employees[i];
+        int shiftId = (i < shiftIds.size()) ? shiftIds[i] : -1;
 
-        QString roleDisplay = (emp->getRole() == "Staff") ? "Nhân viên" : "Quản lý";
+        QString roleDisplay;
+        QString roleStyle;
+        QString roleStr = emp->getRole();
+        QString rUpper = roleStr.toUpper();
+
+        if (rUpper.contains("CASHIER") || rUpper.contains("THU NGÂN")) {
+            roleDisplay = "Thu ngân";
+            roleStyle = "background-color:#DBEAFE; color:#1D4ED8; border-radius:4px; padding:2px 8px; font-weight:bold; font-size:12px;";
+        } else if (rUpper.contains("HALL") || rUpper.contains("SẢNH")) {
+            roleDisplay = "Nhân viên sảnh";
+            roleStyle = "background-color:#E0E7FF; color:#4338CA; border-radius:4px; padding:2px 8px; font-weight:bold; font-size:12px;";
+        } else if (rUpper.contains("KITCHEN") || rUpper.contains("PHỤ BẾP") || rUpper.contains("BEP")) {
+            roleDisplay = "Phụ bếp";
+            roleStyle = "background-color:#FFEDD5; color:#C2410C; border-radius:4px; padding:2px 8px; font-weight:bold; font-size:12px;";
+        } else if (rUpper.contains("MANAGER") || rUpper.contains("MANAGE") || rUpper.contains("ADMIN") || rUpper.contains("QUẢN LÝ")) {
+            roleDisplay = "Quản lý";
+            roleStyle = "background-color:#EDE9FE; color:#5B21B6; border-radius:4px; padding:2px 8px; font-weight:bold; font-size:12px;";
+        } else {
+            roleDisplay = "Nhân viên";
+            roleStyle = "background-color:#DBEAFE; color:#1D4ED8; border-radius:4px; padding:2px 8px; font-weight:bold; font-size:12px;";
+        }
 
         auto makeItem = [](const QString &text) -> QTableWidgetItem *
         {
@@ -422,25 +485,55 @@ void ViewSchedule_View::updateShiftDetails(const QList<User *> &employees, const
             return item;
         };
 
-        tableShiftDetails->setItem(i, 0, makeItem(QString::number(i + 1)));
-        tableShiftDetails->setItem(i, 1, makeItem(QString::number(emp->getIdEmployee())));
-        tableShiftDetails->setItem(i, 2, makeItem(emp->getName()));
+        tableShiftDetails->setItem(i, 0, makeItem(QString::number(emp->getIdEmployee())));
+        tableShiftDetails->setItem(i, 1, makeItem(emp->getName()));
 
-        QTableWidgetItem *roleItem = makeItem(roleDisplay);
-        roleItem->setForeground(QBrush(
-            (emp->getRole() == "Staff") ? QColor(0x1D, 0x4E, 0xD8) : QColor(0x5B, 0x21, 0xB6)));
-        tableShiftDetails->setItem(i, 3, roleItem);
-        tableShiftDetails->setItem(i, 4, makeItem(emp->getPhoneNum()));
-        // Column 5 (GIO LAM): filled by updateShiftDetailsWithTimes
-        tableShiftDetails->setItem(i, 5, makeItem("---"));
+        QLabel *roleLabel = new QLabel(roleDisplay, tableShiftDetails);
+        roleLabel->setStyleSheet(roleStyle);
+        roleLabel->setAlignment(Qt::AlignCenter);
+        QWidget *roleCell = new QWidget();
+        QHBoxLayout *roleLayout = new QHBoxLayout(roleCell);
+        roleLayout->setContentsMargins(4, 2, 4, 2);
+        roleLayout->addStretch();
+        roleLayout->addWidget(roleLabel);
+        roleLayout->addStretch();
+        tableShiftDetails->setCellWidget(i, 2, roleCell);
+
+        tableShiftDetails->setItem(i, 3, makeItem(emp->getPhoneNum()));
+        // Column 4 (GIO LAM): filled by overload if needed
+        tableShiftDetails->setItem(i, 4, makeItem("---"));
+
+        // Column 5: HÀNH ĐỘNG (Replace button)
+        if (shiftId != -1) {
+            QPushButton *btnReplace = new QPushButton(tableShiftDetails);
+            btnReplace->setIcon(QIcon(":/images/replace-svgrepo-com.svg"));
+            btnReplace->setIconSize(QSize(20, 20));
+            btnReplace->setToolTip("Thay thế nhân viên");
+            btnReplace->setStyleSheet("QPushButton { border: none; background: transparent; padding: 4px; }"
+                                      "QPushButton:hover { background-color: #F3F4F6; border-radius: 4px; }");
+            btnReplace->setCursor(Qt::PointingHandCursor);
+            
+            QWidget *replaceCell = new QWidget();
+            QHBoxLayout *replaceLayout = new QHBoxLayout(replaceCell);
+            replaceLayout->setContentsMargins(0, 0, 0, 0);
+            replaceLayout->addWidget(btnReplace, 0, Qt::AlignCenter);
+            
+            connect(btnReplace, &QPushButton::clicked, this, [this, shiftId, roleStr]() {
+                emit requestShowReplacements(shiftId, roleStr);
+            });
+            
+            tableShiftDetails->setCellWidget(i, 5, replaceCell);
+        } else {
+            tableShiftDetails->setItem(i, 5, makeItem("—"));
+        }
     }
 }
 
-void ViewSchedule_View::updateShiftDetails(const QList<User *> &employees, const QString &timeLabel,
+void ViewSchedule_View::updateShiftDetails(const QList<User *> &employees, const QList<int>& shiftIds, const QString &timeLabel,
                                            const QMap<int, QString> &employeeTimes)
 {
-    // Populate rows the same way then overwrite column 5 with actual times
-    updateShiftDetails(employees, timeLabel);
+    // Populate rows the same way then overwrite column 4 with actual times
+    updateShiftDetails(employees, shiftIds, timeLabel);
 
     for (int i = 0; i < employees.size(); ++i)
     {
@@ -454,7 +547,7 @@ void ViewSchedule_View::updateShiftDetails(const QList<User *> &employees, const
             QFont f = timeItem->font();
             f.setBold(true);
             timeItem->setFont(f);
-            tableShiftDetails->setItem(i, 5, timeItem);
+            tableShiftDetails->setItem(i, 4, timeItem);
         }
     }
 }
@@ -516,3 +609,104 @@ void ViewSchedule_View::setManagerFeaturesVisible(bool visible)
 void ViewSchedule_View::onBtnPrevClicked() { emit requestPrevWeek(); }
 void ViewSchedule_View::onBtnNextClicked() { emit requestNextWeek(); }
 void ViewSchedule_View::onBtnCurrentClicked() { emit requestCurrentWeek(); }
+
+void ViewSchedule_View::showReplacementDialog(int oldShiftId, const QList<PendingShiftInfo> &replacements)
+{
+    QDialog *dlg = new QDialog(this);
+    dlg->setWindowTitle("Thay thế nhân viên");
+    dlg->setMinimumWidth(600);
+    dlg->setMinimumHeight(400);
+    dlg->setStyleSheet("QDialog { background-color: #F8FAFC; }");
+
+    QVBoxLayout *mainLayout = new QVBoxLayout(dlg);
+    mainLayout->setContentsMargins(18, 18, 18, 18);
+    mainLayout->setSpacing(12);
+
+    QLabel *title = new QLabel("CHỌN NHÂN VIÊN THAY THẾ", dlg);
+    title->setStyleSheet("font-size: 14px; font-weight: bold; color: #1F2937;");
+    mainLayout->addWidget(title);
+
+    if (replacements.isEmpty()) {
+        QLabel *lblEmpty = new QLabel("Không có nhân viên nào phù hợp (bị từ chối) trong cùng khung giờ.", dlg);
+        lblEmpty->setStyleSheet("color: #6B7280; font-style: italic;");
+        mainLayout->addWidget(lblEmpty);
+        
+        QPushButton *btnClose = new QPushButton("Đóng", dlg);
+        btnClose->setStyleSheet(
+            "QPushButton { background-color: #E5E7EB; color: #374151; "
+            "border-radius: 4px; padding: 6px 12px; font-weight: bold; } "
+            "QPushButton:hover { background-color: #D1D5DB; }");
+        connect(btnClose, &QPushButton::clicked, dlg, &QDialog::accept);
+        mainLayout->addWidget(btnClose, 0, Qt::AlignRight);
+        
+        dlg->exec();
+        dlg->deleteLater();
+        return;
+    }
+
+    QTableWidget *tbl = new QTableWidget(replacements.size(), 3, dlg);
+    tbl->setHorizontalHeaderLabels({"ID", "TÊN NHÂN VIÊN", "HÀNH ĐỘNG"});
+    tbl->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    tbl->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+    tbl->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+    tbl->setSelectionMode(QAbstractItemView::NoSelection);
+    tbl->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    tbl->setFocusPolicy(Qt::NoFocus);
+    tbl->setAlternatingRowColors(true);
+    tbl->verticalHeader()->setVisible(false);
+    tbl->setStyleSheet(
+        "QTableWidget { background-color: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px; }"
+        "QHeaderView::section { background-color: #2F80ED; color: white; font-weight: bold; padding: 7px; border: none; }"
+        "QTableWidget::item { padding: 6px; color: #1F2937; }"
+        "QTableWidget::item:alternate { background-color: #F0F9FF; }");
+
+    auto makeItem = [](const QString &text) -> QTableWidgetItem * {
+        QTableWidgetItem *item = new QTableWidgetItem(text);
+        item->setTextAlignment(Qt::AlignCenter);
+        item->setForeground(QBrush(QColor(0x1F, 0x29, 0x37)));
+        QFont f = item->font();
+        f.setBold(true);
+        item->setFont(f);
+        return item;
+    };
+
+    for (int i = 0; i < replacements.size(); ++i) {
+        const PendingShiftInfo &info = replacements[i];
+        
+        tbl->setRowHeight(i, 42);
+        tbl->setItem(i, 0, makeItem(QString::number(info.employeeId)));
+        tbl->setItem(i, 1, makeItem(info.employeeName));
+        
+        QWidget *actionCell = new QWidget();
+        QHBoxLayout *actionLayout = new QHBoxLayout(actionCell);
+        actionLayout->setContentsMargins(4, 2, 4, 2);
+        
+        QPushButton *btnSelect = new QPushButton("Chọn", actionCell);
+        btnSelect->setStyleSheet(
+            "QPushButton { background-color: #219653; color: white; border-radius: 4px; "
+            "padding: 4px 12px; font-weight: bold; font-size: 11px; } "
+            "QPushButton:hover { background-color: #1E824C; }");
+            
+        int newShiftId = info.shiftId;
+        connect(btnSelect, &QPushButton::clicked, this, [this, oldShiftId, newShiftId, dlg]() {
+            emit requestConfirmReplacement(oldShiftId, newShiftId);
+            dlg->accept();
+        });
+        
+        actionLayout->addWidget(btnSelect);
+        tbl->setCellWidget(i, 2, actionCell);
+    }
+
+    mainLayout->addWidget(tbl);
+
+    QPushButton *btnClose = new QPushButton("Hủy", dlg);
+    btnClose->setStyleSheet(
+        "QPushButton { background-color: #E5E7EB; color: #374151; "
+        "border-radius: 4px; padding: 6px 12px; font-weight: bold; } "
+        "QPushButton:hover { background-color: #D1D5DB; }");
+    connect(btnClose, &QPushButton::clicked, dlg, &QDialog::reject);
+    mainLayout->addWidget(btnClose, 0, Qt::AlignRight);
+
+    dlg->exec();
+    dlg->deleteLater();
+}

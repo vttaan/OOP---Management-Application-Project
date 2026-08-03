@@ -28,6 +28,10 @@ void ViewSchedule_Control::setView(ViewSchedule_View* v) {
     connect(view, &ViewSchedule_View::requestNextWeek, this, &ViewSchedule_Control::onNextWeek);
     connect(view, &ViewSchedule_View::requestCurrentWeek, this, &ViewSchedule_Control::onCurrentWeek);
     connect(view, &ViewSchedule_View::shiftClicked, this, &ViewSchedule_Control::onShiftClicked);
+    
+    // Connect replace signals
+    connect(view, &ViewSchedule_View::requestShowReplacements, this, &ViewSchedule_Control::onShowReplacementsRequested);
+    connect(view, &ViewSchedule_View::requestConfirmReplacement, this, &ViewSchedule_Control::onConfirmReplacement);
 }
 
 void ViewSchedule_Control::load() {
@@ -115,10 +119,28 @@ void ViewSchedule_Control::onShiftClicked(int row, int dayIndex) {
     ShiftBlock* block = scheduleGrid[dayIndex][row];
 
     if (!block->isEmpty()) {
-        view->updateShiftDetails(block->getEmployees(), block->getTimeString());
+        view->updateShiftDetails(block->getEmployees(), block->getShiftIds(), block->getTimeString());
 
     } else {
-        view->updateShiftDetails(QList<User*>(), "");
+        view->updateShiftDetails(QList<User*>(), QList<int>(), "");
+    }
+}
+
+void ViewSchedule_Control::onShowReplacementsRequested(int oldShiftId, const QString &role)
+{
+    if (!model || !view) return;
+    
+    QList<PendingShiftInfo> replacements = model->getEligibleReplacements(oldShiftId, role);
+    view->showReplacementDialog(oldShiftId, replacements);
+}
+
+void ViewSchedule_Control::onConfirmReplacement(int oldShiftId, int newShiftId)
+{
+    if (!model || !view) return;
+    
+    if (model->replaceShift(oldShiftId, newShiftId)) {
+        // Refresh grid
+        loadManagerSchedule();
     }
 }
 
