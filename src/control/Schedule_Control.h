@@ -19,16 +19,19 @@ private:
 
     // Tracks the week being shown in the assign grid
     QDate currentAssignMonday;
+    bool managerWeekInitialized = false;
 
-    // Temporary employee registration mode and controller-owned mock data.
+    // Employee registration mode and the current database-backed full-time grid.
     EmployeeScheduleLayoutMode employeeScheduleLayoutMode =
         EmployeeScheduleLayoutMode::PartTimeHourly;
-    FullTimeScheduleGrid fullTimeMockStatuses;
+    FullTimeScheduleGrid fullTimeScheduleStatuses;
     QDate currentEmployeeRegistrationWeekStart;
+    QList<ManagerScheduleChange> managerDraftChanges;
+    int selectedManagerDay = -1;
+    int selectedManagerShift = -1;
 
     // Helper: convert "Monday" display string -> QDate of that day this week
     QDate dayStringToDate(const QString &day) const;
-    void initializeFullTimeMockStatuses();
 
 public:
     explicit Schedule_Control(QObject *parent = nullptr);
@@ -58,18 +61,28 @@ private slots:
     // selectedHoursByDay: outer index = day (0-6), inner list = selected hour-row indices
     void onSaveGridRequested(const QList<QList<int>> &selectedHoursByDay);
 
-    // UI-only full-time mock save; does not call the model or database.
-    void onSaveFullTimeShiftsRequested(const QList<QList<int>> &selectedShiftsByDay);
+    // Synchronizes editable full-time pending registrations to the database.
+    void onSaveFullTimeScheduleRequested(const QList<QList<int>> &selectedShiftsByDay);
 
     // Fired when manager clicks a shift block in the assign grid
     void onShiftBlockClicked(int col, int row);
 
     // Fired from the popup dialog approve/decline buttons
-    void onApproveShift(int shiftId);
-    void onDeclineShift(int shiftId);
+    void onApproveShift(PendingShiftInfo request);
+    void onDeclineShift(PendingShiftInfo request);
+    void onAddEmployeeToShift(int employeeId, QDate date, QTime startTime,
+                              QTime endTime, const QString &reason);
+    void onRemoveAssignedShift(int shiftId, int employeeId,
+                                const QString &reason);
 
     // Fired when the manager clicks "Xac Nhan"
     void onConfirmRequested();
+    void onPreviousManagerWeek();
+    void onNextManagerWeek();
+    void onCurrentManagerWeek();
+    void onUndoManagerDraft();
+    void onClearManagerDraft();
+
 
 signals:
     void scheduleGenerated(bool success, int assignedCount, const QStringList &warnings);

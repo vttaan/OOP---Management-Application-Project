@@ -16,11 +16,14 @@ private:
     inline static short closeHour;
     inline static Qt::DayOfWeek dayOpenRegisShift;
 
-    //< < < < < < < < < Temporary merge branch 1 static const Qt::DayOfWeek dayOpenRegisShift = Qt::Sunday;
-    //static const short minStaffPerShift = 4;
-    //static const short maxStaffPerShift = 6;
-    //== == == == =
-                    // Number of staff min and max in specific role. First is Min, Second is Max
+    // < < < < < < < < < Temporary merge branch 1 static const Qt::DayOfWeek dayOpenRegisShift = Qt::Sunday;
+    // static const short minStaffPerShift = 4;
+    // static const short maxStaffPerShift = 6;
+    // == == == == =
+    //static const Qt::DayOfWeek dayOpenRegisShift = Qt::Sunday;
+    static const int baseSalaryStaff = 25000;
+
+     // Number of staff min and max in specific role. First is Min, Second is Max
     inline static QMap<QString, QPair<short, short>> numberEmployeeOfRoles;
 
     // Rule for full time

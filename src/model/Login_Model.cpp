@@ -38,8 +38,9 @@ QString curAddress = queryProfile.value("address").toString();
 QString curAvatarPath = queryProfile.value("avatarPath").toString();
 QString curGender = queryProfile.value("Gender").toString();
 int curSalary = queryProfile.value("Salary").toInt();
+bool curIsFixed = queryProfile.value("isFixed").toBool();
 
 User *curUser = UserFactory::createContainsUser(curRole, idEmployee, curAvatarPath, curIdIdentity, curName, curDob, curAddress,
-                                                curPhone, curGender, curSalary);
+                                                curPhone, curGender, curSalary, curIsFixed);
 return curUser;
 }

@@ -69,7 +69,12 @@ private:
     void setUpUI();
     QWidget *detailsWidget;
     QLabel *lblShiftDetailTitle;
+    QLabel *lblShiftDetailSubtitle;
+    QLabel *lblShiftDetailCount;
     QTableWidget *tableShiftDetails;
+    QComboBox *managerViewMode = nullptr;
+    QComboBox *managerRoleFilter = nullptr;
+    QMap<int, QMap<int, ShiftBlock *>> m_managerGrid;
     bool m_isManagerMode = false; // guard for redundant polish calls
 
 private slots:
