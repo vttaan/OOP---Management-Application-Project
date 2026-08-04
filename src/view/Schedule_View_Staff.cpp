@@ -378,6 +378,8 @@ void Schedule_View::onFullTimeCellClicked(int row, int col)
 {
   if (!m_isFullTimeMode || row < 0 || row >= 3 || col < 0 || col >= 7)
     return;
+  if (!m_partTimeRegistrationOpen)
+    return;
   if (m_fullTimeStatuses[col][row] == FullTimeShiftStatus::StaffShortage ||
       m_fullTimeStatuses[col][row] == FullTimeShiftStatus::Approved)
     return;
@@ -685,7 +687,18 @@ void Schedule_View::setPartTimeRegistrationState(bool isOpen,
   m_partTimeNextOpenDate = nextOpenDate;
   ui->tableInteractiveGrid->setEnabled(isOpen);
   ui->buttonLuu->setEnabled(isOpen);
-  ui->DangKyLich->setText("ĐĂNG KÝ LỊCH LÀM");
+  if (m_isFullTimeMode)
+  {
+    ui->DangKyLich->setText("ĐĂNG KÝ CA TOÀN THỜI GIAN");
+    if (partTimeInfoWidget)
+      partTimeInfoWidget->setVisible(!isOpen);
+  }
+  else
+  {
+    ui->DangKyLich->setText("ĐĂNG KÝ LỊCH LÀM");
+    if (partTimeInfoWidget)
+      partTimeInfoWidget->setVisible(true);
+  }
   ui->DangKyLich->setStyleSheet(
       "color:#1F2937;font-size:20px;font-weight:700;padding:2px 0 4px 0;");
   ui->tableInteractiveGrid->viewport()->setCursor(

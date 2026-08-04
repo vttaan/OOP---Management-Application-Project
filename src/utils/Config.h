@@ -37,7 +37,7 @@ private:
 
     inline static short guaranteedDaysPerWeek_FT = 0;
 
-    inline static double baseSalaryStaff;
+    //inline static double baseSalaryStaff;
 
 public:
     // ------SETTERS----
