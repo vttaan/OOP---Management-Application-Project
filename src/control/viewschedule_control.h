@@ -37,6 +37,10 @@ private slots:
     void onNextWeek();
     void onCurrentWeek();
     void onShiftClicked(int row, int col);
+    
+    // Manager replace
+    void onShowReplacementsRequested(int oldShiftId, const QString &role);
+    void onConfirmReplacement(int oldShiftId, int newShiftId);
 private:
     QMap<int, QMap<int, ShiftBlock*>> scheduleGrid;
 };

@@ -85,7 +85,7 @@ bool Employee_Model::addEmployee(const QString &role, const QString &avatarPath,
   qProfile.bindValue(":citizen", emp->getIdentityID());
   qProfile.bindValue(":Gender", emp->getGender());
   qProfile.bindValue(":Salary", emp->getBaseSalary());
-  qProfile.bindValue(":isFixed", emp->getIsFixedSalary());
+  qProfile.bindValue(":isFixed", emp->getIsFixedSalary() ? 1 : 0);
   if (!qProfile.exec())
   {
     qDebug() << "Error adding profile" << qProfile.lastError().text();
@@ -144,7 +144,7 @@ bool Employee_Model::updateEmployee(User *emp)
   query.bindValue(":id", emp->getIdEmployee());
   query.bindValue(":gender", emp->getGender());
   query.bindValue(":salary", emp->getBaseSalary());
-  query.bindValue(":isFixed", emp->getIsFixedSalary());
+  query.bindValue(":isFixed", emp->getIsFixedSalary() ? 1 : 0);
 
   if (!query.exec())
   {

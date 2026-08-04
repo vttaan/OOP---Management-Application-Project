@@ -4,6 +4,12 @@
 #include "core/User.h"
 #include "core/Shift.h"
 
+#include "utils/ScheduleDTOs.h"
+#include <QDialog>
+#include <QVBoxLayout>
+#include <QLabel>
+#include <QPushButton>
+
 ViewSchedule_View::ViewSchedule_View(QWidget *parent) : QWidget(parent),
                                                         ui(new Ui::ViewSchedule_View)
 {
@@ -157,13 +163,15 @@ void ViewSchedule_View::setUpUI()
     detailHeader->addWidget(lblShiftDetailCount, 0, Qt::AlignVCenter);
 
     tableShiftDetails = new QTableWidget(detailsWidget);
-    tableShiftDetails->setColumnCount(4);
+    tableShiftDetails->setColumnCount(5);
     tableShiftDetails->setHorizontalHeaderLabels(
-        {"NHÂN VIÊN", "VAI TRÒ", "LIÊN HỆ", "GIỜ LÀM"});
+        {"NHÂN VIÊN", "VAI TRÒ", "LIÊN HỆ", "GIỜ LÀM", "HÀNH ĐỘNG"});
     tableShiftDetails->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
     tableShiftDetails->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
     tableShiftDetails->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
     tableShiftDetails->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
+    tableShiftDetails->horizontalHeader()->setSectionResizeMode(4, QHeaderView::ResizeToContents);
+
     tableShiftDetails->horizontalHeader()->setMinimumSectionSize(120);
     tableShiftDetails->horizontalHeader()->setFixedHeight(38);
     tableShiftDetails->verticalHeader()->setVisible(false);
@@ -475,7 +483,7 @@ void ViewSchedule_View::highlightToday(int currentDayIndex)
     }
 }
 
-void ViewSchedule_View::updateShiftDetails(const QList<User *> &employees, const QString &timeLabel)
+void ViewSchedule_View::updateShiftDetails(const QList<User *> &employees, const QList<int>& shiftIds, const QString &timeLabel)
 {
     QString selectedRole;
     switch (managerRoleFilter ? managerRoleFilter->currentIndex() : 0)
@@ -578,11 +586,11 @@ void ViewSchedule_View::updateShiftDetails(const QList<User *> &employees, const
     }
 }
 
-void ViewSchedule_View::updateShiftDetails(const QList<User *> &employees, const QString &timeLabel,
+void ViewSchedule_View::updateShiftDetails(const QList<User *> &employees, const QList<int>& shiftIds, const QString &timeLabel,
                                            const QMap<int, QString> &employeeTimes)
 {
-    // Populate rows the same way then overwrite the working-time column.
-    updateShiftDetails(employees, timeLabel);
+    // Populate rows the same way then overwrite column 4 with actual times
+    updateShiftDetails(employees, shiftIds, timeLabel);
 
     for (int i = 0; i < tableShiftDetails->rowCount(); ++i)
     {
@@ -597,6 +605,7 @@ void ViewSchedule_View::updateShiftDetails(const QList<User *> &employees, const
             QFont f = timeItem->font();
             f.setBold(true);
             timeItem->setFont(f);
+            //tableShiftDetails->setItem(i, 4, timeItem);
             tableShiftDetails->setItem(i, 3, timeItem);
         }
     }
@@ -665,3 +674,104 @@ void ViewSchedule_View::setManagerFeaturesVisible(bool visible)
 void ViewSchedule_View::onBtnPrevClicked() { emit requestPrevWeek(); }
 void ViewSchedule_View::onBtnNextClicked() { emit requestNextWeek(); }
 void ViewSchedule_View::onBtnCurrentClicked() { emit requestCurrentWeek(); }
+
+void ViewSchedule_View::showReplacementDialog(int oldShiftId, const QList<PendingShiftInfo> &replacements)
+{
+    QDialog *dlg = new QDialog(this);
+    dlg->setWindowTitle("Thay thế nhân viên");
+    dlg->setMinimumWidth(600);
+    dlg->setMinimumHeight(400);
+    dlg->setStyleSheet("QDialog { background-color: #F8FAFC; }");
+
+    QVBoxLayout *mainLayout = new QVBoxLayout(dlg);
+    mainLayout->setContentsMargins(18, 18, 18, 18);
+    mainLayout->setSpacing(12);
+
+    QLabel *title = new QLabel("CHỌN NHÂN VIÊN THAY THẾ", dlg);
+    title->setStyleSheet("font-size: 14px; font-weight: bold; color: #1F2937;");
+    mainLayout->addWidget(title);
+
+    if (replacements.isEmpty()) {
+        QLabel *lblEmpty = new QLabel("Không có nhân viên nào phù hợp (bị từ chối) trong cùng khung giờ.", dlg);
+        lblEmpty->setStyleSheet("color: #6B7280; font-style: italic;");
+        mainLayout->addWidget(lblEmpty);
+        
+        QPushButton *btnClose = new QPushButton("Đóng", dlg);
+        btnClose->setStyleSheet(
+            "QPushButton { background-color: #E5E7EB; color: #374151; "
+            "border-radius: 4px; padding: 6px 12px; font-weight: bold; } "
+            "QPushButton:hover { background-color: #D1D5DB; }");
+        connect(btnClose, &QPushButton::clicked, dlg, &QDialog::accept);
+        mainLayout->addWidget(btnClose, 0, Qt::AlignRight);
+        
+        dlg->exec();
+        dlg->deleteLater();
+        return;
+    }
+
+    QTableWidget *tbl = new QTableWidget(replacements.size(), 3, dlg);
+    tbl->setHorizontalHeaderLabels({"ID", "TÊN NHÂN VIÊN", "HÀNH ĐỘNG"});
+    tbl->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    tbl->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+    tbl->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+    tbl->setSelectionMode(QAbstractItemView::NoSelection);
+    tbl->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    tbl->setFocusPolicy(Qt::NoFocus);
+    tbl->setAlternatingRowColors(true);
+    tbl->verticalHeader()->setVisible(false);
+    tbl->setStyleSheet(
+        "QTableWidget { background-color: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px; }"
+        "QHeaderView::section { background-color: #2F80ED; color: white; font-weight: bold; padding: 7px; border: none; }"
+        "QTableWidget::item { padding: 6px; color: #1F2937; }"
+        "QTableWidget::item:alternate { background-color: #F0F9FF; }");
+
+    auto makeItem = [](const QString &text) -> QTableWidgetItem * {
+        QTableWidgetItem *item = new QTableWidgetItem(text);
+        item->setTextAlignment(Qt::AlignCenter);
+        item->setForeground(QBrush(QColor(0x1F, 0x29, 0x37)));
+        QFont f = item->font();
+        f.setBold(true);
+        item->setFont(f);
+        return item;
+    };
+
+    for (int i = 0; i < replacements.size(); ++i) {
+        const PendingShiftInfo &info = replacements[i];
+        
+        tbl->setRowHeight(i, 42);
+        tbl->setItem(i, 0, makeItem(QString::number(info.employeeId)));
+        tbl->setItem(i, 1, makeItem(info.employeeName));
+        
+        QWidget *actionCell = new QWidget();
+        QHBoxLayout *actionLayout = new QHBoxLayout(actionCell);
+        actionLayout->setContentsMargins(4, 2, 4, 2);
+        
+        QPushButton *btnSelect = new QPushButton("Chọn", actionCell);
+        btnSelect->setStyleSheet(
+            "QPushButton { background-color: #219653; color: white; border-radius: 4px; "
+            "padding: 4px 12px; font-weight: bold; font-size: 11px; } "
+            "QPushButton:hover { background-color: #1E824C; }");
+            
+        int newShiftId = info.shiftId;
+        connect(btnSelect, &QPushButton::clicked, this, [this, oldShiftId, newShiftId, dlg]() {
+            emit requestConfirmReplacement(oldShiftId, newShiftId);
+            dlg->accept();
+        });
+        
+        actionLayout->addWidget(btnSelect);
+        tbl->setCellWidget(i, 2, actionCell);
+    }
+
+    mainLayout->addWidget(tbl);
+
+    QPushButton *btnClose = new QPushButton("Hủy", dlg);
+    btnClose->setStyleSheet(
+        "QPushButton { background-color: #E5E7EB; color: #374151; "
+        "border-radius: 4px; padding: 6px 12px; font-weight: bold; } "
+        "QPushButton:hover { background-color: #D1D5DB; }");
+    connect(btnClose, &QPushButton::clicked, dlg, &QDialog::reject);
+    mainLayout->addWidget(btnClose, 0, Qt::AlignRight);
+
+    dlg->exec();
+    dlg->deleteLater();
+}

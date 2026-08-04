@@ -359,7 +359,7 @@ QMap<int, QMap<int, ShiftBlock *>> Schedule_Model::getManagerWeeklyGrid(QDate mo
     QSqlDatabase openData = Database::getInstance()->getDbConnect();
     QSqlQuery query(openData);
 
-    query.prepare("SELECT S.*, P.* FROM SHIFT S "
+    query.prepare("SELECT S.rowid AS shiftId, S.*, P.* FROM SHIFT S "
                   "JOIN PROFILES P ON S.idEmployee = P.idEmployee "
                   "WHERE S.status = :status AND S.workDate BETWEEN :start AND :end");
     query.bindValue(":status", status);
@@ -397,13 +397,16 @@ QMap<int, QMap<int, ShiftBlock *>> Schedule_Model::getManagerWeeklyGrid(QDate mo
         int col = monday.daysTo(workDate);
         if (col >= 0 && col < 7)
         {
+            int shiftId = query.value("shiftId").toInt();
             // Map the staff member's flexible hours into every canonical shift
             // they overlap. A shift of 09:00-14:00 will appear in both
             // Sáng (08-12) and Chiều (13-17), matching real business logic.
             for (int row = 0; row < 3; ++row)
             {
                 if (overlapsBlock(startTime, endTime, SHIFT_STARTS[row], SHIFT_ENDS[row]))
-                    grid[col][row]->addStaff(user);
+                {
+                    grid[col][row]->addStaff(user, shiftId);
+                }
             }
         }
     }
@@ -1158,4 +1161,78 @@ bool Schedule_Model::declineShift(int shiftId)
     q.prepare("UPDATE SHIFT SET status = -1 WHERE rowid = :id");
     q.bindValue(":id", shiftId);
     return q.exec();
+}
+
+QList<PendingShiftInfo> Schedule_Model::getEligibleReplacements(int oldShiftId, const QString &role)
+{
+    QList<PendingShiftInfo> list;
+
+    // 1. Get original shift details
+    QSqlQuery q(Database::getInstance()->getDbConnect());
+    q.prepare("SELECT workDate, startTime, endTime FROM SHIFT WHERE rowid = :id");
+    q.bindValue(":id", oldShiftId);
+    if (!q.exec() || !q.next())
+        return list;
+
+    QDate workDate = q.value(0).toDate();
+    QTime startTime = q.value(1).toTime();
+    QTime endTime = q.value(2).toTime();
+
+    // 2. Find eligible replacements (status = -1 as requested)
+    QSqlQuery rq(Database::getInstance()->getDbConnect());
+    rq.prepare("SELECT S.rowid, S.idEmployee, S.startTime, S.endTime, S.status, "
+               "       P.name, P.role "
+               "FROM SHIFT S "
+               "JOIN PROFILES P ON S.idEmployee = P.idEmployee "
+               "WHERE S.workDate = :date AND S.status = -1 AND P.role = :role");
+    rq.bindValue(":date", workDate);
+    rq.bindValue(":role", role);
+    if (!rq.exec())
+        return list;
+
+    while (rq.next())
+    {
+        QTime sTime = rq.value(2).toTime();
+        QTime eTime = rq.value(3).toTime();
+        
+        // We consider it a replacement if the pending shift overlaps the original shift's block
+        if (!overlapsBlock(sTime, eTime, startTime, endTime))
+            continue;
+
+        PendingShiftInfo info;
+        info.shiftId = rq.value(0).toInt();
+        info.employeeId = rq.value(1).toInt();
+        info.startTime = sTime;
+        info.endTime = eTime;
+        info.status = static_cast<short>(rq.value(4).toInt());
+        info.employeeName = rq.value(5).toString();
+        info.role = rq.value(6).toString();
+        list.append(info);
+    }
+
+    return list;
+}
+
+bool Schedule_Model::replaceShift(int oldShiftId, int newShiftId)
+{
+    auto db = Database::getInstance()->getDbConnect();
+    db.transaction();
+    
+    QSqlQuery q1(db);
+    q1.prepare("UPDATE SHIFT SET status = -1 WHERE rowid = :id");
+    q1.bindValue(":id", oldShiftId);
+    if (!q1.exec()) {
+        db.rollback();
+        return false;
+    }
+    
+    QSqlQuery q2(db);
+    q2.prepare("UPDATE SHIFT SET status = 1 WHERE rowid = :id");
+    q2.bindValue(":id", newShiftId);
+    if (!q2.exec()) {
+        db.rollback();
+        return false;
+    }
+    
+    return db.commit();
 }

@@ -58,19 +58,35 @@ Profile_View::~Profile_View()
 }
 
 void Profile_View::loadUserData(SessionManager* currentSession) {
+    if (!this->getController() || !this->getController()->getUser()) return;
 
-    qDebug() << this->getController()->getUser()->getName();
-    ui->lblProfileName->setText(this->getController()->getUser()->getName());
-    if (this->getController()->getUser()->getRole() == "Manager") ui->lblProfileRole->setText("Quản lý");
-    else if (this->getController()->getUser()->getRole() == "Staff") ui->lblProfileRole->setText("Nhân viên");
-    ui->lblVal_Id->setText(QString::number(this->getController()->getUser()->getIdEmployee()));
-    ui->lblVal_DoB->setText(this->getController()->getUser()->getDOB());
-    ui->lblVal_Address->setText(this->getController()->getUser()->getAddress());
-    ui->lblVal_CitizenID->setText(this->getController()->getUser()->getIdentityID());
-    ui->lblVal_Phone->setText(this->getController()->getUser()->getPhoneNum());
-    setupAvatar(this->getController()->getUser()->getAvatarPath());
-    //ui->lblVal_Email->setText(this->getController()->getUser()->g());
-    ui->lblVal_Gender->setText(this->getController()->getUser()->getGender());
+    User* user = this->getController()->getUser();
+    ui->lblProfileName->setText(user->getName());
+
+    QString roleStr = user->getRole();
+    QString rUpper = roleStr.toUpper();
+    QString roleDisplay;
+    if (rUpper.contains("CASHIER") || rUpper.contains("THU NGÂN")) {
+        roleDisplay = "Thu ngân";
+    } else if (rUpper.contains("HALL") || rUpper.contains("SẢNH")) {
+        roleDisplay = "Nhân viên sảnh";
+    } else if (rUpper.contains("KITCHEN") || rUpper.contains("PHỤ BẾP") || rUpper.contains("BEP")) {
+        roleDisplay = "Phụ bếp";
+    } else if (rUpper.contains("MANAGER") || rUpper.contains("MANAGE") || rUpper.contains("ADMIN") || rUpper.contains("QUẢN LÝ")) {
+        roleDisplay = "Quản lý";
+    } else {
+        roleDisplay = "Nhân viên";
+    }
+    QString typeEmployee = (user->getIsFixedEmployee()) ? " toàn thời gian" : " bán thời gian";
+    ui->lblProfileRole->setText(roleDisplay + typeEmployee);
+
+    ui->lblVal_Id->setText(QString::number(user->getIdEmployee()));
+    ui->lblVal_DoB->setText(user->getDOB());
+    ui->lblVal_Address->setText(user->getAddress());
+    ui->lblVal_CitizenID->setText(user->getIdentityID());
+    ui->lblVal_Phone->setText(user->getPhoneNum());
+    setupAvatar(user->getAvatarPath());
+    ui->lblVal_Gender->setText(user->getGender());
 }
 
 void Profile_View::setupAvatar(const QString& imagePath)
