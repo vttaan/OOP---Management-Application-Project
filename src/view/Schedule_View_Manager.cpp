@@ -71,9 +71,9 @@ void Schedule_View::setManagerMode(bool isManager)
     ui->btnConfirm->setText("Xem lại & công bố");
     ui->XacNhanLich->setVisible(true);
     ui->frameTableContainer->setVisible(true);
-    ui->XacNhanLich->setText("<html><head/><body><p><span style=\" "
-                             "font-size:12pt; font-weight:700;\">TỔNG KẾT YÊU "
-                             "CẦU ĐĂNG KÝ TRONG TUẦN</span></p></body></html>");
+    ui->XacNhanLich->setText("TỔNG KẾT YÊU CẦU ĐĂNG KÝ TRONG TUẦN");
+    ui->XacNhanLich->setStyleSheet(
+        "color:#1F2937;font-size:18px;font-weight:700;padding:2px 0 4px 0;");
 
     // 3-shift manager grid
     ui->tableSum->setRowCount(3);
@@ -268,6 +268,8 @@ void Schedule_View::updateAssignGrid(
                                                              : "Đã đủ");
       QFrame *compactCard = new QFrame(ui->tableSum);
       compactCard->setAttribute(Qt::WA_TransparentForMouseEvents);
+      compactCard->setMinimumSize(0, 0);
+      compactCard->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
       compactCard->setStyleSheet(
           QString("QFrame { background:%1;border:%3px solid %2;border-radius:8px; }")
               .arg(compactBg, compactBorder).arg(isSelected ? 2 : 1));
@@ -279,6 +281,9 @@ void Schedule_View::updateAssignGrid(
       QLabel *ratioLabel = new QLabel(
           QString("%1 / %2 nhân viên").arg(bc.accepted).arg(bc.required), compactCard);
       ratioLabel->setAlignment(Qt::AlignCenter);
+      ratioLabel->setWordWrap(true);
+      ratioLabel->setMinimumWidth(0);
+      ratioLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
       ratioLabel->setStyleSheet("border:none;background:transparent;color:#334155;font-size:13px;font-weight:700;");
 
       QProgressBar *progress = new QProgressBar(compactCard);
