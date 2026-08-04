@@ -58,7 +58,6 @@ private:
 
     // --- Widget Factories ---
     QLabel      *createAvatar(const QString &avatarPath);
-    QLabel      *createStatusBadge(const QString &status);
     QLabel      *createRoleBadge(const QString &role);
     QLabel      *createPayTypeBadge(const QString &payType);
     QPushButton *createActionButton(const QString &iconPath, const QString &tooltip);
@@ -68,7 +67,9 @@ private:
 
     // --- Filter Dropdown (floating overlay, child of Employee_View) ---
     QFrame    *filterDropdown;
-    QCheckBox *chkStaff;
+    QCheckBox *chkCashier;
+    QCheckBox *chkHallStaff;
+    QCheckBox *chkKitchenAssistant;
     QCheckBox *chkManager;
     QCheckBox *chkAdmin;
     QCheckBox *chkMale;

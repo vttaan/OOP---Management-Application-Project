@@ -36,5 +36,8 @@
         <file>images/up-arrow.svg</file>
         <file>images/down-arrow.svg</file>
         <file>images/replace-svgrepo-com.svg</file>
+        <file>images/calendar-icon.svg</file>
+        <file>images/chevron-up-white.svg</file>
+        <file>images/chevron-down-white.svg</file>
     </qresource>
 </RCC>

@@ -40,8 +40,8 @@ SalaryData Salary_Model::getSalarySummary(short int id, QString role, double bas
         
         data.normalHours = normalDays.size();
         data.holidayHours = holidayDays.size();
-        data.normalSalary = data.normalHours * base;
-        data.holidaySalary = data.holidayHours * base * 2;
+        data.normalSalary = base;
+        data.holidaySalary = 0;
         data.penalty = absentDays * PENALTY;
 
         data.totalSalary = data.normalSalary + data.holidaySalary - data.penalty;

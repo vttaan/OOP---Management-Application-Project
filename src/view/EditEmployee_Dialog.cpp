@@ -1,6 +1,27 @@
 #include "global.h"
 #include "EditEmployee_Dialog.h"
 #include <functional>
+#include <QEvent>
+
+namespace {
+    class CalendarEventFilterEdit : public QObject {
+    public:
+        CalendarEventFilterEdit(QDateEdit* de, QObject* parent = nullptr) : QObject(parent), m_dateEdit(de) {}
+    protected:
+        bool eventFilter(QObject* obj, QEvent* event) override {
+            if (event->type() == QEvent::Show) {
+                if (m_dateEdit->date() == QDate(1900, 1, 1)) {
+                    QCalendarWidget* cal = qobject_cast<QCalendarWidget*>(obj);
+                    if (cal) cal->setCurrentPage(2000, 1);
+                }
+            }
+            return QObject::eventFilter(obj, event);
+        }
+    private:
+        QDateEdit* m_dateEdit;
+    };
+}
+
 EditEmployee_Dialog::EditEmployee_Dialog(User *emp, QWidget *parent)
     : QDialog(parent)
 {
@@ -56,7 +77,66 @@ void EditEmployee_Dialog::setupUi(User *emp)
 
     inpName      = makeInput("vd: Nguyễn Văn A",          emp ? emp->getName()        : "");
     inpPhone     = makeInput("vd: 0901234567",             emp ? emp->getPhoneNum()    : "");
-    inpDob       = makeInput("DD-MM-YYYY",                 emp ? emp->getDOB()         : "");
+
+    inpDob = new QDateEdit();
+    inpDob->setCalendarPopup(true);
+    inpDob->setDisplayFormat("yyyy-MM-dd");
+    inpDob->setMinimumDate(QDate(1900, 1, 1));
+    inpDob->setMaximumDate(QDate::currentDate());
+    inpDob->setSpecialValueText("----/--/--");
+    inpDob->setMinimumHeight(32);
+    inpDob->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+    // Prevent manual text input, force using the calendar
+    QLineEdit *leDob = inpDob->findChild<QLineEdit*>();
+    if (leDob) leDob->setReadOnly(true);
+
+    // Make the calendar year a spinbox without manual text input
+    if (QCalendarWidget *cal = inpDob->calendarWidget()) {
+        cal->setMinimumWidth(350); // Provide enough width for "Tháng Mười Một"
+        if (QSpinBox *yearSpin = cal->findChild<QSpinBox*>()) {
+            yearSpin->setReadOnly(true);
+        }
+        cal->installEventFilter(new CalendarEventFilterEdit(inpDob, cal));
+
+        // Add year navigation buttons to the calendar navigation bar
+        QWidget *navBar = cal->findChild<QWidget*>("qt_calendar_navigationbar");
+        if (navBar) {
+            QHBoxLayout *navLayout = qobject_cast<QHBoxLayout*>(navBar->layout());
+            if (navLayout) {
+                QToolButton *prevYearBtn = new QToolButton(navBar);
+                prevYearBtn->setText(QString::fromUtf8("\u00AB"));
+                prevYearBtn->setAutoRaise(true);
+                prevYearBtn->setFixedSize(28, 28);
+                connect(prevYearBtn, &QToolButton::clicked, cal, [cal]() {
+                    cal->showPreviousYear();
+                });
+
+                QToolButton *nextYearBtn = new QToolButton(navBar);
+                nextYearBtn->setText(QString::fromUtf8("\u00BB"));
+                nextYearBtn->setAutoRaise(true);
+                nextYearBtn->setFixedSize(28, 28);
+                connect(nextYearBtn, &QToolButton::clicked, cal, [cal]() {
+                    cal->showNextYear();
+                });
+
+                navLayout->insertWidget(0, prevYearBtn);
+                navLayout->addWidget(nextYearBtn);
+            }
+        }
+    }
+    if (emp && !emp->getDOB().isEmpty()) {
+        inpDob->setDate(QDate::fromString(emp->getDOB(), "yyyy-MM-dd"));
+        inpDob->setProperty("dateSelected", true);
+    } else {
+        inpDob->setDate(QDate(1900, 1, 1));
+        inpDob->setProperty("dateSelected", false);
+    }
+
+    connect(inpDob, &QDateEdit::dateChanged, this, [this]() {
+        inpDob->setProperty("dateSelected", true);
+    });
+
     inpAddress   = makeInput("vd: 123 Lê Lợi, TP.HCM",   emp ? emp->getAddress()     : "");
     inpCitizenId = makeInput("vd: 012345678901",           emp ? emp->getIdentityID() : "");
 
@@ -64,6 +144,12 @@ void EditEmployee_Dialog::setupUi(User *emp)
     cmbRole->addItem("Thu ngân");
     cmbRole->addItem("Nhân viên sảnh");
     cmbRole->addItem("Phụ bếp");
+    if (emp) {
+        if (emp->getRole() == "Manager") {
+            cmbRole->addItem("Quản lý");
+            cmbRole->setEnabled(false);
+        }
+    }
     cmbRole->setMinimumHeight(32);
 
     cmbGender = new QComboBox();
@@ -76,7 +162,12 @@ void EditEmployee_Dialog::setupUi(User *emp)
     cmbIsFixedSalary->addItem("Bán thời gian (Theo giờ)");
     cmbIsFixedSalary->setMinimumHeight(32);
 
-    inpSalary = makeInput("vd: 20000", emp ? QString::number(emp->getSalary()) : "");
+    cmbStatus = new QComboBox();
+    cmbStatus->addItem("Đang làm");
+    cmbStatus->addItem("Hoãn làm");
+    cmbStatus->setMinimumHeight(32);
+
+    inpSalary = makeInput("vd: 20000", emp ? QString::number(emp->getBaseSalary()) : "");
 
     if (emp) {
         // Map English role to Vietnamese display text
@@ -97,6 +188,9 @@ void EditEmployee_Dialog::setupUi(User *emp)
 
         if (emp->getIsFixedEmployee()) cmbIsFixedSalary->setCurrentIndex(0);
         else cmbIsFixedSalary->setCurrentIndex(1);
+
+        if (emp->getStatus() == "suspended") cmbStatus->setCurrentIndex(1);
+        else cmbStatus->setCurrentIndex(0);
     }
 
     //AVATAR UPLOAD SECTION
@@ -181,6 +275,7 @@ void EditEmployee_Dialog::setupUi(User *emp)
     form->addRow(makeLabel("Địa chỉ"),        inpAddress);
     form->addRow(makeLabel("CCCD / CMND"),    inpCitizenId);
     form->addRow(makeLabel("Loại lương *"),   cmbIsFixedSalary);
+    form->addRow(makeLabel("Trạng thái *"),   cmbStatus);
     form->addRow(makeLabel("Lương(VNĐ) *"),   inpSalary);
 
     mainLayout->addLayout(form);
@@ -251,9 +346,11 @@ QString EditEmployee_Dialog::getGender()      const {
 }
 
 QString EditEmployee_Dialog::getPhone()     const { return inpPhone->text().trimmed(); }
-QString EditEmployee_Dialog::getDob()       const { return inpDob->text().trimmed(); }
+bool EditEmployee_Dialog::isDobSelected()   const { return inpDob->property("dateSelected").toBool(); }
+QString EditEmployee_Dialog::getDob()       const { return inpDob->date().toString("yyyy-MM-dd"); }
 QString EditEmployee_Dialog::getAddress()   const { return inpAddress->text().trimmed(); }
 QString EditEmployee_Dialog::getCitizenId() const { return inpCitizenId->text().trimmed(); }
 QString EditEmployee_Dialog::getAvatarPath() const { return m_avatarPath; }
 int EditEmployee_Dialog::getSalary() const { return inpSalary->text().trimmed().toInt(); }
 bool EditEmployee_Dialog::getIsFixedSalary() const { return cmbIsFixedSalary->currentIndex() == 0; }
+QString EditEmployee_Dialog::getStatus() const { return cmbStatus->currentIndex() == 0 ? "active" : "suspended"; }

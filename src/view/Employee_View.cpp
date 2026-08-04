@@ -4,6 +4,7 @@
 #include "AddEmployee_Dialog.h"
 #include "EditEmployee_Dialog.h"
 #include "EmployeeDetails_Dialog.h"
+#include "utils/SessionManage.h"
 
 #include <QMenu>
 
@@ -84,10 +85,14 @@ void Employee_View::buildFilterDropdown()
   lblRole->setObjectName("filterSectionLabel");
   layout->addWidget(lblRole);
 
-  chkStaff = new QCheckBox("Nhân viên");
+  chkCashier = new QCheckBox("Thu ngân");
+  chkHallStaff = new QCheckBox("Nhân viên sảnh");
+  chkKitchenAssistant = new QCheckBox("Phụ bếp");
   chkManager = new QCheckBox("Quản lý");
   chkAdmin = new QCheckBox("Quản trị viên");
-  layout->addWidget(chkStaff);
+  layout->addWidget(chkCashier);
+  layout->addWidget(chkHallStaff);
+  layout->addWidget(chkKitchenAssistant);
   layout->addWidget(chkManager);
   layout->addWidget(chkAdmin);
 
@@ -179,7 +184,11 @@ void Employee_View::setupConnections()
           &Employee_View::toggleFilterDropdown);
 
   // Filter checkboxes — emit combined update on any change
-  connect(chkStaff, &QCheckBox::checkStateChanged, this,
+  connect(chkCashier, &QCheckBox::checkStateChanged, this,
+          &Employee_View::emitUpdateRequest);
+  connect(chkHallStaff, &QCheckBox::checkStateChanged, this,
+          &Employee_View::emitUpdateRequest);
+  connect(chkKitchenAssistant, &QCheckBox::checkStateChanged, this,
           &Employee_View::emitUpdateRequest);
   connect(chkManager, &QCheckBox::checkStateChanged, this,
           &Employee_View::emitUpdateRequest);
@@ -223,18 +232,11 @@ void Employee_View::renderTable(const QList<User *> &employees)
   // ---- Dynamic subtitle & footer ----
   int total = m_allEmployees.size();
   int shown = employees.size();
-  // Placeholder counts (no status field yet — treat all as active)
-  int active = total;
-  int absent = 0;
-  int pending = 0;
-
   ui->rosterSubtitle->setText(QString("Tổng cộng %1 nhân viên").arg(total));
   ui->footerLabel->setText(
-      QString("Hiển thị %1 nhân viên  ·  %2 đang làm, %3 vắng, %4 chờ duyệt")
+      QString("Hiển thị %1 / %2 nhân viên")
           .arg(shown)
-          .arg(active)
-          .arg(absent)
-          .arg(pending));
+          .arg(total));
 
   for (int row = 0; row < employees.size(); ++row)
   {
@@ -303,17 +305,39 @@ void Employee_View::renderTable(const QList<User *> &employees)
     rateItem->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     ui->employeesTable->setItem(row, 4, rateItem);
 
-    // Col 5 — Status badge
+    // Col 5 — Phone number
+    QTableWidgetItem *phoneItem = new QTableWidgetItem(emp->getPhoneNum());
+    phoneItem->setForeground(QColor(0x334155));
+    phoneItem->setFont(QFont("Segoe UI", 9));
+    phoneItem->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    ui->employeesTable->setItem(row, 5, phoneItem);
+
+    // Col 6 — Status badge
+    QString statusText;
+    QString badgeStyle;
+    if (emp->getStatus() == "suspended") {
+        statusText = "Hoãn làm";
+        badgeStyle = "background-color:#FEF3C7;color:#D97706;border-radius:12px;"
+                     "font-size:11px;font-weight:bold;padding:2px 10px;";
+    } else {
+        statusText = "Đang làm";
+        badgeStyle = "background-color:#DCFCE7;color:#15803D;border-radius:12px;"
+                     "font-size:11px;font-weight:bold;padding:2px 10px;";
+    }
     QWidget *statusWidget = new QWidget();
     statusWidget->setContentsMargins(0, 0, 0, 0);
     QHBoxLayout *statusLayout = new QHBoxLayout(statusWidget);
     statusLayout->setContentsMargins(0, 4, 4, 4);
     statusLayout->setSpacing(0);
-    statusLayout->addWidget(createStatusBadge("Đang làm"), 0,
-                            Qt::AlignLeft | Qt::AlignVCenter);
-    ui->employeesTable->setCellWidget(row, 5, statusWidget);
+    QLabel *statusBadge = new QLabel(statusText);
+    statusBadge->setAlignment(Qt::AlignCenter);
+    statusBadge->setFixedHeight(24);
+    statusBadge->setMinimumWidth(80);
+    statusBadge->setStyleSheet(badgeStyle);
+    statusLayout->addWidget(statusBadge, 0, Qt::AlignLeft | Qt::AlignVCenter);
+    ui->employeesTable->setCellWidget(row, 6, statusWidget);
 
-    // Col 6 — Actions
+    // Col 7 — Actions
     int empId = emp->getIdEmployee();
     QWidget *actionsWidget = new QWidget();
     QHBoxLayout *actionsLayout = new QHBoxLayout(actionsWidget);
@@ -332,10 +356,24 @@ void Employee_View::renderTable(const QList<User *> &employees)
             [this, empId]()
             { emit requestDeleteEmployee(empId); });
 
-    actionsLayout->addWidget(editBtn);
-    actionsLayout->addWidget(delBtn);
+    bool isOtherManager = false;
+    User* currentUser = SessionManager::getInstance()->getCurrentUser();
+    if (currentUser) {
+        if ((emp->getRole() == "Manager" || emp->getRole() == "Admin") && 
+            emp->getIdEmployee() != currentUser->getIdEmployee()) {
+            isOtherManager = true;
+        }
+    }
+
+    if (!isOtherManager) {
+        actionsLayout->addWidget(editBtn);
+        actionsLayout->addWidget(delBtn);
+    } else {
+        editBtn->setVisible(false);
+        delBtn->setVisible(false);
+    }
     actionsLayout->addStretch();
-    ui->employeesTable->setCellWidget(row, 6, actionsWidget);
+    ui->employeesTable->setCellWidget(row, 7, actionsWidget);
   }
 }
 
@@ -362,8 +400,12 @@ void Employee_View::emitUpdateRequest()
   QString searchText = ui->searchRoster->text();
 
   QList<QString> contentFilter;
-  if (chkStaff->isChecked())
-    contentFilter << "Staff";
+  if (chkCashier->isChecked())
+    contentFilter << "Cashier";
+  if (chkHallStaff->isChecked())
+    contentFilter << "HallStaff";
+  if (chkKitchenAssistant->isChecked())
+    contentFilter << "KitchenAssistant";
   if (chkManager->isChecked())
     contentFilter << "Manager";
   if (chkAdmin->isChecked())
@@ -501,27 +543,7 @@ QLabel *Employee_View::createAvatar(const QString &avatarPath)
 }
 
 
-QLabel *Employee_View::createStatusBadge(const QString &status)
-{
-  QLabel *badge = new QLabel(status);
-  badge->setAlignment(Qt::AlignCenter);
-  badge->setFixedHeight(24);
-  badge->setMinimumWidth(80);
 
-  QString style;
-  if (status == "Đang làm" || status == "Active")
-    style = "background-color:#DCFCE7;color:#15803D;border-radius:12px;"
-            "font-size:11px;font-weight:bold;padding:2px 10px;";
-  else if (status == "Vắng" || status == "Absent")
-    style = "background-color:#FEE2E2;color:#DC2626;border-radius:12px;"
-            "font-size:11px;font-weight:bold;padding:2px 10px;";
-  else
-    style = "background-color:#FEF3C7;color:#D97706;border-radius:12px;"
-            "font-size:11px;font-weight:bold;padding:2px 10px;";
-
-  badge->setStyleSheet(style);
-  return badge;
-}
 
 QLabel *Employee_View::createRoleBadge(const QString &role)
 {

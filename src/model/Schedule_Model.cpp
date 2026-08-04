@@ -503,7 +503,7 @@ Schedule_Model::fetchAllEmployeeInfos(const QDate &weekStart)
         qDeleteAll(currentWeeklyUsers);
         currentWeeklyUsers.clear();
         QSqlQuery q(Database::getInstance()->getDbConnect());
-        q.prepare("SELECT * FROM PROFILES");
+        q.prepare("SELECT * FROM PROFILES WHERE status != 'suspended' OR status IS NULL");
         if (q.exec())
         {
             while (q.next())

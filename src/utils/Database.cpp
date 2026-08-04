@@ -13,6 +13,8 @@ Database::Database() {
         qDebug() << "ERROR CAN NOT OPEN DATABASE\n";
     } else {
         qDebug() << "OPEN DATABASE SUCCESS\n";
+        QSqlQuery alterQuery(dbConnect);
+        alterQuery.exec("ALTER TABLE PROFILES ADD COLUMN status TEXT DEFAULT 'active'");
     }
 }
 

@@ -26,6 +26,8 @@ public:
     void updateNextShiftPanel(const QList<ShiftEmployeeInfo>& entries);
 
 
+    void updateAbsentPanel(const QList<ShiftEmployeeInfo>& list);
+
     // Panel 3 - chart with VND tooltip support
     void updateSalaryChart(const QVector<double>& lastYear, const QVector<double>& thisYear,
                            int lastYearEmpCount, int thisYearEmpCount,
@@ -45,6 +47,7 @@ private:
     Dashboard_Control  *controller;
 
     QVBoxLayout* m_nextShiftLayout  = nullptr;
+    QVBoxLayout* m_absentLayout     = nullptr;
     QLabel*      m_lblLastYearCount = nullptr;
     QLabel*      m_lblThisYearCount = nullptr;
     QLabel*      m_tooltipLabel     = nullptr;   // Hover tooltip for chart bars

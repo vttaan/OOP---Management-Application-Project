@@ -20,7 +20,7 @@ int Employee_Model::getNextId(const QString& role) {
     }
 
     if (query.exec() && query.next()) {
-        QVariant v = query.value("MaxID");
+        QVariant v = query.value(0);
         if (!v.isNull()) {
             newId = std::max(newId, v.toInt());
         }
@@ -132,7 +132,8 @@ bool Employee_Model::updateEmployee(User *emp)
   query.prepare("UPDATE PROFILES SET role = :role, name = :name, phoneNum = "
                 ":phone, dob = :dob, "
                 "address = :address, avatarPath = :avatar, IdCitizenIdentity "
-                "= :citizen, Gender = :gender, Salary = :salary, isFixed = :isFixed "
+                "= :citizen, Gender = :gender, Salary = :salary, isFixed = :isFixed, "
+                "status = :status "
                 "WHERE idEmployee = :id");
   query.bindValue(":role", emp->getRole());
   query.bindValue(":name", emp->getName());
@@ -145,6 +146,7 @@ bool Employee_Model::updateEmployee(User *emp)
   query.bindValue(":gender", emp->getGender());
   query.bindValue(":salary", emp->getBaseSalary());
   query.bindValue(":isFixed", emp->getIsFixedSalary() ? 1 : 0);
+  query.bindValue(":status", emp->getStatus());
 
   if (!query.exec())
   {
@@ -266,9 +268,12 @@ void Employee_Model::loadData()
     QString curGender = query.value("Gender").toString();
     int curSalary = query.value("Salary").toInt();
     bool curIsFixed = query.value("isFixed").toBool();
+    QString curStatus = query.value("status").toString();
+    if (curStatus.isEmpty()) curStatus = "active";
     User *nowEmployee = UserFactory::createContainsUser(
         curRole, curID, curAvatarPath, curIdIndentity, curName, curDob,
         curAddress, curPhone, curGender, curSalary, curIsFixed);
+    if (nowEmployee) nowEmployee->setStatus(curStatus);
     if (nowEmployee) {
         this->listEmployee.append(nowEmployee);
     } else {
@@ -445,7 +450,7 @@ QList<User *> Employee_Model::filterInEmployee(QList<User *> inputList, QList<QS
   QStringList genders;
   
   for (const QString &s : contentFilter) {
-      if (s == "Manager" || s == "Staff" || s == "Admin") {
+      if (s == "Manager" || s == "Admin" || s == "Cashier" || s == "HallStaff" || s == "KitchenAssistant") {
           roles.append(s);
       } else {
           genders.append(s);

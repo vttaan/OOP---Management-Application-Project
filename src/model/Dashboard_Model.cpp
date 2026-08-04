@@ -173,11 +173,7 @@ SalaryChartData Dashboard_Model::getSalaryStats(int year)
             for (auto it = monthData[m].begin(); it != monthData[m].end(); ++it) {
                 const EmpData& emp = it.value();
                 if (emp.isFixed) {
-                    if (emp.role == "Manager" || emp.role == "Admin") {
-                        totalMonthSalary += emp.base * daysInMonth;
-                    } else {
-                        totalMonthSalary += emp.base;
-                    }
+                    totalMonthSalary += emp.base;
                 } else {
                     totalMonthSalary += emp.hours * emp.base;
                 }
