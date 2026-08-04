@@ -258,6 +258,39 @@ private slots:
         QVERIFY(!it->eligible);
         QVERIFY(!it->reason.isEmpty());
     }
+
+    void automaticSchedulePreviewDoesNotWriteDatabase()
+    {
+        Config::setRoles({{"Cashier", {1, 6}}});
+        QVERIFY(execute(
+            "INSERT INTO SHIFT (idEmployee, workDate, startTime, endTime, status) "
+            "VALUES (1001, '2026-08-03', '07:00', '12:00', 0)"));
+
+        Schedule_Model model;
+        AutoSchedulePreview preview = model.previewGeneratedSchedule(weekStart);
+
+        QCOMPARE(scalar("SELECT status FROM SHIFT WHERE IdShift = 1"), 0);
+        QVERIFY(preview.approvedCount + preview.declinedCount ==
+                preview.changes.size());
+    }
+
+    void draftValidationRejectsConflictingShiftActions()
+    {
+        QVERIFY(execute(
+            "INSERT INTO SHIFT (idEmployee, workDate, startTime, endTime, status) "
+            "VALUES (1001, '2026-08-03', '07:00', '12:00', 0)"));
+
+        Schedule_Model model;
+        QList<ManagerScheduleChange> changes = {
+            {ManagerScheduleChangeType::Approve, 1, 1001, "Employee", "Cashier",
+             weekStart, QTime(7, 0), QTime(12, 0), "Approve"},
+            {ManagerScheduleChangeType::Decline, 1, 1001, "Employee", "Cashier",
+             weekStart, QTime(7, 0), QTime(12, 0), "Decline"}};
+        QStringList errors = model.validateManagerScheduleChanges(changes);
+
+        QVERIFY(!errors.isEmpty());
+        QCOMPARE(scalar("SELECT status FROM SHIFT WHERE IdShift = 1"), 0);
+    }
 };
 
 QTEST_MAIN(SchedulePersistenceTests)
