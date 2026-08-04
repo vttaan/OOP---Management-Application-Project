@@ -8,9 +8,9 @@
 #include <QString>
 
 enum class ShiftStatus {
-    Empty,          // Trống
-    Understaffed,   // Thiếu người
-    Sufficient      // Đủ người
+    Empty,
+    Understaffed,
+    Sufficient
 };
 
 class ShiftBlock {
@@ -18,11 +18,16 @@ private:
     QDate date;
     QTime startTime;
     QTime endTime;
-    QList<User*> employees; // Polymorphic list of Staff / Manager
+    QString role;
+    QList<User*> employees;
 
 public:
-    ShiftBlock(QDate d, QTime s, QTime e) : date(d), startTime(s), endTime(e) {}
-    
+    // A canonical manager/staff grid represents the whole shift, not only the
+    // Manager role.  An empty role therefore uses the aggregate requirement;
+    // callers may still pass a role for role-specific blocks.
+    ShiftBlock(QDate d, QTime s, QTime e, QString role = QString())
+        : date(d), startTime(s), endTime(e), role(role) {}
+
     // Memory management: The ShiftBlock DOES NOT own the User objects
     // They are owned and managed by Schedule_Model
     ~ShiftBlock() {
@@ -35,6 +40,7 @@ public:
     QDate getDate() const { return date; }
     QTime getStartTime() const { return startTime; }
     QTime getEndTime() const { return endTime; }
+    QString getRole() const { return role; }
 
     // 1. Employee List
     QList<User*> getEmployees() const { return employees; }
@@ -46,7 +52,17 @@ public:
     // 3. Status (Logic centralized here)
     ShiftStatus getStatus() const {
         if (employees.isEmpty()) return ShiftStatus::Empty;
-        if (employees.size() < Config::getMinStaffPerShift()) return ShiftStatus::Understaffed;
+        int required = 0;
+        if (role.isEmpty())
+        {
+            for (const QString &configuredRole : Config::getAllRoles())
+                required += Config::getMinStaffForRole(configuredRole);
+        }
+        else
+        {
+            required = Config::getMinStaffForRole(role);
+        }
+        if (employees.size() < required) return ShiftStatus::Understaffed;
         return ShiftStatus::Sufficient;
     }
 

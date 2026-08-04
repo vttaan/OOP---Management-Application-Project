@@ -61,8 +61,9 @@ void EditEmployee_Dialog::setupUi(User *emp)
     inpCitizenId = makeInput("vd: 012345678901",           emp ? emp->getIdentityID() : "");
 
     cmbRole = new QComboBox();
-    cmbRole->addItem("Nhân viên");
-    cmbRole->addItem("Quản lý");
+    cmbRole->addItem("Thu ngân");
+    cmbRole->addItem("Nhân viên sảnh");
+    cmbRole->addItem("Phụ bếp");
     cmbRole->setMinimumHeight(32);
 
     cmbGender = new QComboBox();
@@ -74,6 +75,9 @@ void EditEmployee_Dialog::setupUi(User *emp)
         // Map English role to Vietnamese display text
         QString displayRole = emp->getRole();
         if (displayRole == "Manager") displayRole = "Quản lý";
+        else if (displayRole == "KitchenAssistant") displayRole = "Phụ bếp";
+        else if (displayRole == "Cashier") displayRole = "Thu ngân";
+        else if (displayRole == "HallStaff") displayRole = "Nhân viên sảnh";
         else displayRole = "Nhân viên";
         int idx = cmbRole->findText(displayRole);
         if (idx >= 0) cmbRole->setCurrentIndex(idx);
@@ -162,7 +166,7 @@ void EditEmployee_Dialog::setupUi(User *emp)
 
     form->addRow(makeLabel("Ảnh đại diện"),    avatarLayout);
     form->addRow(makeLabel("Họ và tên *"),    inpName);
-    form->addRow(makeLabel("Vai trò *"),      cmbGender);
+    form->addRow(makeLabel("Giới tính *"),      cmbGender);
     form->addRow(makeLabel("Vai trò *"),      cmbRole);
     form->addRow(makeLabel("Số điện thoại"),  inpPhone);
     form->addRow(makeLabel("Ngày sinh"),      inpDob);
@@ -225,6 +229,9 @@ QString EditEmployee_Dialog::getName()      const { return inpName->text().trimm
 QString EditEmployee_Dialog::getRole()      const {
     QString vn = cmbRole->currentText();
     if (vn == "Quản lý") return "Manager";
+    else if (vn == "Thu ngân") return "Cashier";
+    else if (vn == "Phụ bếp") return "KitchenAssistant";
+    else if (vn == "Nhân viên sảnh") return "HallStaff";
     return "Staff";
 }
 QString EditEmployee_Dialog::getGender()      const {

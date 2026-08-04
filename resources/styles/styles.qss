@@ -3,6 +3,15 @@ Login_View {
     font-family: "Inter", sans-serif;
 }
 
+QHeaderView {
+    background-color: white;
+    border: none;
+}
+QTableCornerButton::section {
+    background-color: white;
+    border: none;
+}
+
 QMainWindow, QStackedWidget, QWidget#centralwidget {
     background-color: #F8FAFC;
 }
@@ -634,41 +643,41 @@ Employee_View #footerLabel {
 
 /* ── 7. SCROLLBARS ──────────────────────────────────────── */
 
-Employee_View QScrollBar:vertical {
+QScrollBar:vertical {
     border: none;
     background-color: #F8FAFC;
     width: 7px;
     margin: 0px;
 }
-Employee_View QScrollBar::handle:vertical {
+QScrollBar::handle:vertical {
     background-color: #CBD5E1;
     min-height: 24px;
     border-radius: 3px;
 }
-Employee_View QScrollBar::handle:vertical:hover {
+QScrollBar::handle:vertical:hover {
     background-color: #94A3B8;
 }
-Employee_View QScrollBar::add-line:vertical,
-Employee_View QScrollBar::sub-line:vertical {
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical {
     height: 0px;
 }
 
-Employee_View QScrollBar:horizontal {
+QScrollBar:horizontal {
     border: none;
     background-color: #F8FAFC;
     height: 7px;
     margin: 0px;
 }
-Employee_View QScrollBar::handle:horizontal {
+QScrollBar::handle:horizontal {
     background-color: #CBD5E1;
     min-width: 24px;
     border-radius: 3px;
 }
-Employee_View QScrollBar::handle:horizontal:hover {
+QScrollBar::handle:horizontal:hover {
     background-color: #94A3B8;
 }
-Employee_View QScrollBar::add-line:horizontal,
-Employee_View QScrollBar::sub-line:horizontal {
+QScrollBar::add-line:horizontal,
+QScrollBar::sub-line:horizontal {
     width: 0px;
 }
 
@@ -682,6 +691,14 @@ Employee_View QLabel#userAvatar {
 /* ========================================= */
 /* STYLE CHO BẢNG LỊCH LÀM VIỆC (TABLE)      */
 /* ========================================= */
+
+QLabel#DangKyLich,
+QLabel#XacNhanLich {
+    color: #1F2937;
+    font-size: 18px;
+    font-weight: 700;
+    background-color: transparent;
+}
 
 
 QTableWidget[role="staff"] {
@@ -707,6 +724,14 @@ QTableWidget[role="staff"] QHeaderView::section:vertical {
     border: none;
     font-weight: bold;
 }
+QTableWidget[role="staff"] QHeaderView {
+    background-color: white;
+    border: none;
+}
+QTableWidget[role="staff"] QTableCornerButton::section {
+    background-color: #E0F2FE;
+    border: none;
+}
 
 
 QTableWidget[role="manager"] {
@@ -726,6 +751,14 @@ QTableWidget[role="manager"] QHeaderView::section {
     font-weight: bold;
     color: white; /* Màu chữ trắng ở đây */
     text-transform: uppercase;
+}
+QTableWidget[role="manager"] QHeaderView {
+    background-color: white;
+    border: none;
+}
+QTableWidget[role="manager"] QTableCornerButton::section {
+    background-color: #A855F7;
+    border: none;
 }
 
 
@@ -747,5 +780,92 @@ QTableWidget[role="manager-dark"] QHeaderView::section {
     color: white;
     text-transform: uppercase;
 }
+QTableWidget[role="manager-dark"] QHeaderView {
+    background-color: white;
+    border: none;
+}
+QTableWidget[role="manager-dark"] QTableCornerButton::section {
+    background-color: #9333EA;
+    border: none;
+}
+
+/* ========================================= */
+/* DIALOGS & INPUT DIALOGS                   */
+/* ========================================= */
+
+QInputDialog {
+    background-color: #FFFFFF;
+}
+
+QInputDialog QLabel {
+    color: #0F172A;
+    font-size: 13px;
+    font-weight: 600;
+    background-color: transparent;
+    padding-bottom: 4px;
+}
+
+QInputDialog QLineEdit {
+    background-color: #F8FAFC;
+    color: #0F172A;
+    border: 1px solid #CBD5E1;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 13px;
+    min-height: 24px;
+    selection-background-color: #2563EB;
+    selection-color: #FFFFFF;
+}
+
+QInputDialog QLineEdit:focus {
+    border-color: #2563EB;
+    background-color: #FFFFFF;
+}
+
+QInputDialog QComboBox {
+    background-color: #F8FAFC;
+    color: #0F172A;
+    border: 1px solid #CBD5E1;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 13px;
+    min-height: 24px;
+}
+
+QInputDialog QComboBox:focus {
+    border-color: #2563EB;
+    background-color: #FFFFFF;
+}
+
+QInputDialog QComboBox QAbstractItemView {
+    background-color: #FFFFFF;
+    color: #0F172A;
+    selection-background-color: #EFF6FF;
+    selection-color: #1E40AF;
+    border: 1px solid #CBD5E1;
+    border-radius: 6px;
+    outline: none;
+}
+
+QInputDialog QPushButton {
+    background-color: #2563EB;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 6px;
+    padding: 7px 18px;
+    font-weight: 600;
+    font-size: 12px;
+    min-width: 65px;
+    min-height: 20px;
+}
+
+QInputDialog QPushButton:hover {
+    background-color: #1D4ED8;
+}
+
+QInputDialog QPushButton:pressed {
+    background-color: #1E40AF;
+}
+
 
 

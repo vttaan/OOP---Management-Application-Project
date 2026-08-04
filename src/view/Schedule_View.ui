@@ -15,43 +15,60 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout"/>
-   </item>
-   <item>
     <widget class="QLabel" name="DangKyLich">
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:12pt; font-weight:700;&quot;&gt;Đăng Ký Lịch Làm&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>Đăng Ký Lịch Làm</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QTableWidget" name="tableDangKy">
-     <row>
-      <property name="text">
-       <string>Lịch</string>
+    <widget class="QFrame" name="frameDangKyContainer">
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <layout class="QVBoxLayout" name="frameDangKyLayout">
+      <property name="spacing">
+       <number>0</number>
       </property>
-     </row>
-     <column>
-      <property name="text">
-       <string>THỨ / NGÀY</string>
+      <property name="leftMargin">
+       <number>0</number>
       </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>GIỜ BẮT ĐẦU</string>
+      <property name="topMargin">
+       <number>0</number>
       </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>GIỜ KẾT THÚC</string>
+      <property name="rightMargin">
+       <number>0</number>
       </property>
-     </column>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QTableWidget" name="tableInteractiveGrid">
+        <property name="selectionMode">
+         <enum>QAbstractItemView::MultiSelection</enum>
+        </property>
+        <property name="editTriggers">
+         <set>QAbstractItemView::NoEditTriggers</set>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_6">
+    <layout class="QHBoxLayout" name="headerLayout">
      <item>
-      <spacer name="horizontalSpacer">
+      <widget class="QLabel" name="XacNhanLich">
+       <property name="text">
+        <string>Lịch Đã Đăng Ký</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="headerSpacer">
        <property name="orientation">
         <enum>Qt::Orientation::Horizontal</enum>
        </property>
@@ -64,65 +81,91 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="ButtonThem">
+      <widget class="QPushButton" name="btnGenSchedule">
        <property name="text">
-        <string>Thêm</string>
+        <string>+ Tự Động Xếp Lịch</string>
+       </property>
+       <property name="cursor">
+        <cursorShape>PointingHandCursor</cursorShape>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnConfirm">
+       <property name="text">
+        <string>Xác Nhận</string>
+       </property>
+       <property name="cursor">
+        <cursorShape>PointingHandCursor</cursorShape>
        </property>
       </widget>
      </item>
     </layout>
    </item>
    <item>
-    <widget class="QLabel" name="XacNhanLich">
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:12pt; font-weight:700;&quot;&gt;Lịch Đã Đăng Ký&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <widget class="QFrame" name="frameTableContainer">
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
      </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QTableWidget" name="tableSum">
-     <column>
-      <property name="text">
-       <string>THỨ 2</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>THỨ 3</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>THỨ 4</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>THỨ 5</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>THỨ 6</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>THỨ 7</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>CHỦ NHẬT</string>
-      </property>
-     </column>
-    </widget>
-   </item>
-   <item>
-    <widget class="QPushButton" name="btnGenSchedule">
-     <property name="text">
-      <string>Tự Động Xếp Lịch </string>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
      </property>
+     <layout class="QVBoxLayout" name="frameLayout">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QTableWidget" name="tableSum">
+        <column>
+         <property name="text">
+          <string>THỨ 2</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>THỨ 3</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>THỨ 4</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>THỨ 5</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>THỨ 6</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>THỨ 7</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>CHỦ NHẬT</string>
+         </property>
+        </column>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
    <item>
@@ -143,7 +186,7 @@
      <item>
       <widget class="QPushButton" name="buttonLuu">
        <property name="text">
-        <string>Lưu</string>
+        <string>Lưu / Xác Nhận</string>
        </property>
       </widget>
      </item>

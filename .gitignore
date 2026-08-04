@@ -26,3 +26,6 @@ Makefile
 *.exe
 *.dll
 *.pdb
+database/-- SQLite.sql
+ai-logs/25127137.tex
+ai-logs/25127137_AIUsageLog.md

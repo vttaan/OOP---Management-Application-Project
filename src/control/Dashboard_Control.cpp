@@ -4,99 +4,104 @@
 #include "view/employeecard.h"
 
 Dashboard_Control::Dashboard_Control(QObject *parent)
-    :QObject(parent), view(nullptr), currentSession(SessionManager::getInstance()), empModel(new Employee_Model()){
+    : QObject(parent)
+    , view(nullptr)
+    , currentSession(SessionManager::getInstance())
+    , empModel(new Employee_Model())
+    , dashModel(new Dashboard_Model())
+    , m_selectedYear(QDate::currentDate().year())
+{}
 
-}
-Dashboard_Control::~Dashboard_Control() {
-    // view is owned by View_Navigator, do not delete here
-    // currentSession is owned by Control_Navigator, do not delete here
+Dashboard_Control::~Dashboard_Control()
+{
     delete empModel;
+    delete dashModel;
 }
-void Dashboard_Control::init(){
-    if(!view)return;
+
+void Dashboard_Control::init()
+{
+    if (!view) return;
+
+    // Seed sample data so the dashboard always shows something on first run
+    dashModel->seedTodayShifts();
+
     empModel->loadData();
-    QList<User*>all=empModel->getListEmployee();
-    int totalStaff=0;
-    int totalManager=0;
-    for(User*u:all){
-        if(u->getRole().contains("Manager",Qt::CaseInsensitive)) totalManager++;
-        else totalStaff++;
-    }
-    int workingToday=0;
-    {
-        QSqlQuery q(Database::getInstance()->getDbConnect());
-        q.prepare("SELECT COUNT(DISTINCT idEmployee) FROM SHIFT "
-                  "WHERE workDate = :today AND status = 1");
-        q.bindValue(":today", QDate::currentDate().toString(Qt::ISODate));
-        if (q.exec() && q.next()) workingToday = q.value(0).toInt();
-    }
-    view->updateStatCards(totalStaff+totalManager,totalStaff,totalManager,workingToday);
+    QList<User*> all = empModel->getListEmployee();
+
     loadEmployeeCards(all);
     loadShiftPanel();
+    loadSalaryChart();
 }
 
-Dashboard_View* Dashboard_Control::getView()  {
-    return this->view;
-}
-void Dashboard_Control::setView(Dashboard_View* view) {
-    this->view = view;
-    if (!this->view) return;
-    QObject::connect(this->view, &Dashboard_View::profileClicked,
+Dashboard_View* Dashboard_Control::getView() { return view; }
+
+void Dashboard_Control::setView(Dashboard_View* v)
+{
+    view = v;
+    if (!view) return;
+    QObject::connect(view, &Dashboard_View::profileClicked,
                      this, &Dashboard_Control::profilePageClicked);
-    QObject::connect(this->view,&Dashboard_View::searchChanged,this,&Dashboard_Control::onSearchChanged);
+    QObject::connect(view, &Dashboard_View::yearChanged,
+                     this, &Dashboard_Control::onYearChanged);
 }
-void Dashboard_Control::loadEmployeeCards(const QList<User *> &list){
+
+// Reload only the chart when user selects a different year tab
+void Dashboard_Control::onYearChanged(int year)
+{
+    m_selectedYear = year;
+    loadSalaryChart();
+}
+
+// Panel 1: Employee cards for the current active shift
+void Dashboard_Control::loadEmployeeCards(const QList<User*>& list)
+{
     view->clearEmployeeGrid();
-    QSet<int>workingIds;
-    {
-        QSqlQuery q(Database::getInstance()->getDbConnect());
-        q.prepare("SELECT DISTINCT idEmployee FROM SHIFT "
-                  "WHERE workDate = :today AND status = 1");
-        q.bindValue(":today", QDate::currentDate().toString(Qt::ISODate));
-        if (q.exec()) while (q.next()) workingIds.insert(q.value(0).toInt());
-    }
-    for(User*u:list){
-        EmployeeCard*card=new EmployeeCard();
-        QString fakeEmail = QString("nv%1@congty.com").arg(u->getIdEmployee());
-        card->setData(u->getAvatarPath(),u->getName(),u->getRole(),fakeEmail,u->getPhoneNum(),
-                      QString::number(u->getIdEmployee()), u->getDOB(), u->getGender());
-        card->setStatus(workingIds.contains(u->getIdEmployee()));
+
+    QSet<int> workingIds = dashModel->getWorkingEmployeeIds();
+
+    for (User* u : list) {
+        if (!u) continue;
+        if (!workingIds.contains(u->getIdEmployee())) continue;
+
+        EmployeeCard* card = new EmployeeCard();
+        card->setData(
+            u->getAvatarPath(),
+            u->getName(),
+            u->getRole(),
+            u->getPhoneNum(),
+            QString::number(u->getIdEmployee()),
+            u->getDOB(),
+            u->getGender()
+        );
+        card->setStatus(true);
         view->addEmployeeCard(card);
     }
 }
-void Dashboard_Control::loadShiftPanel(){
-    QList<QPair<QString,QString>> nextShifts;
-    {
-        QSqlQuery q(Database::getInstance()->getDbConnect());
-        q.prepare(
-            "SELECT P.fullName, S.startTime, S.endTime FROM SHIFT S "
-            "JOIN PROFILES P ON S.idEmployee = P.idEmployee "
-            "WHERE S.workDate = :today AND S.startTime > :now AND S.status = 1 "
-            "ORDER BY S.startTime LIMIT 5");
-        q.bindValue(":today", QDate::currentDate().toString(Qt::ISODate));
-        q.bindValue(":now",   QTime::currentTime().toString("HH:mm"));
-        if (q.exec())
-            while (q.next())
-                nextShifts.append({q.value(0).toString(),
-                                   q.value(1).toString() + " - " + q.value(2).toString()});
-    }
 
-    QStringList absentNames;
-    {
-        QSqlQuery q(Database::getInstance()->getDbConnect());
-        q.prepare(
-            "SELECT P.fullName FROM PROFILES P "
-            "WHERE P.idEmployee NOT IN ("
-            "  SELECT DISTINCT idEmployee FROM SHIFT "
-            "  WHERE workDate = :today AND status = 1) "
-            "ORDER BY P.fullName");
-        q.bindValue(":today", QDate::currentDate().toString(Qt::ISODate));
-        if (q.exec()) while (q.next()) absentNames << q.value(0).toString();
-    }
-    view->updateShiftPanel(nextShifts,absentNames);
+// Panel 2 (next shift) + Panel 4 (absent employees)
+void Dashboard_Control::loadShiftPanel()
+{
+    QList<ShiftEmployeeInfo> nextShift = dashModel->getNextShiftEmployees();
+    view->updateNextShiftPanel(nextShift);
+
+    QStringList absent = dashModel->getAbsentEmployees();
+    view->updateAbsentPanel(absent);
 }
-void Dashboard_Control::onSearchChanged(const QString& text){
-    QList<User*> filtered = empModel->SearchSortFilter(
-        text, 0, {}, {});
-    loadEmployeeCards(filtered);
+
+// Panel 3: Salary bar chart for (m_selectedYear - 1) vs m_selectedYear
+void Dashboard_Control::loadSalaryChart()
+{
+    bool hasPermission = currentSession->checkPermission("Manager") || currentSession->checkPermission("Admin");
+    view->setSalaryChartVisible(hasPermission);
+
+    if (hasPermission) {
+        SalaryChartData data = dashModel->getSalaryStats(m_selectedYear);
+        view->updateSalaryChart(
+            data.lastYearMonthly,
+            data.thisYearMonthly,
+            data.lastYearEmpCount,
+            data.thisYearEmpCount,
+            m_selectedYear
+        );
+    }
 }

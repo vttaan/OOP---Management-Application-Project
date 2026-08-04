@@ -24,6 +24,8 @@
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QIcon>
+#include <QInputDialog>
+#include <QItemSelectionModel>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMainWindow>
@@ -39,10 +41,14 @@
 #include <QResizeEvent>
 #include <QSize>
 #include <QSizePolicy>
+#include <QSplitter>
 #include <QSqlDatabase>
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QStackedWidget>
+#include <QStyle>
+#include <QStyledItemDelegate>
+#include <QStyleOptionViewItem>
 #include <QString>
 #include <QStringList>
 #include <QTableWidget>
@@ -50,6 +56,7 @@
 #include <QTextStream>
 #include <QTime>
 #include <QVBoxLayout>
+#include <QTabBar>
 #include <QWidget>
 #include <algorithm>
 #include <cmath>
@@ -61,3 +68,13 @@
 #include <vector>
 #include <queue>
 #include <climits>
+#include <QtCharts/QChart>
+#include <QtCharts/QChartView>
+#include <QtCharts/QBarSeries>
+#include <QtCharts/QBarSet>
+#include <QtCharts/QBarCategoryAxis>
+#include <QtCharts/QValueAxis>
+#include "core/KitchenAssistant.h"
+#include "core/HallStaff.h"
+#include "core/Cashier.h"
+#include "utils/Database.h"

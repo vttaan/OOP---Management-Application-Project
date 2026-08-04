@@ -13,7 +13,7 @@ class EmployeeCard : public QWidget
 public:
     explicit EmployeeCard(QWidget *parent = nullptr);
     ~EmployeeCard();
-    void setData(const QString& avatarPath, const QString& name, const QString& role, const QString& email, const QString& phone, const QString& id, const QString& dob, const QString& gender);
+    void setData(const QString& avatarPath, const QString& name, const QString& role, const QString& phone, const QString& id, const QString& dob, const QString& gender);
     void setStatus(bool isWorking);
 private:
     Ui::EmployeeCard *ui;

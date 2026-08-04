@@ -2,38 +2,66 @@
 #include "core/UserFactory.h"
 
 User *UserFactory::createContainsUser(QString r, short int idEmp, QString ava, QString idCit, QString n, QString d, QString add,
-                                      QString phone, QString gender, int baseSalary)
+                                      QString phone, QString gender, int baseSalary, bool isFixed, double allowance)
 {
-    if (r == "Manager")
-        return new Manager(r, idEmp, ava, idCit, n, d, add, phone, gender, baseSalary);
-    else if (r == "Staff")
-        return new Staff(r, idEmp, ava, idCit, n, d, add, phone, gender, baseSalary);
-    return nullptr;
+
+    User *user = UserPrototypeRegistry::instance().create(r);
+    if (!user) return nullptr;
+
+    user->setIdEmployee(idEmp);
+    user->setAva(ava);
+    user->setIndentityID(idCit);
+    user->setName(n);
+    user->setDOB(d);
+    user->setAddress(add);
+    user->setPhoneNum(phone);
+    user->setGender(gender);
+    user->setBaseSalary(static_cast<double>(baseSalary));
+    user->setFixedEmployee(isFixed);
+    user->setAllowenceValue(allowance);
+
+    return user;
 }
 
 User *UserFactory::createNewUser(QString r, QString ava, QString idCit, QString n
-                                 , QString d, QString add, QString phone, QString gender, int baseSalary)
+                                 , QString d, QString add, QString phone, QString gender, int baseSalary, bool isFixedSalary, double allowance)
 {
-    // Get the MAX idEmployee in the table to create a unique new ID
     QSqlQuery query;
-    short int newId = 1;
-    query.prepare("SELECT MAX(idEmployee) AS MaxID FROM PROFILES WHERE role = :u");
-    query.bindValue(":u", r);
+    short int newId = (r == "Manager" || r == "Admin") ? 2000 : 1000;
+
+    if (r == "Manager" || r == "Admin") {
+        query.prepare("SELECT MAX(idEmployee) AS MaxID FROM PROFILES WHERE role IN ('Manager', 'Admin')");
+    } else {
+        query.prepare("SELECT MAX(idEmployee) AS MaxID FROM PROFILES WHERE role NOT IN ('Manager', 'Admin')");
+    }
+
     if (query.exec() && query.next())
     {
         QVariant v = query.value("MaxID");
-        if (!v.isNull())
-            newId = static_cast<short int>(v.toInt() + 1);
+        if (!v.isNull()) {
+            newId = std::max((int)newId, v.toInt());
+        }
     }
     else
     {
-        // qDebug() << "createNewUser: could not fetch MAX id —" << query.lastError().text();
+        qDebug() << "createNewUser: could not fetch MAX id —" << query.lastError().text();
     }
+    newId++;
 
-    if (r == "Manager")
-        return new Manager(r, newId, ava, idCit, n, d, add, phone, gender, baseSalary);
-    else if (r == "Staff")
-        return new Staff(r, newId, ava, idCit, n, d, add, phone, gender, baseSalary);
+    User *user = UserPrototypeRegistry::instance().create(r);
+    if (!user) return nullptr;
 
-    return nullptr;
+    user->setIdEmployee(newId);
+    user->setAva(ava);
+    user->setIndentityID(idCit);
+    user->setName(n);
+    user->setDOB(d);
+    user->setAddress(add);
+    user->setPhoneNum(phone);
+    user->setGender(gender);
+    user->setBaseSalary(static_cast<double>(baseSalary));
+    user->setFixedEmployee(isFixedSalary);
+    user->setAllowenceValue(allowance);
+
+    return user;
 }

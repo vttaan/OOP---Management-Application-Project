@@ -220,7 +220,7 @@ QScrollBar::sub-line:vertical {
           <bool>true</bool>
          </property>
          <property name="styleSheet">
-          <string notr="true"></string>
+          <string notr="true"/>
          </property>
          <property name="horizontalScrollBarPolicy">
           <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOn</enum>
@@ -229,42 +229,38 @@ QScrollBar::sub-line:vertical {
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="layoutWidget1">
-      <layout class="QVBoxLayout" name="verticalLayout_3">
-       <item>
-        <widget class="QLabel" name="holidayLabel">
-         <property name="font">
-          <font>
-           <pointsize>12</pointsize>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="styleSheet">
-          <string>background-color: #E0F2FE; color: #0369A1; padding: 6px; border-radius: 6px; font-weight: bold;</string>
-         </property>
-         <property name="text">
-          <string>Ngày lễ</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignmentFlag::AlignCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QTableWidget" name="holidayTable">
-         <property name="autoFillBackground">
-          <bool>true</bool>
-         </property>
-         <property name="styleSheet">
-          <string notr="true"></string>
-         </property>
-         <property name="horizontalScrollBarPolicy">
-          <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOn</enum>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="holidayLabel">
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string>background-color: #E0F2FE; color: #0369A1; padding: 6px; border-radius: 6px; font-weight: bold;</string>
+     </property>
+     <property name="text">
+      <string>Ngày lễ</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignmentFlag::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QTableWidget" name="holidayTable">
+     <property name="autoFillBackground">
+      <bool>true</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true"/>
+     </property>
+     <property name="horizontalScrollBarPolicy">
+      <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOn</enum>
+     </property>
     </widget>
    </item>
    <item>

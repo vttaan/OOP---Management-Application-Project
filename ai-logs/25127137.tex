@@ -1,0 +1,24 @@
+\noindent
+\begin{tabularx}{\textwidth}{|p{3cm}|p{2cm}||X|}
+\hline
+\textbf{Task} & \textbf{AI Tool Used} & \textbf{Prompt / Instruction} & \textbf{Student Verification or Modification} \\
+\hline
+\textbf{Project Planning \& Qt Framework Research} & Google Gemini & Asked for guidance on project planning and how to use the Qt framework for C++ GUI application development. & Created a project plan and did a research on how to use Qt framework. \\
+\hline
+\textbf{Database Design \& SQL Query Familiarization} & Google Gemini & Asked for guidance on database structure and practicing SQL queries before starting backend development. & Made an example database and performed some basic queries on it. \\
+\hline
+\textbf{GUI Design \& Implementation (Profile View)} & Google Gemini, Google Antigravity & Asked for layout suggestions for the profile widget, circular avatars, and QSS styling. & Modified the arrangement of labels and elements on the profile page through QSS. Rewrote the change avatar and save avatar locally functions. Manually chose hex colors for backgrounds and headers. \\
+\hline
+\textbf{Architecture \& Controller Routing} & Google Gemini, Google Antigravity & Asked to resolve circular dependencies, fix empty navigator bugs, properly link Views to Controllers, and clean up Qt signal connections. & Wrote View\_Navigator \& Control\_Navigator manually and asked AI to polish/ensure smooth performance. Checked out Qt signals, removed unnecessary signals, and tested multiple emits. \\
+\hline
+\textbf{Session Management \& Edit Pop-ups} & Google Gemini, Google Antigravity & Asked to implement global SessionManager memory, sliding Edit Profile pop-ups, and custom password visibility line edits. & Manually arranged the order of elements for sliding widgets (pop-ups) to ensure clarity. Re-checked password validation and hash functions. \\
+\hline
+\textbf{Shift Management \& Schedule Code Review} & Google Gemini, Google Antigravity & Asked to review Shift and Schedule\_Model management code for potential memory leaks and optimization. & After AI optimized the code to prevent memory leaks, conducted a sample test with a small dataset and tracked debug output to ensure no memory leaks occurred. \\
+\hline
+\textbf{Bug Fixing \& UI Refinements} & Google Gemini, Google Antigravity & Asked to fix avatar database persistence, CMakeLists paths, adjust widget backgrounds for OS themes, and fix layout expanding issues. & Tested features involving avatar changes (edit profile, add employee, edit employee info). Tested the app on different computers and screens to ensure UI adaptability and layout resizing performed correctly. \\
+\hline
+\textbf{Salary Page Implementation \& Logic} & Google Gemini, Google Antigravity & Asked to create Salary MVC components, configure role-based visibility (employee vs. manager), implement date filtering combo boxes, and debug payout calculations. & Updated salary-related classes for compatibility with control \& view navigator. Re-checked Employee functions and login attempts for role visibility. Fixed date filtering combo box bugs (current week/year range). Rewrote salary calculation functions due to holiday rules misunderstanding, and tested payouts across various time ranges. \\
+\hline
+\textbf{Database Schema Updates (Gender Field)} & Google Gemini, Google Antigravity & Asked to add a gender field to the Profile database layout and integrate it across MVC files and the Add Employee dialog. & Updated employee-related functions (add, edit) manually to fully include and process the new gender parameter. \\
+\hline
+\end{tabularx}

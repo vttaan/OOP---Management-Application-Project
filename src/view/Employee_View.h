@@ -30,7 +30,7 @@ signals:
 
 public slots:
     // Called by the Controller to push data to the view
-    void loadEmployees(const QList<User *> &employees);
+    void loadEmployees(const QList<User *> &employees, long long totalPayroll, int managerCount);
 
     void showError(const QString &msg);
     void showSuccess(const QString &msg);
@@ -44,7 +44,7 @@ private slots:
     // Sort dropdown
     void toggleSortDropdown();
     // Updates metric card values from m_allEmployees
-    void updateMetricCards();
+    void updateMetricCards(long long totalPayroll, int managerCount);
 
 private:
     // ---- ui pointer (owns all widgets declared in the .ui file) ----
@@ -76,7 +76,7 @@ private:
     // --- Metric Cards (kept for dynamic value updates; built in C++) ---
     QFrame *m_payrollCard  = nullptr;
     QFrame *m_staffCard    = nullptr;
-    QFrame *m_absenceCard  = nullptr;
+    QFrame *m_managerCard  = nullptr;
 
     // Full unfiltered employee list (for metric card totals)
     QList<User *> m_allEmployees;

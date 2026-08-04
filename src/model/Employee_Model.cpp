@@ -2,6 +2,8 @@
 #include "model/Employee_Model.h"
 #include "utils/Database.h"
 #include "utils/Security.h"
+#include "model/Salary_Model.h"
+#include "utils/Config.h"
 
 Employee_Model::Employee_Model() {}
 
@@ -9,18 +11,21 @@ Employee_Model::Employee_Model() {}
 
 int Employee_Model::getNextId(const QString& role) {
     QSqlQuery query;
-    int newId = 1;
+    int newId = (role == "Manager" || role == "Admin") ? 2000 : 1000;
 
-    query.prepare("SELECT MAX(idEmployee) AS MaxID FROM PROFILES WHERE role = :u");
-    query.bindValue(":u", role);
+    if (role == "Manager" || role == "Admin") {
+        query.prepare("SELECT MAX(idEmployee) AS MaxID FROM PROFILES WHERE role IN ('Manager', 'Admin')");
+    } else {
+        query.prepare("SELECT MAX(idEmployee) AS MaxID FROM PROFILES WHERE role NOT IN ('Manager', 'Admin')");
+    }
 
     if (query.exec() && query.next()) {
         QVariant v = query.value("MaxID");
         if (!v.isNull()) {
-            newId = v.toInt() + 1;
+            newId = std::max(newId, v.toInt());
         }
     }
-    return newId;
+    return newId + 1;
 }
 bool Employee_Model::addUserInList(User *emp)
 {
@@ -47,10 +52,10 @@ bool Employee_Model::popUserInList(short idEmployee)
 
 bool Employee_Model::addEmployee(const QString &role, const QString &avatarPath, const QString &citizenId,
                                  const QString &name, const QString &dob, const QString &address,
-                                 const QString &phone, const QString &gender, const int& baseSalary,
+                                 const QString &phone, const QString &gender, const int& baseSalary, bool isFixedSalary,
                                  const QString &username, const QString &password)
 {
-  User *emp = UserFactory::createNewUser(role, avatarPath, citizenId, name, dob, address, phone, gender, baseSalary);
+  User *emp = UserFactory::createNewUser(role, avatarPath, citizenId, name, dob, address, phone, gender, baseSalary, isFixedSalary);
     if (emp == nullptr) {
       qDebug() << "Create fail\n";
         return false;
@@ -68,8 +73,8 @@ bool Employee_Model::addEmployee(const QString &role, const QString &avatarPath,
   QSqlQuery qProfile(db);
   qProfile.prepare(
       "INSERT INTO PROFILES (idEmployee, role, name, phoneNum, dob, address, "
-      "avatarPath, IdCitizenIdentity, Gender) "
-      "VALUES (:id,:role,:name,:phone,:dob,:address,:avatar,:citizen, :Gender)");
+      "avatarPath, IdCitizenIdentity, Gender, Salary, isFixed) "
+      "VALUES (:id,:role,:name,:phone,:dob,:address,:avatar,:citizen, :Gender, :Salary, :isFixed)");
   qProfile.bindValue(":id", emp->getIdEmployee());
   qProfile.bindValue(":role", emp->getRole());
   qProfile.bindValue(":name", emp->getName());
@@ -79,6 +84,8 @@ bool Employee_Model::addEmployee(const QString &role, const QString &avatarPath,
   qProfile.bindValue(":avatar", localAva);
   qProfile.bindValue(":citizen", emp->getIdentityID());
   qProfile.bindValue(":Gender", emp->getGender());
+  qProfile.bindValue(":Salary", emp->getBaseSalary());
+  qProfile.bindValue(":isFixed", emp->getIsFixedSalary());
   if (!qProfile.exec())
   {
     qDebug() << "Error adding profile" << qProfile.lastError().text();
@@ -125,7 +132,8 @@ bool Employee_Model::updateEmployee(User *emp)
   query.prepare("UPDATE PROFILES SET role = :role, name = :name, phoneNum = "
                 ":phone, dob = :dob, "
                 "address = :address, avatarPath = :avatar, IdCitizenIdentity "
-                "= :citizen, Gender = :gender WHERE idEmployee = :id");
+                "= :citizen, Gender = :gender, Salary = :salary, isFixed = :isFixed "
+                "WHERE idEmployee = :id");
   query.bindValue(":role", emp->getRole());
   query.bindValue(":name", emp->getName());
   query.bindValue(":phone", emp->getPhoneNum());
@@ -135,6 +143,8 @@ bool Employee_Model::updateEmployee(User *emp)
   query.bindValue(":citizen", emp->getIdentityID());
   query.bindValue(":id", emp->getIdEmployee());
   query.bindValue(":gender", emp->getGender());
+  query.bindValue(":salary", emp->getBaseSalary());
+  query.bindValue(":isFixed", emp->getIsFixedSalary());
 
   if (!query.exec())
   {
@@ -165,7 +175,7 @@ bool Employee_Model::deleteEmployee(short idEmployee)
     return false;
   }
   if (!this->popUserInList(idEmployee))
-    qDebug() << "POP USER IN LIST FAILDE, LIST IS EMPTY\n";
+    qDebug() << "POP USER IN LIST FAILED, LIST IS EMPTY\n";
   return db.commit();
 }
 
@@ -179,9 +189,21 @@ QString Employee_Model::saveAvatarLocally(int empId,
   if (sourcePath.startsWith(":/"))
     return sourcePath;
 
+  // If it's already just the name of a local avatar file (e.g. avatar_1001.png),
+  // which does not contain any directory separators, return it as-is.
+  if (!sourcePath.contains('/') && !sourcePath.contains('\\'))
+  {
+    return sourcePath;
+  }
+
   QFileInfo sourceInfo(sourcePath);
   if (!sourceInfo.exists())
+  {
+    if (sourceInfo.fileName() == sourcePath)
+      return sourcePath;
     return "";
+  }
+
   QDir appDir = QCoreApplication::applicationDirPath(); // debug folder
   appDir.cdUp();                                        // build folder
   appDir.cdUp();                                        // MAP folder
@@ -200,6 +222,12 @@ QString Employee_Model::saveAvatarLocally(int empId,
   QString targetPath =
       QString("%1/avatar_%2.%3").arg(targetDir).arg(empId).arg(ext);
 
+  // If the source file is already the target file, we don't need to copy
+  if (QFileInfo(targetPath).absoluteFilePath() == sourceInfo.absoluteFilePath())
+  {
+    return QString("avatar_%1.%2").arg(empId).arg(ext);
+  }
+
   // If file already exists, remove it first to overwrite
   if (QFile::exists(targetPath))
   {
@@ -211,7 +239,7 @@ QString Employee_Model::saveAvatarLocally(int empId,
     return QString("avatar_%1.%2").arg(empId).arg(ext);
   }
 
-  return sourcePath;
+  return QString("avatar_%1.%2").arg(empId).arg(ext);
 }
 
 void Employee_Model::loadData()
@@ -237,10 +265,15 @@ void Employee_Model::loadData()
     QString curAvatarPath = query.value("avatarPath").toString();
     QString curGender = query.value("Gender").toString();
     int curSalary = query.value("Salary").toInt();
+    bool curIsFixed = query.value("isFixed").toBool();
     User *nowEmployee = UserFactory::createContainsUser(
         curRole, curID, curAvatarPath, curIdIndentity, curName, curDob,
-        curAddress, curPhone, curGender, curSalary);
-    this->listEmployee.append(nowEmployee);
+        curAddress, curPhone, curGender, curSalary, curIsFixed);
+    if (nowEmployee) {
+        this->listEmployee.append(nowEmployee);
+    } else {
+        qDebug() << "Failed to load employee ID:" << curID << "Role:" << curRole;
+    }
   }
 }
 
@@ -448,7 +481,7 @@ QList<User *> Employee_Model::searchInEmployee(QList<User *> inputList, QString 
 }
 
 QString Employee_Model::generateAutoUsername(int id, QString& role){
-    QString res = (role=="Staff")? "NV_" : "QL_";
+    QString res = (role=="Manager")? "QL_" : "NV_";
     res += QString::number(id).rightJustified(3, '0');
     // can memories 3 number 0 leading.
     return res;
@@ -471,4 +504,50 @@ QString Employee_Model::generateAutoPassword(QString &name, QString &dob){
 
     return res + '#' + dd + mm;
     // TQT#0609
+}
+
+long long Employee_Model::calculateExpectedPayrollCurrentMonth()
+{
+    long long expectedTotal = 0;
+    QDate today = QDate::currentDate();
+    int daysInMonth = today.daysInMonth();
+    
+    // 1. Calculate Staff Expected Cost
+    // Shifts per day = 3
+    // Max staff per shift = Config::getMaxStaffPerShift()
+    // Shift duration = (Config::getCloseHour() - Config::getOpenHour()) / 3 
+    // Shift cost per staff = Config::getBaseSalaryStaff() * shiftDuration
+    int shiftsPerDay = 3;
+    int shiftDuration = (Config::getCloseHour() - Config::getOpenHour()) / shiftsPerDay;
+    long long staffShiftCost = Config::getBaseSalaryStaff() * shiftDuration;
+    
+    long long totalStaffExpected = (long long)daysInMonth * shiftsPerDay * Config::getMaxStaffPerShift() * staffShiftCost;
+    expectedTotal += totalStaffExpected;
+
+    // 2. Calculate Manager Expected Cost
+    // Manager base salary is daily. So monthly cost = baseSalary * daysInMonth.
+    for (User* emp : listEmployee) {
+        if (!emp) continue;
+        if (emp->getIsFixedSalary()) {
+            if (emp->getRole() == "Manager" || emp->getRole() == "Admin") {
+                expectedTotal += (long long)emp->getBaseSalary() * daysInMonth;
+            } else {
+                // Cashier with fixed salary
+                expectedTotal += (long long)emp->getBaseSalary();
+            }
+        }
+    }
+    
+    return expectedTotal;
+}
+
+int Employee_Model::countManagers()
+{
+    int count = 0;
+    for (User* emp : listEmployee) {
+        if (emp && emp->getRole() == "Manager") {
+            count++;
+        }
+    }
+    return count;
 }

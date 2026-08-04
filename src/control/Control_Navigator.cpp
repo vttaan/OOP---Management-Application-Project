@@ -3,6 +3,7 @@
 #include "Login_Control.h"
 #include "Dashboard_Control.h"
 #include "Profile_Control.h"
+#include "Employee_Control.h"
 #include "view/View_Navigator.h"
 #include "view/Dashboard_View.h"
 #include "utils/SessionManage.h"
@@ -26,6 +27,8 @@ Control_Navigator::Control_Navigator()
     this->viewScheduleController->currentSession = this->currentSession;
 
     this->salaryController = new Salary_Control(this);
+
+    this->settingController = new Setting_Control(this);
 
     this->viewWindow = new View_Navigator(this); // Initialize viewWindow AFTER controllers
     // switch tab side bar do all
@@ -56,6 +59,9 @@ Control_Navigator::Control_Navigator()
                      {
                          // set permission of side bar for display feature
                          this->viewWindow->getSideBar()->setPermission(currentSession->checkPermission("Manager"));
+                         // init Policys for setting page
+                         this->settingController->init();
+
                          this->switchTab(1); // Switch to Dashboard (index 1)
                          this->profileController->currentSession = this->currentSession;
                          this->profileController->loadUserData();
@@ -124,7 +130,8 @@ void Control_Navigator::switchTab(int index)
         targetPageIndex = 6;
         break;
     case 8:
-        // this->settingsController->init();
+        this->settingController->init();
+        targetPageIndex = 7;
         break;
 
     default:
@@ -153,6 +160,7 @@ Control_Navigator::~Control_Navigator()
     delete employeeController;
     delete scheduleController;
     delete viewScheduleController;
+    delete settingController;
     currentSession = nullptr;
     viewWindow = nullptr;
     loginController = nullptr;
@@ -161,4 +169,5 @@ Control_Navigator::~Control_Navigator()
     employeeController = nullptr;
     scheduleController = nullptr;
     viewScheduleController = nullptr;
+    settingController = nullptr;
 }

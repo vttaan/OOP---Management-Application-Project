@@ -15,8 +15,24 @@ protected:
 public:
     User(QString r, short int idEmp, QString ava, QString idCit, QString n, QString d, QString add, QString phone ,QString gender);
 	virtual ~User() = default;
-	virtual double getSalary() const = 0;
+    virtual double getSalary() const = 0;
     virtual double getBaseSalary() const = 0;
+
+    virtual bool getIsFixedSalary() const { return false; }
+
+    virtual User* clone() const = 0;
+
+
+    virtual void setBaseSalary(double salary) = 0;
+
+
+    // child class of Staff implement
+    virtual void setFixedEmployee(bool isFixed) {}
+    virtual void setAllowence() {}
+    virtual void setAllowenceValue(double allowance) {}
+
+    virtual bool getIsFixedEmployee() const { return false; }
+
 	QString getRole() const;
 	short int getIdEmployee() const;
     QString getIdentityID() const;

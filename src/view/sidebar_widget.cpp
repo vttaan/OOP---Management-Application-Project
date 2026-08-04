@@ -35,8 +35,6 @@ Sidebar_Widget::Sidebar_Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Si
     connect(ui->btnMenu_HR, &QPushButton::clicked, [this]()
             { emit menuClicked(3); updateButtonStyles(3); });
     // connect(ui->btnMenu_Salary, &QPushButton::clicked, [this]() { emit menuClicked(7); updateButtonStyles(7); });
-    connect(ui->btnMenu_Settings, &QPushButton::clicked, [this]()
-            { emit menuClicked(9); updateButtonStyles(9); });
 
     // subTab in Schedule
     connect(ui->buttonRegistrationSchedule, &QPushButton::clicked, [this]()
@@ -47,8 +45,8 @@ Sidebar_Widget::Sidebar_Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Si
             { emit menuClicked(6); updateButtonStyles(6); });
     connect(ui->btnMenu_Salary, &QPushButton::clicked, [this]()
             { emit menuClicked(7); updateButtonStyles(7); });
-    // connect(ui->btnMenu_Salary, &QPushButton::clicked, [this]() { emit menuClicked(8); updateButtonStyles(8); });
-    // connect(ui->btnMenu_Settings, &QPushButton::clicked, [this]() { emit menuClicked(9); updateButtonStyles(9); });
+    connect(ui->btnMenu_Settings, &QPushButton::clicked, [this]()
+            { emit menuClicked(8); updateButtonStyles(8); });
 
     connect(ui->btnLogout, &QPushButton::clicked, [this]()
             { emit logoutClicked(); });
@@ -66,6 +64,7 @@ void Sidebar_Widget::setPermission(const bool &permitted)
     ui->buttonArrangeSchedule->setVisible(permitted);
     ui->buttonRegistrationSchedule->setVisible(!permitted);
     ui->subMenu_Schedule->hide();
+    ui->btnMenu_Settings->setVisible(permitted);
 }
 
 Sidebar_Widget::~Sidebar_Widget() { delete ui; }
@@ -79,18 +78,15 @@ void Sidebar_Widget::initUI()
                         "   border-right: 1px solid rgba(255, 255, 255, 0.2); "
                         "}");
 
-    // Logo
+    // Hide Logo to move profile up
     if (ui->labelLogo)
     {
-        ui->labelLogo->setText("Hệ thống quản lý\nnhân sự");
-        ui->labelLogo->setAlignment(Qt::AlignCenter);
-        ui->labelLogo->setStyleSheet(
-            "font-size: 15px; "
-            "font-weight: 900; "
-            "color: #FFFFFF; "
-            "border: none; "
-            "margin-top: 12px; "
-            "margin-bottom: 14px;");
+        ui->labelLogo->hide();
+    }
+    
+    // Add top margin to the main layout to push the profile button down slightly
+    if (ui->verticalLayout) {
+        ui->verticalLayout->insertSpacing(0, 15);
     }
 
     if (ui->btnProfile)
@@ -100,9 +96,8 @@ void Sidebar_Widget::initUI()
             "QPushButton#btnProfile { "
             "   background-color: rgba(255, 255, 255, 0.15); "
             "   border: 1px solid rgba(255, 255, 255, 0.3); "
-            "   border-radius: 12px; "
-            "   margin: 5px 12px; "
-            "   padding: 8px; "
+            "   border-radius: 14px; "
+            "   padding: 8px 12px; "
             "   text-align: left; "
             "}"
             "QPushButton#btnProfile:hover { "
@@ -112,17 +107,17 @@ void Sidebar_Widget::initUI()
             "QPushButton#btnProfile:pressed { "
             "   background-color: rgba(255, 255, 255, 0.1); "
             "}");
-        ui->btnProfile->setFixedHeight(82);
+        ui->btnProfile->setFixedHeight(74);
         QHBoxLayout *profileLayout = new QHBoxLayout(ui->btnProfile);
-        profileLayout->setContentsMargins(16, 0, 12, 0); // Shift avatar off the left border a bit
-        profileLayout->setSpacing(12);
+        profileLayout->setContentsMargins(12, 0, 12, 0); 
+        profileLayout->setSpacing(14);
         profileLayout->setAlignment(Qt::AlignVCenter);
 
-        // --- Avatar (44x44 circle) ---
+        // --- Avatar (48x48 circle) ---
         QLabel *lblAvatar = new QLabel(ui->btnProfile);
         lblAvatar->setObjectName("lblSidebarAvatar");
-        lblAvatar->setFixedSize(44, 44);
-        lblAvatar->setStyleSheet("background-color: #3B82F6; border-radius: 22px; border: 2px solid #93C5FD;");
+        lblAvatar->setFixedSize(48, 48);
+        lblAvatar->setStyleSheet("background-color: #3B82F6; border-radius: 24px; border: 2px solid #93C5FD;");
         lblAvatar->setAlignment(Qt::AlignCenter);
         lblAvatar->setText("👤");
         lblAvatar->setAttribute(Qt::WA_TransparentForMouseEvents, true);
@@ -231,9 +226,6 @@ void Sidebar_Widget::updateButtonStyles(int mainIndex)
         ui->btnMenu_Salary->setStyleSheet(activeMain);
         break;
     case 8:
-        ui->btnMenu_Salary->setStyleSheet(activeMain);
-        break;
-    case 9:
         ui->btnMenu_Settings->setStyleSheet(activeMain);
         break;
     }
@@ -244,6 +236,7 @@ void Sidebar_Widget::loadUserData(SessionManager *session)
     if (!session || !session->getCurrentUser())
         return;
     User *user = session->getCurrentUser();
+
 
     QLabel *lblName = this->findChild<QLabel *>("lblSidebarName");
     QLabel *lblRole = this->findChild<QLabel *>("lblSidebarRole");
