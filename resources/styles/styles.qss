@@ -692,6 +692,14 @@ Employee_View QLabel#userAvatar {
 /* STYLE CHO BẢNG LỊCH LÀM VIỆC (TABLE)      */
 /* ========================================= */
 
+QLabel#DangKyLich,
+QLabel#XacNhanLich {
+    color: #1F2937;
+    font-size: 18px;
+    font-weight: 700;
+    background-color: transparent;
+}
+
 
 QTableWidget[role="staff"] {
     border: none;

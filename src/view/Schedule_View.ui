@@ -17,7 +17,7 @@
    <item>
     <widget class="QLabel" name="DangKyLich">
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:12pt; font-weight:700;&quot;&gt;Đăng Ký Lịch Làm&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>Đăng Ký Lịch Làm</string>
      </property>
     </widget>
    </item>
@@ -63,7 +63,7 @@
      <item>
       <widget class="QLabel" name="XacNhanLich">
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:12pt; font-weight:700;&quot;&gt;Lịch Đã Đăng Ký&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>Lịch Đã Đăng Ký</string>
        </property>
       </widget>
      </item>
