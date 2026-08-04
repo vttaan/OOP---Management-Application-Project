@@ -6,6 +6,7 @@
 #include "view/Schedule_View.h"
 #include "utils/SessionManage.h"
 #include "utils/Config.h"
+#include "model/LeaveRequest_Model.h"
 class Schedule_Control : public QObject
 {
     Q_OBJECT
@@ -27,6 +28,7 @@ private:
     FullTimeScheduleGrid fullTimeScheduleStatuses;
     QDate currentEmployeeRegistrationWeekStart;
     QList<ManagerScheduleChange> managerDraftChanges;
+    LeaveRequest_Model leaveRequestModel;
     int selectedManagerDay = -1;
     int selectedManagerShift = -1;
 
@@ -82,6 +84,7 @@ private slots:
     void onCurrentManagerWeek();
     void onUndoManagerDraft();
     void onClearManagerDraft();
+    void onLeaveRequested();
 
 
 signals:

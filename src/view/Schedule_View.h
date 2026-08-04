@@ -68,6 +68,7 @@ public:
     // Missing staff table (manager only, shown below the grid in Xep lich page)
     void updateManagerMissingShifts(const QList<MissingShiftInfo>& missingList);
     void setManagerDraftStatus(int changeCount);
+    void resetManagerAddButton();
     void updateManagerSummary(int totalShifts, int shortageShifts,
                               int pendingRequests, int draftChanges,
                               int missingSlots = 0, int staffedShifts = 0);
@@ -114,8 +115,11 @@ private:
     QComboBox*      managerRoleFilter = nullptr;
     QPushButton*    managerUndoDraftButton = nullptr;
     QPushButton*    managerClearDraftButton = nullptr;
+    QPushButton*    requestLeaveButton = nullptr;
     QFrame*         shiftDetailDrawer = nullptr;
     QVBoxLayout*    shiftDetailDrawerLayout = nullptr;
+    QPushButton*    activeManagerAddButton = nullptr;
+    bool            managerAddRejectedDuringRequest = false;
 
     QWidget*        fullTimeInfoWidget;
     QLabel*         lblFullTimeWeekRange;
@@ -181,6 +185,7 @@ signals:
     void requestCurrentManagerWeek();
     void requestUndoManagerDraft();
     void requestClearManagerDraft();
+    void requestLeave();
 
 private slots:
     void buttonSaveClicked();

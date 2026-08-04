@@ -10,6 +10,7 @@
 #include "viewschedule_view.h"
 #include "Salary_View.h"
 #include "Setting_View.h"
+#include "Notification_View.h"
 
 namespace Ui
 {
@@ -36,6 +37,7 @@ public:
     Sidebar_Widget *sidebar = nullptr;
     ViewSchedule_View *viewSchedulePage = nullptr;
     Setting_View* settingPage = nullptr;
+    Notification_View* notificationPage = nullptr;
     Control_Navigator *getController();
     QWidget *getWindow();
     Ui::View_Navigator *getUI();

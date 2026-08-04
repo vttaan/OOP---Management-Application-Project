@@ -254,6 +254,15 @@ Schedule_View::Schedule_View(QWidget *parent)
           &Schedule_View::requestConfirm);
   connect(ui->buttonLuu, &QPushButton::clicked, this,
           &Schedule_View::buttonSaveClicked);
+  requestLeaveButton = new QPushButton(QString::fromUtf8("Xin nghỉ phép"), this);
+  requestLeaveButton->setCursor(Qt::PointingHandCursor);
+  requestLeaveButton->setStyleSheet(
+      "QPushButton{background:#FFF7ED;color:#C2410C;border:1px solid #FED7AA;"
+      "border-radius:7px;padding:7px 12px;font-weight:700;}"
+      "QPushButton:hover{background:#FFEDD5;}");
+  ui->headerLayout->insertWidget(1, requestLeaveButton);
+  connect(requestLeaveButton, &QPushButton::clicked, this,
+          &Schedule_View::requestLeave);
 }
 
 Schedule_View::~Schedule_View() { delete ui; }
@@ -337,8 +346,10 @@ void Schedule_View::setUpUI()
     auto *layout = new QVBoxLayout(card);
     layout->setContentsMargins(12, 8, 12, 8);
     QLabel *t = new QLabel(title, card);
+    t->setObjectName("managerMetricTitle");
     t->setStyleSheet("color:#64748B;font-size:11px;font-weight:600;");
     QLabel *v = new QLabel(value, card);
+    v->setObjectName("managerMetricValue");
     v->setStyleSheet(QString("color:%1;font-size:20px;font-weight:800;").arg(fg));
     layout->addWidget(t);
     layout->addWidget(v);

@@ -1,5 +1,6 @@
 #include "Schedule_Model.h"
 #include "core/UserFactory.h"
+#include "model/Notification_Model.h"
 
 // ─── Canonical shift boundaries (shared by multiple functions) ────────────────
 static const QTime SHIFT_STARTS[3] = {QTime(7, 0), QTime(12, 0), QTime(17, 0)};
@@ -9,6 +10,25 @@ static const QTime SHIFT_ENDS[3] = {QTime(12, 0), QTime(17, 0), QTime(22, 0)};
 static bool overlapsBlock(QTime sStart, QTime sEnd, QTime blockStart, QTime blockEnd)
 {
     return sStart < blockEnd && sEnd > blockStart;
+}
+
+static QTime databaseTime(const QVariant &value)
+{
+    const QTime converted = value.toTime();
+    if (converted.isValid())
+        return converted;
+
+    const QString text = value.toString().trimmed();
+    static const QStringList formats = {
+        "HH:mm:ss.zzz", "H:mm:ss.zzz", "HH:mm:ss", "H:mm:ss",
+        "HH:mm", "H:mm"};
+    for (const QString &format : formats)
+    {
+        const QTime parsed = QTime::fromString(text, format);
+        if (parsed.isValid())
+            return parsed;
+    }
+    return {};
 }
 
 Schedule_Model::Schedule_Model() : numberOfShift(0) {}
@@ -25,8 +45,8 @@ bool Schedule_Model::checkOverlapping(short int id, QDate date, QTime start, QTi
     {
         while (query.next())
         {
-            QTime currentStartTime = query.value("startTime").toTime();
-            QTime currentEndTime = query.value("endTime").toTime();
+            QTime currentStartTime = databaseTime(query.value("startTime"));
+            QTime currentEndTime = databaseTime(query.value("endTime"));
             if (start < currentEndTime && currentStartTime < end)
                 return false;
         }
@@ -70,7 +90,8 @@ void Schedule_Model::getSchedule(short int id, QDate monday)
     {
         QDate date = query.value("workDate").toDate();
         Shift *newShift = new Shift(query.value("idEmployee").toInt(), date,
-                                    query.value("startTime").toTime(), query.value("endTime").toTime());
+                                    databaseTime(query.value("startTime")),
+                                    databaseTime(query.value("endTime")));
         int dayInWeek = monday.daysTo(date); // monday: 0, sunday: 6
         if (dayInWeek >= 0 && dayInWeek < 7)
         {
@@ -136,8 +157,8 @@ void Schedule_Model::getAcceptedSchedule(short int id, QDate monday)
     {
         QDate date = query.value("workDate").toDate();
         Shift *newShift = new Shift(id, date,
-                                    query.value("startTime").toTime(),
-                                    query.value("endTime").toTime());
+                                    databaseTime(query.value("startTime")),
+                                    databaseTime(query.value("endTime")));
 
         int dayInWeek = monday.daysTo(date); // monday: 0, sunday: 6
         if (dayInWeek >= 0 && dayInWeek < 7)
@@ -172,8 +193,8 @@ void Schedule_Model::getPendingSchedule(short int id, QDate monday)
     {
         QDate date = query.value("workDate").toDate();
         Shift *newShift = new Shift(id, date,
-                                    query.value("startTime").toTime(),
-                                    query.value("endTime").toTime());
+                                    databaseTime(query.value("startTime")),
+                                    databaseTime(query.value("endTime")));
 
         int dayInWeek = monday.daysTo(date);
         if (dayInWeek >= 0 && dayInWeek < 7)
@@ -204,8 +225,8 @@ QMap<int, QList<Shift*>> Schedule_Model::getRawStaffShifts(short int id, QDate m
 
     while (query.next()) {
         QDate workDate = query.value("workDate").toDate();
-        QTime startTime = query.value("startTime").toTime();
-        QTime endTime = query.value("endTime").toTime();
+        QTime startTime = databaseTime(query.value("startTime"));
+        QTime endTime = databaseTime(query.value("endTime"));
 
         int col = monday.daysTo(workDate);
         if (col >= 0 && col < 7) {
@@ -253,8 +274,8 @@ FullTimeScheduleGrid Schedule_Model::getFullTimeScheduleGrid(
         while (employeeShifts.next())
         {
             QDate date = employeeShifts.value("workDate").toDate();
-            QTime start = employeeShifts.value("startTime").toTime();
-            QTime end = employeeShifts.value("endTime").toTime();
+            QTime start = databaseTime(employeeShifts.value("startTime"));
+            QTime end = databaseTime(employeeShifts.value("endTime"));
             int day = weekStart.daysTo(date);
             if (day < 0 || day >= 7)
                 continue;
@@ -313,8 +334,8 @@ FullTimeScheduleGrid Schedule_Model::getFullTimeScheduleGrid(
                 int day = weekStart.daysTo(staffing.value(0).toDate());
                 if (day < 0 || day >= 7)
                     continue;
-                QTime start = staffing.value(1).toTime();
-                QTime end = staffing.value(2).toTime();
+                QTime start = databaseTime(staffing.value(1));
+                QTime end = databaseTime(staffing.value(2));
                 for (int shift = 0; shift < 3; ++shift)
                     if (overlapsBlock(start, end, SHIFT_STARTS[shift], SHIFT_ENDS[shift]))
                         ++acceptedCounts[day][shift];
@@ -397,8 +418,8 @@ QMap<int, QMap<int, ShiftBlock *>> Schedule_Model::getManagerWeeklyGrid(QDate mo
         currentWeeklyUsers.append(user);
 
         QDate workDate = query.value("workDate").toDate();
-        QTime startTime = query.value("startTime").toTime();
-        QTime endTime = query.value("endTime").toTime();
+        QTime startTime = databaseTime(query.value("startTime"));
+        QTime endTime = databaseTime(query.value("endTime"));
 
         int col = monday.daysTo(workDate);
         if (col >= 0 && col < 7)
@@ -462,8 +483,8 @@ Schedule_Model::fetchPendingShifts(const QDate &weekStart, const QDate &weekEnd)
         int shiftId = q.value(0).toInt();
         int empId = q.value(1).toInt();
         QDate date = QDate::fromString(q.value(2).toString(), Qt::ISODate);
-        QTime startT = QTime::fromString(q.value(3).toString(), "H:mm");
-        QTime endT = QTime::fromString(q.value(4).toString(), "H:mm");
+        QTime startT = databaseTime(q.value(3));
+        QTime endT = databaseTime(q.value(4));
         Shift *s = new Shift(empId, date, startT, endT);
         s->setShiftId(shiftId);
         regs.push_back(s);
@@ -488,8 +509,8 @@ Schedule_Model::fetchAllEmployeeInfos(const QDate &weekStart)
             while (q.next())
             {
                 int id = q.value(0).toInt();
-                QTime start = QTime::fromString(q.value(1).toString(), "H:mm");
-                QTime end = QTime::fromString(q.value(2).toString(), "H:mm");
+                QTime start = databaseTime(q.value(1));
+                QTime end = databaseTime(q.value(2));
                 if (start.isValid() && end.isValid())
                     minutesMap[id] += start.secsTo(end) / 60;
             }
@@ -557,6 +578,17 @@ AutoSchedulePreview Schedule_Model::previewGeneratedSchedule(QDate weekStart)
         change.date = shift->getDate();
         change.startTime = shift->getStartTime();
         change.endTime = shift->getEndTime();
+        if (change.type == ManagerScheduleChangeType::Approve)
+        {
+            const QTime assignedStart = shift->getAssignedStartTime();
+            const QTime assignedEnd = shift->getAssignedEndTime();
+            if (assignedStart.isValid() && assignedEnd.isValid() &&
+                assignedStart < assignedEnd)
+            {
+                change.startTime = assignedStart;
+                change.endTime = assignedEnd;
+            }
+        }
         change.reason = "Đề xuất bởi xếp lịch tự động";
         if (User *user = usersById.value(change.employeeId, nullptr))
         {
@@ -675,8 +707,8 @@ bool Schedule_Model::replacePendingShiftsForWeek(
 
         while (approvedQuery.next())
         {
-            QTime approvedStart = approvedQuery.value("startTime").toTime();
-            QTime approvedEnd = approvedQuery.value("endTime").toTime();
+            QTime approvedStart = databaseTime(approvedQuery.value("startTime"));
+            QTime approvedEnd = databaseTime(approvedQuery.value("endTime"));
             if (registration.startTime < approvedEnd &&
                 approvedStart < registration.endTime)
             {
@@ -721,8 +753,8 @@ bool Schedule_Model::replacePendingShiftsForWeek(
         existingPendingRows.append(
             qMakePair(existingQuery.value(0).toInt(),
                       registrationKey(existingQuery.value(1).toDate(),
-                                      existingQuery.value(2).toTime(),
-                                      existingQuery.value(3).toTime())));
+                                      databaseTime(existingQuery.value(2)),
+                                      databaseTime(existingQuery.value(3)))));
     }
 
     QSet<QString> retainedKeys;
@@ -761,6 +793,8 @@ bool Schedule_Model::replacePendingShiftsForWeek(
         "(idEmployee, workDate, startTime, endTime, status, isHoliday) "
         "VALUES (:id, :date, :start, :end, 0, :isHoliday)");
     const QList<QString> holidays = {"01/01", "30/04", "01/05", "02/09"};
+    const QList<int> managerRecipients =
+        Notification_Model::getManagerRecipientIds(database);
     for (const StaffShiftRegistration &registration : registrations)
     {
         QString key = registrationKey(registration.date,
@@ -780,6 +814,24 @@ bool Schedule_Model::replacePendingShiftsForWeek(
         {
             database.rollback();
             return false;
+        }
+
+        const int shiftId = insertQuery.lastInsertId().toInt();
+        const QString message = QString::fromUtf8(
+            "Nhân viên #%1 đăng ký ca %2-%3 ngày %4.")
+            .arg(employeeId,
+                 registration.startTime.toString("HH:mm"),
+                 registration.endTime.toString("HH:mm"),
+                 registration.date.toString("dd/MM/yyyy"));
+        for (int managerId : managerRecipients)
+        {
+            if (!Notification_Model::create(
+                    database, managerId, "SHIFT_SUBMITTED",
+                    QString::fromUtf8("Yêu cầu đăng ký ca mới"), message, shiftId))
+            {
+                database.rollback();
+                return false;
+            }
         }
     }
 
@@ -826,8 +878,8 @@ Schedule_Model::getAssignBlockCounts(QDate monday)
     while (q.next())
     {
         QDate date = q.value(0).toDate();
-        QTime sTime = q.value(1).toTime();
-        QTime eTime = q.value(2).toTime();
+        QTime sTime = databaseTime(q.value(1));
+        QTime eTime = databaseTime(q.value(2));
         short st = static_cast<short>(q.value(3).toInt());
         int col = monday.daysTo(date);
         if (col < 0 || col >= 7)
@@ -875,6 +927,22 @@ QList<EligibleEmployeeInfo> Schedule_Model::getEligibleEmployees(
         info.isFixedSalary = profiles.value(3).toBool();
         info.eligible = true;
 
+        QSqlQuery leave(db);
+        leave.prepare("SELECT 1 FROM LEAVE_REQUEST WHERE idEmployee = :id "
+                      "AND leaveDate = :date AND status = 'Approved' LIMIT 1");
+        leave.bindValue(":id", info.employeeId);
+        leave.bindValue(":date", date);
+        if (!leave.exec())
+        {
+            info.eligible = false;
+            info.reason = QString::fromUtf8("Không thể kiểm tra nghỉ phép.");
+        }
+        else if (leave.next())
+        {
+            info.eligible = false;
+            info.reason = QString::fromUtf8("Đã được duyệt nghỉ phép.");
+        }
+
         QSqlQuery conflicts(db);
         conflicts.prepare(
             "SELECT startTime, endTime FROM SHIFT "
@@ -884,6 +952,11 @@ QList<EligibleEmployeeInfo> Schedule_Model::getEligibleEmployees(
         conflicts.bindValue(":date", date);
         conflicts.bindValue(":start", startTime);
         conflicts.bindValue(":end", endTime);
+        if (!info.eligible)
+        {
+            result.append(info);
+            continue;
+        }
         if (!conflicts.exec())
         {
             info.eligible = false;
@@ -893,8 +966,8 @@ QList<EligibleEmployeeInfo> Schedule_Model::getEligibleEmployees(
         {
             info.eligible = false;
             info.reason = QString("Đã có ca trùng (%1 - %2)")
-                              .arg(conflicts.value(0).toTime().toString("HH:mm"),
-                                   conflicts.value(1).toTime().toString("HH:mm"));
+                              .arg(databaseTime(conflicts.value(0)).toString("HH:mm"),
+                                   databaseTime(conflicts.value(1)).toString("HH:mm"));
         }
 
         result.append(info);
@@ -930,6 +1003,24 @@ QStringList Schedule_Model::validateManagerScheduleChanges(
                 continue;
             }
 
+            QSqlQuery approvedLeave(db);
+            approvedLeave.prepare(
+                "SELECT 1 FROM LEAVE_REQUEST WHERE idEmployee = :id "
+                "AND leaveDate = :date AND status = 'Approved' LIMIT 1");
+            approvedLeave.bindValue(":id", change.employeeId);
+            approvedLeave.bindValue(":date", change.date);
+            if (!approvedLeave.exec())
+            {
+                errors << approvedLeave.lastError().text();
+                continue;
+            }
+            if (approvedLeave.next())
+            {
+                errors << QString("%1 Ä‘Ã£ Ä‘Æ°á»£c duyá»‡t nghá»‰ phÃ©p ngÃ y %2.")
+                              .arg(employeeLabel, change.date.toString("dd/MM/yyyy"));
+                continue;
+            }
+
             QSqlQuery overlap(db);
             overlap.prepare(
                 "SELECT 1 FROM SHIFT WHERE idEmployee = :id AND workDate = :date "
@@ -950,6 +1041,15 @@ QStringList Schedule_Model::validateManagerScheduleChanges(
                     errors << QString("%1 có hai thay đổi nháp bị trùng ngày %2.")
                                   .arg(employeeLabel, change.date.toString("dd/MM/yyyy"));
             draftAdds.append(change);
+            continue;
+        }
+
+        if (change.type == ManagerScheduleChangeType::Approve &&
+            (!change.date.isValid() || !change.startTime.isValid() ||
+             !change.endTime.isValid() || change.startTime >= change.endTime))
+        {
+            errors << QString("%1: ngày hoặc khoảng giờ duyệt không hợp lệ.")
+                          .arg(employeeLabel);
             continue;
         }
 
@@ -1069,6 +1169,20 @@ bool Schedule_Model::applyManagerScheduleChanges(
             audit.bindValue(":reason", change.reason);
             audit.bindValue(":at", QDateTime::currentDateTimeUtc().toString(Qt::ISODate));
             if (!audit.exec()) return fail(audit.lastError().text());
+
+            const int shiftId = insert.lastInsertId().toInt();
+            if (!Notification_Model::create(
+                    db, change.employeeId, "SHIFT_ADDED",
+                    QString::fromUtf8("Bạn có ca làm mới"),
+                    QString::fromUtf8("Bạn được phân ca %1-%2 ngày %3.%4")
+                        .arg(change.startTime.toString("HH:mm"),
+                             change.endTime.toString("HH:mm"),
+                             change.date.toString("dd/MM/yyyy"),
+                             change.reason.trimmed().isEmpty()
+                                 ? QString()
+                                 : QString::fromUtf8(" Lý do: %1").arg(change.reason.trimmed())),
+                    shiftId))
+                return fail(QString::fromUtf8("Không thể tạo thông báo phân ca."));
         }
         else
         {
@@ -1079,8 +1193,19 @@ bool Schedule_Model::applyManagerScheduleChanges(
                               : change.type == ManagerScheduleChangeType::Decline ? -1
                               : -2;
             QSqlQuery update(db);
-            update.prepare("UPDATE SHIFT SET status = :status WHERE rowid = :id "
-                           "AND status IN (0,1)");
+            if (targetStatus == 1)
+            {
+                update.prepare(
+                    "UPDATE SHIFT SET status = :status, startTime = :start, "
+                    "endTime = :end WHERE rowid = :id AND status IN (0,1)");
+                update.bindValue(":start", change.startTime);
+                update.bindValue(":end", change.endTime);
+            }
+            else
+            {
+                update.prepare("UPDATE SHIFT SET status = :status WHERE rowid = :id "
+                               "AND status IN (0,1)");
+            }
             update.bindValue(":status", targetStatus);
             update.bindValue(":id", change.shiftId);
             if (!update.exec() || update.numRowsAffected() != 1)
@@ -1096,6 +1221,25 @@ bool Schedule_Model::applyManagerScheduleChanges(
             audit.bindValue(":reason", change.reason);
             audit.bindValue(":at", QDateTime::currentDateTimeUtc().toString(Qt::ISODate));
             if (!audit.exec()) return fail(audit.lastError().text());
+
+            const QString type = targetStatus == 1 ? "SHIFT_APPROVED"
+                               : targetStatus == -1 ? "SHIFT_DECLINED"
+                                                    : "SHIFT_CANCELLED";
+            const QString title = targetStatus == 1
+                ? QString::fromUtf8("Yêu cầu ca làm đã được duyệt")
+                : targetStatus == -1
+                    ? QString::fromUtf8("Yêu cầu ca làm bị từ chối")
+                    : QString::fromUtf8("Ca làm đã bị hủy");
+            const QString message = QString::fromUtf8("Ca %1-%2 ngày %3.%4")
+                .arg(change.startTime.toString("HH:mm"),
+                     change.endTime.toString("HH:mm"),
+                     change.date.toString("dd/MM/yyyy"),
+                     change.reason.trimmed().isEmpty()
+                         ? QString()
+                         : QString::fromUtf8(" Lý do: %1").arg(change.reason.trimmed()));
+            if (!Notification_Model::create(db, change.employeeId, type, title,
+                                            message, change.shiftId))
+                return fail(QString::fromUtf8("Không thể tạo thông báo cập nhật ca."));
         }
     }
 
@@ -1124,8 +1268,8 @@ QList<PendingShiftInfo> Schedule_Model::getShiftsForBlock(QDate monday, int col,
 
     while (q.next())
     {
-        QTime sTime = q.value(2).toTime();
-        QTime eTime = q.value(3).toTime();
+        QTime sTime = databaseTime(q.value(2));
+        QTime eTime = databaseTime(q.value(3));
         if (!overlapsBlock(sTime, eTime, bStart, bEnd))
             continue;
 

@@ -270,16 +270,21 @@ Optimizer::RoleSolveResult Optimizer::solveForRole(const QString& role,
 
     QMap<int,int> assignedCount;
     QMap<int, QSet<int>> empDaysAssigned;
+    QSet<Shift*> assignedShifts;
 
     for (auto& ae : assignEdges) {
         bool assigned = (m_edges[ae.edgeIdx].flow == 1);
-        ae.shift->setStatus(assigned ? 1 : -1);
         if (assigned) {
+            assignedShifts.insert(ae.shift);
             ae.shift->setAssignedTime(ae.assignStart, ae.assignEnd);
             assignedCount[ae.day * K + ae.blk] = assignedCount.value(ae.day * K + ae.blk, 0) + 1;
             empDaysAssigned[ae.empIdx].insert(ae.day);
         }
     }
+
+    for (Shift *shift : roleShifts)
+        if (shift)
+            shift->setStatus(assignedShifts.contains(shift) ? 1 : -1);
 
     int flowSum = 0;
     for (auto v : assignedCount) flowSum += v;

@@ -9,7 +9,7 @@
 #include "view/viewschedule_view.h"
 
 View_Navigator::View_Navigator(Control_Navigator *controller, QWidget *parent)
-    : QMainWindow(parent), ui(new Ui::View_Navigator), controller(controller), loginPage(new Login_View(controller->loginController)), dashboardPage(new Dashboard_View()), profilePage(new Profile_View(controller->profileController)), employeePage(new Employee_View()), schedulePage(new Schedule_View()), viewSchedulePage(new ViewSchedule_View()), salaryPage(new Salary_View()), settingPage(new Setting_View())
+    : QMainWindow(parent), ui(new Ui::View_Navigator), controller(controller), loginPage(new Login_View(controller->loginController)), dashboardPage(new Dashboard_View()), profilePage(new Profile_View(controller->profileController)), employeePage(new Employee_View()), schedulePage(new Schedule_View()), viewSchedulePage(new ViewSchedule_View()), salaryPage(new Salary_View()), settingPage(new Setting_View()), notificationPage(new Notification_View())
 {
     ui->setupUi(this);
 
@@ -42,6 +42,7 @@ View_Navigator::View_Navigator(Control_Navigator *controller, QWidget *parent)
     controller->viewScheduleController->setView(viewSchedulePage);
     controller->salaryController->setView(salaryPage);
     controller->settingController->setView(settingPage);
+    controller->notificationController->setView(notificationPage);
     // add pages
     // index note for each page
     ui->stackedWidget->addWidget(loginPage);        // index 0
@@ -52,6 +53,7 @@ View_Navigator::View_Navigator(Control_Navigator *controller, QWidget *parent)
     ui->stackedWidget->addWidget(viewSchedulePage); // index 5
     ui->stackedWidget->addWidget(salaryPage);       // index 6
     ui->stackedWidget->addWidget(settingPage);      // index 7
+    ui->stackedWidget->addWidget(notificationPage);  // index 8
     // default : login page
     //ui->stackedWidget->setCurrentIndex(0);
 

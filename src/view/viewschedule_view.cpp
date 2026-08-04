@@ -4,6 +4,25 @@
 #include "core/User.h"
 #include "core/Shift.h"
 
+namespace
+{
+QString displayRoleName(const QString &role)
+{
+    if (role.compare("Manager", Qt::CaseInsensitive) == 0 ||
+        role.compare("Manage", Qt::CaseInsensitive) == 0)
+        return QString::fromUtf8("Quản lý");
+    if (role.compare("Cashier", Qt::CaseInsensitive) == 0)
+        return QString::fromUtf8("Thu ngân");
+    if (role.compare("HallStaff", Qt::CaseInsensitive) == 0)
+        return QString::fromUtf8("Nhân viên sảnh");
+    if (role.compare("KitchenAssistant", Qt::CaseInsensitive) == 0)
+        return QString::fromUtf8("Phụ bếp");
+    if (role.compare("Admin", Qt::CaseInsensitive) == 0)
+        return QString::fromUtf8("Quản trị viên");
+    return role;
+}
+}
+
 ViewSchedule_View::ViewSchedule_View(QWidget *parent) : QWidget(parent),
                                                         ui(new Ui::ViewSchedule_View)
 {
@@ -386,8 +405,9 @@ void ViewSchedule_View::updateManagerTable(const QMap<int, QMap<int, ShiftBlock 
                 for (auto it = roleCounts.constBegin(); it != roleCounts.constEnd(); ++it)
                     html += QString(
                         "<div style='background:#FFFFFF;color:#334155;border:1px solid #E2E8F0;"
-                        "border-radius:4px;padding:3px 5px;font-size:10px;margin-top:3px;'>"
-                        "%1 <b>%2</b></div>").arg(it.key()).arg(it.value());
+                        "border-radius:4px;padding:4px 6px;font-size:12px;margin-top:3px;'>"
+                        "%1 <b>%2</b></div>")
+                        .arg(displayRoleName(it.key())).arg(it.value());
             }
             else
             {
@@ -402,9 +422,9 @@ void ViewSchedule_View::updateManagerTable(const QMap<int, QMap<int, ShiftBlock 
                         name = name.left(12) + "…";
                     html += QString(
                         "<div style='%1;border-radius:4px;padding:2px 4px;"
-                        "font-size:11px;font-weight:bold;margin-top:2px;'>"
-                        "%2<br><span style='font-size:9px;font-weight:normal;'>%3</span></div>")
-                        .arg(cardStyle, name, role.toUpper());
+                        "font-size:12px;font-weight:bold;margin-top:2px;'>"
+                        "%2<br><span style='font-size:10px;font-weight:normal;'>%3</span></div>")
+                        .arg(cardStyle, name, displayRoleName(role));
                 }
             }
             html += "</div>";
@@ -529,10 +549,7 @@ void ViewSchedule_View::updateShiftDetails(const QList<User *> &employees, const
         User *emp = visibleEmployees[i];
 
         QString roleDisplay = emp->getRole();
-        if (roleDisplay == "Manager" || roleDisplay == "Manage") roleDisplay = "Quản lý";
-        else if (roleDisplay == "Cashier") roleDisplay = "Thu ngân";
-        else if (roleDisplay == "HallStaff") roleDisplay = "Nhân viên sảnh";
-        else if (roleDisplay == "KitchenAssistant") roleDisplay = "Phụ bếp";
+        roleDisplay = displayRoleName(roleDisplay);
 
         auto makeItem = [](const QString &text, Qt::Alignment alignment = Qt::AlignVCenter | Qt::AlignLeft) -> QTableWidgetItem *
         {

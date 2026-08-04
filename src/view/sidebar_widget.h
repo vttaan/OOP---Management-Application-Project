@@ -22,6 +22,7 @@ public:
     void loadUserData(SessionManager *session);
     void setPermission(const bool &permitted);
     void updateButtonStyles(int mainIndex);
+    void setNotificationCount(int count);
 
     void hideSubMenuInSchedule();
 signals:

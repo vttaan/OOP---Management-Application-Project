@@ -49,10 +49,35 @@ void Schedule_View::setManagerMode(bool isManager)
 
   if (isManager)
   {
+    const bool compactChrome = width() > 0 && width() < 1650;
     if (QWidget *toolbar = findChild<QWidget *>("managerToolbar"))
+    {
       toolbar->setVisible(true);
+      toolbar->setStyleSheet(compactChrome
+                                 ? "QComboBox { font-size:10px; padding:4px 6px; } QPushButton { font-size:10px; padding:4px 7px; }"
+                                 : QString());
+    }
     if (QWidget *summaryBar = findChild<QWidget *>("managerSummaryBar"))
+    {
       summaryBar->setVisible(true);
+      for (QLabel *label : summaryBar->findChildren<QLabel *>())
+      {
+        if (label->objectName() == "managerMetricTitle")
+        {
+          QString style = label->styleSheet();
+          style.replace(QRegularExpression("font-size:\\d+px"),
+                        compactChrome ? "font-size:9px" : "font-size:11px");
+          label->setStyleSheet(style);
+        }
+        else if (label->objectName() == "managerMetricValue")
+        {
+          QString style = label->styleSheet();
+          style.replace(QRegularExpression("font-size:\\d+px"),
+                        compactChrome ? "font-size:17px" : "font-size:20px");
+          label->setStyleSheet(style);
+        }
+      }
+    }
     if (staffInfoStack)
       staffInfoStack->setVisible(false);
     if (lblFullTimeFooterMessage)
@@ -63,6 +88,8 @@ void Schedule_View::setManagerMode(bool isManager)
     ui->tableInteractiveGrid->setVisible(false);
     ui->frameDangKyContainer->setVisible(false);
     ui->buttonLuu->setVisible(false);
+    if (requestLeaveButton)
+      requestLeaveButton->setVisible(false);
 
     ui->btnGenSchedule->setVisible(true);
     ui->btnGenSchedule->setEnabled(true);
@@ -73,7 +100,8 @@ void Schedule_View::setManagerMode(bool isManager)
     ui->frameTableContainer->setVisible(true);
     ui->XacNhanLich->setText("TỔNG KẾT YÊU CẦU ĐĂNG KÝ TRONG TUẦN");
     ui->XacNhanLich->setStyleSheet(
-        "color:#1F2937;font-size:18px;font-weight:700;padding:2px 0 4px 0;");
+        QString("color:#1F2937;font-size:%1px;font-weight:700;padding:2px 0 4px 0;")
+            .arg(compactChrome ? 16 : 18));
 
     // 3-shift manager grid
     ui->tableSum->setRowCount(3);
@@ -127,6 +155,8 @@ void Schedule_View::setManagerMode(bool isManager)
     ui->tableInteractiveGrid->setVisible(true);
     ui->frameDangKyContainer->setVisible(true);
     ui->buttonLuu->setVisible(true);
+    if (requestLeaveButton)
+      requestLeaveButton->setVisible(true);
 
     ui->btnGenSchedule->setVisible(false);
     ui->btnGenSchedule->setEnabled(false);
@@ -229,6 +259,11 @@ void Schedule_View::updateAssignGrid(
     const QMap<int, QMap<int, BlockCounts>> &counts)
 {
   m_lastAssignCounts = counts;
+  // At Windows 125% scaling the table receives fewer logical pixels even on a
+  // 1920px-wide monitor. Use a compact card presentation only in that case;
+  // the normal 2K/100% layout keeps the more descriptive labels.
+  const int tableWidth = ui->tableSum->viewport()->width();
+  const bool compactCards = tableWidth > 0 && tableWidth < 900;
   for (int row = 0; row < 3; ++row)
     for (int col = 0; col < 7; ++col)
       ui->tableSum->removeCellWidget(row, col);
@@ -274,23 +309,35 @@ void Schedule_View::updateAssignGrid(
           QString("QFrame { background:%1;border:%3px solid %2;border-radius:8px; }")
               .arg(compactBg, compactBorder).arg(isSelected ? 2 : 1));
       QVBoxLayout *cardLayout = new QVBoxLayout(compactCard);
-      cardLayout->setContentsMargins(10, 10, 10, 10);
-      cardLayout->setSpacing(7);
+      const int cardMargin = compactCards ? 5 : 10;
+      cardLayout->setContentsMargins(cardMargin, cardMargin, cardMargin,
+                                     cardMargin);
+      cardLayout->setSpacing(compactCards ? 4 : 7);
       cardLayout->setAlignment(Qt::AlignCenter);
 
       QLabel *ratioLabel = new QLabel(
-          QString("%1 / %2 nhân viên").arg(bc.accepted).arg(bc.required), compactCard);
+          compactCards
+              ? QString("%1 / %2").arg(bc.accepted).arg(bc.required)
+              : QString("%1 / %2 nhân viên").arg(bc.accepted).arg(bc.required),
+          compactCard);
       ratioLabel->setAlignment(Qt::AlignCenter);
-      ratioLabel->setWordWrap(true);
+      if (compactCards)
+        ratioLabel->setText(QString("%1 / %2 %3")
+                                .arg(bc.accepted)
+                                .arg(bc.required)
+                                .arg(QString::fromUtf8("nhân viên")));
+      ratioLabel->setWordWrap(!compactCards);
       ratioLabel->setMinimumWidth(0);
       ratioLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
-      ratioLabel->setStyleSheet("border:none;background:transparent;color:#334155;font-size:13px;font-weight:700;");
+      ratioLabel->setStyleSheet(QString(
+          "border:none;background:transparent;color:#334155;font-size:%1px;font-weight:700;")
+                                    .arg(compactCards ? 10 : 13));
 
       QProgressBar *progress = new QProgressBar(compactCard);
       progress->setRange(0, 100);
       progress->setValue(percent);
       progress->setTextVisible(false);
-      progress->setFixedHeight(7);
+      progress->setFixedHeight(compactCards ? 5 : 7);
       progress->setStyleSheet(
           QString("QProgressBar { background:#E2E8F0;border:none;border-radius:3px; }"
                   "QProgressBar::chunk { background:%1;border-radius:3px; }").arg(accent));
@@ -298,7 +345,9 @@ void Schedule_View::updateAssignGrid(
       QLabel *statusLabel = new QLabel(status, compactCard);
       statusLabel->setAlignment(Qt::AlignCenter);
       statusLabel->setStyleSheet(
-          QString("border:none;background:transparent;color:%1;font-size:11px;font-weight:700;").arg(accent));
+          QString("border:none;background:transparent;color:%1;font-size:%2px;font-weight:700;")
+              .arg(accent)
+              .arg(compactCards ? 10 : 11));
 
       cardLayout->addStretch();
       cardLayout->addWidget(ratioLabel);
@@ -387,6 +436,8 @@ void Schedule_View::showShiftRequestsDialog(
 
   if (shiftDetailDrawer && shiftDetailDrawerLayout)
   {
+    activeManagerAddButton = nullptr;
+    managerAddRejectedDuringRequest = false;
     clearLayoutItems(shiftDetailDrawerLayout);
 
     QStringList titleParts = shiftLabel.split(" — ");
@@ -537,9 +588,11 @@ void Schedule_View::showShiftRequestsDialog(
           "border-radius:8px;padding:12px 10px;font-size:11px;");
       bodyLayout->addWidget(empty);
     };
-    auto addEmployeeCard = [this, scrollBody, bodyLayout, roleDisplayName](
-                               const PendingShiftInfo &info, bool pending) {
-      QFrame *card = new QFrame(scrollBody);
+    auto addEmployeeCard = [this, roleDisplayName](
+                               QWidget *host, QVBoxLayout *targetLayout,
+                               const PendingShiftInfo &info, bool pending,
+                               QDialog *popup = nullptr) {
+      QFrame *card = new QFrame(host);
       card->setObjectName("drawerEmployeeCard");
       card->setStyleSheet(
           "QFrame#drawerEmployeeCard { background:#FFFFFF;border:1px solid #E2E8F0;"
@@ -578,13 +631,15 @@ void Schedule_View::showShiftRequestsDialog(
         connect(decline, &QPushButton::clicked, this,
                 [this, info, decline, approve]() {
                   decline->setEnabled(false);
-                  approve->setEnabled(false);
+                  approve->setVisible(false);
+                  decline->setText("Đã từ chối");
                   emit requestDeclineShift(info);
                 });
         connect(approve, &QPushButton::clicked, this,
                 [this, info, decline, approve]() {
-                  decline->setEnabled(false);
+                  decline->setVisible(false);
                   approve->setEnabled(false);
+                  approve->setText("Đã duyệt");
                   emit requestApproveShift(info);
                 });
         actions->addWidget(decline);
@@ -595,22 +650,107 @@ void Schedule_View::showShiftRequestsDialog(
         QPushButton *remove = new QPushButton("Gỡ", card);
         remove->setToolTip("Gỡ nhân viên khỏi ca");
         remove->setStyleSheet("QPushButton { background:#FFF7ED;color:#C2410C;border:1px solid #FED7AA;border-radius:6px;padding:5px 10px;font-weight:700; } QPushButton:hover { background:#FFEDD5; }");
-        connect(remove, &QPushButton::clicked, this, [this, info, remove]() {
+        connect(remove, &QPushButton::clicked, this, [this, info, remove, host, popup]() {
           bool ok = false;
           QString reason = QInputDialog::getText(
-              shiftDetailDrawer, "Gỡ nhân viên khỏi ca", "Lý do:",
+              host, "Gỡ nhân viên khỏi ca", "Lý do:",
               QLineEdit::Normal, "Điều chỉnh phân ca", &ok);
           if (ok && !reason.trimmed().isEmpty())
           {
             remove->setEnabled(false);
             remove->setText("Đã gỡ");
             emit requestRemoveAssignedShift(info.shiftId, info.employeeId, reason.trimmed());
+            if (popup)
+              popup->accept();
           }
         });
         actions->addWidget(remove);
       }
       cardLayout->addLayout(actions, 0);
-      bodyLayout->addWidget(card);
+      targetLayout->addWidget(card);
+    };
+
+    auto showFullSection = [this, addEmployeeCard](
+                               const QString &sectionName,
+                               const QList<PendingShiftInfo> &sectionRequests,
+                               bool pending) {
+      QDialog *popup = new QDialog(this);
+      popup->setWindowTitle(QString("Chi tiết - %1").arg(sectionName));
+      popup->setMinimumSize(620, 420);
+      popup->setWindowFlags(Qt::Tool | Qt::WindowTitleHint |
+                            Qt::WindowCloseButtonHint);
+      popup->setAttribute(Qt::WA_DeleteOnClose, true);
+      popup->setStyleSheet("QDialog { background:#F8FAFC; }");
+
+      QVBoxLayout *popupLayout = new QVBoxLayout(popup);
+      popupLayout->setContentsMargins(18, 18, 18, 18);
+      popupLayout->setSpacing(10);
+
+      QLabel *popupTitle = new QLabel(sectionName, popup);
+      popupTitle->setStyleSheet(
+          "color:#0F172A;font-size:16px;font-weight:800;");
+      QLabel *popupCount = new QLabel(
+          QString("%1 nhân viên").arg(sectionRequests.size()), popup);
+      popupCount->setStyleSheet("color:#64748B;font-size:11px;");
+      popupLayout->addWidget(popupTitle);
+      popupLayout->addWidget(popupCount);
+
+      QScrollArea *popupScroll = new QScrollArea(popup);
+      popupScroll->setWidgetResizable(true);
+      popupScroll->setFrameShape(QFrame::NoFrame);
+      popupScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+      popupScroll->setStyleSheet(
+          "QScrollArea { background:#FFFFFF;border:1px solid #E2E8F0;"
+          "border-radius:10px; }"
+          "QScrollBar:vertical { background:#F8FAFC;width:7px;"
+          "border-radius:3px; }"
+          "QScrollBar::handle:vertical { background:#CBD5E1;"
+          "border-radius:3px;min-height:28px; }"
+          "QScrollBar::add-line:vertical,QScrollBar::sub-line:vertical {"
+          "height:0; }");
+      QWidget *popupBody = new QWidget(popupScroll);
+      popupBody->setStyleSheet("background:#FFFFFF;");
+      QVBoxLayout *popupBodyLayout = new QVBoxLayout(popupBody);
+      popupBodyLayout->setContentsMargins(10, 10, 10, 10);
+      popupBodyLayout->setSpacing(8);
+      for (const PendingShiftInfo &request : sectionRequests)
+        addEmployeeCard(popupBody, popupBodyLayout, request, pending, popup);
+      popupBodyLayout->addStretch();
+      popupScroll->setWidget(popupBody);
+      popupLayout->addWidget(popupScroll, 1);
+
+      QPushButton *close = new QPushButton("Đóng", popup);
+      close->setFixedWidth(90);
+      close->setStyleSheet(
+          "QPushButton { background:#64748B;color:white;border:none;"
+          "border-radius:6px;padding:7px 14px;font-weight:700; }"
+          "QPushButton:hover { background:#475569; }");
+      QHBoxLayout *closeRow = new QHBoxLayout();
+      closeRow->addStretch();
+      closeRow->addWidget(close);
+      popupLayout->addLayout(closeRow);
+      connect(close, &QPushButton::clicked, popup, &QDialog::accept);
+
+      popup->show();
+    };
+
+    auto addMoreLink = [scrollBody, bodyLayout, showFullSection](
+                           const QString &sectionName,
+                           const QList<PendingShiftInfo> &sectionRequests,
+                           bool pending) {
+      if (sectionRequests.size() <= 2)
+        return;
+      QPushButton *more = new QPushButton("Xem thêm", scrollBody);
+      more->setCursor(Qt::PointingHandCursor);
+      more->setStyleSheet(
+          "QPushButton { background:transparent;color:#2563EB;border:none;"
+          "padding:2px 0;font-size:10px;text-align:left; }"
+          "QPushButton:hover { color:#1D4ED8;text-decoration:underline; }");
+      connect(more, &QPushButton::clicked, scrollBody,
+              [showFullSection, sectionName, sectionRequests, pending]() {
+                showFullSection(sectionName, sectionRequests, pending);
+              });
+      bodyLayout->addWidget(more, 0, Qt::AlignLeft);
     };
 
     int visibleApproved = 0;
@@ -622,17 +762,26 @@ void Schedule_View::showShiftRequestsDialog(
       else if (request.status == 0) ++visiblePending;
     }
 
-    bodyLayout->addWidget(sectionTitle("Nhân viên đã xếp", visibleApproved));
+    QList<PendingShiftInfo> approvedRequests;
+    QList<PendingShiftInfo> pendingRequests;
     for (const PendingShiftInfo &request : requests)
-      if (request.status == 1 && matchesRole(request.role))
-        addEmployeeCard(request, false);
+    {
+      if (!matchesRole(request.role)) continue;
+      if (request.status == 1) approvedRequests.append(request);
+      else if (request.status == 0) pendingRequests.append(request);
+    }
+
+    bodyLayout->addWidget(sectionTitle("Nhân viên đã xếp", visibleApproved));
+    for (int i = 0; i < qMin(2, approvedRequests.size()); ++i)
+      addEmployeeCard(scrollBody, bodyLayout, approvedRequests[i], false);
+    addMoreLink("Nhân viên đã xếp", approvedRequests, false);
     if (visibleApproved == 0)
       addEmptyState("Chưa có nhân viên phù hợp với bộ lọc.");
 
     bodyLayout->addWidget(sectionTitle("Yêu cầu chờ duyệt", visiblePending));
-    for (const PendingShiftInfo &request : requests)
-      if (request.status == 0 && matchesRole(request.role))
-        addEmployeeCard(request, true);
+    for (int i = 0; i < qMin(2, pendingRequests.size()); ++i)
+      addEmployeeCard(scrollBody, bodyLayout, pendingRequests[i], true);
+    addMoreLink("Yêu cầu chờ duyệt", pendingRequests, true);
     if (visiblePending == 0)
       addEmptyState("Không có yêu cầu nào đang chờ duyệt.");
 
@@ -689,6 +838,7 @@ void Schedule_View::showShiftRequestsDialog(
       addStaffLayout->addWidget(conflicts);
     }
     QPushButton *addButton = new QPushButton("+ Thêm nhân viên vào ca", addStaffPanel);
+    activeManagerAddButton = addButton;
     addButton->setEnabled(!eligibleVisible.isEmpty());
     addButton->setStyleSheet(
         "QPushButton { background:#2563EB;color:white;border:none;border-radius:6px;"
@@ -723,10 +873,13 @@ void Schedule_View::showShiftRequestsDialog(
           return;
         }
       }
+      managerAddRejectedDuringRequest = false;
       emit requestAddEmployee(employee.employeeId, shiftDate, addStart, addEnd,
                               employee.isFixedSalary
                                   ? "Quản lý bổ sung nhân sự cố định"
                                   : "Quản lý bổ sung nhân sự theo giờ");
+      if (managerAddRejectedDuringRequest)
+        return;
       addButton->setText("✓ Đã thêm vào bản nháp");
       addButton->setEnabled(false);
     });
@@ -1042,6 +1195,15 @@ void Schedule_View::setManagerDraftStatus(int changeCount)
     lblManagerDraftStatus->setText("Đã xác nhận");
     lblManagerDraftStatus->setStyleSheet("background:#ECFDF5;color:#047857;border-radius:8px;padding:8px 12px;font-weight:600;");
   }
+}
+
+void Schedule_View::resetManagerAddButton()
+{
+  managerAddRejectedDuringRequest = true;
+  if (!activeManagerAddButton)
+    return;
+  activeManagerAddButton->setText("+ Thêm nhân viên vào ca");
+  activeManagerAddButton->setEnabled(true);
 }
 
 void Schedule_View::updateManagerSummary(int totalShifts, int shortageShifts,

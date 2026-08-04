@@ -1,6 +1,9 @@
 #include "global.h"
 #include "control/Schedule_Control.h"
 #include "view/Schedule_View.h"
+#include <QDateEdit>
+#include <QDialogButtonBox>
+#include <QPlainTextEdit>
 #include <QListWidget>
 
 // ─────────────────────────────────────────────
@@ -85,6 +88,100 @@ void Schedule_Control::setView(Schedule_View *v)
             this, &Schedule_Control::onUndoManagerDraft);
     connect(view, &Schedule_View::requestClearManagerDraft,
             this, &Schedule_Control::onClearManagerDraft);
+    connect(view, &Schedule_View::requestLeave,
+            this, &Schedule_Control::onLeaveRequested);
+}
+
+void Schedule_Control::onLeaveRequested()
+{
+    if (!view || currentEmployeeId < 0)
+        return;
+
+    const QDate weekStart = currentEmployeeRegistrationWeekStart.isValid()
+        ? currentEmployeeRegistrationWeekStart
+        : Config::getStartOfCurrentWeek(QDate::currentDate()).addDays(7);
+    const QList<LeaveShiftOption> shiftOptions =
+        leaveRequestModel.getActiveShiftsForWeek(currentEmployeeId, weekStart);
+    if (shiftOptions.isEmpty())
+    {
+        QMessageBox::information(
+            view, QString::fromUtf8("Chưa có ca để xin nghỉ"),
+            QString::fromUtf8("Bạn chưa có ca chờ duyệt hoặc đã duyệt trong tuần đăng ký này."));
+        return;
+    }
+
+    QDialog dialog(view);
+    dialog.setWindowTitle(QString::fromUtf8("Xin nghỉ phép"));
+    dialog.setMinimumWidth(390);
+    dialog.setStyleSheet(
+        "QDialog{background:#F8FAFC;color:#1E293B;}"
+        "QLabel{color:#334155;font-weight:600;}"
+        "QListWidget,QPlainTextEdit{background:#FFFFFF;color:#1E293B;"
+        "border:1px solid #CBD5E1;border-radius:6px;padding:6px;}"
+        "QListWidget::item{padding:9px;border-bottom:1px solid #E2E8F0;}"
+        "QListWidget::item:selected,QListWidget::item:selected:active,"
+        "QListWidget::item:selected:!active{background:transparent;color:#1E293B;}"
+        "QPushButton{background:#FFFFFF;color:#334155;border:1px solid #CBD5E1;"
+        "border-radius:6px;padding:7px 14px;font-weight:700;}"
+        "QPushButton:hover{background:#F1F5F9;}");
+    auto *layout = new QVBoxLayout(&dialog);
+    auto *shiftLabel = new QLabel(
+        QString::fromUtf8("Chọn ca làm của bạn trong tuần để gửi yêu cầu nghỉ cả ngày:"),
+        &dialog);
+    shiftLabel->setWordWrap(true);
+    layout->addWidget(shiftLabel);
+    auto *shiftList = new QListWidget(&dialog);
+    shiftList->setSelectionMode(QAbstractItemView::SingleSelection);
+    shiftList->setMinimumHeight(145);
+    for (const LeaveShiftOption &option : shiftOptions)
+    {
+        const QString status = option.status == 1
+            ? QString::fromUtf8("Đã duyệt") : QString::fromUtf8("Chờ duyệt");
+        auto *item = new QListWidgetItem(
+            QString("%1  |  %2 - %3  |  %4")
+                .arg(option.date.toString("ddd, dd/MM/yyyy"),
+                     option.startTime.toString("HH:mm"),
+                     option.endTime.toString("HH:mm"), status),
+            shiftList);
+        item->setData(Qt::UserRole, option.shiftId);
+    }
+    shiftList->setCurrentRow(0);
+    layout->addWidget(shiftList);
+
+    auto *form = new QFormLayout();
+    auto *reasonEdit = new QPlainTextEdit(&dialog);
+    reasonEdit->setPlaceholderText(QString::fromUtf8("Nhập lý do xin nghỉ..."));
+    reasonEdit->setFixedHeight(95);
+    form->addRow(QString::fromUtf8("Lý do:"), reasonEdit);
+    layout->addLayout(form);
+    auto *buttons = new QDialogButtonBox(QDialogButtonBox::Cancel, &dialog);
+    QPushButton *submit = buttons->addButton(QString::fromUtf8("Gửi yêu cầu"),
+                                               QDialogButtonBox::AcceptRole);
+    layout->addWidget(buttons);
+    submit->setStyleSheet(
+        "QPushButton{background:#2563EB;color:#FFFFFF;border:1px solid #2563EB;}"
+        "QPushButton:hover{background:#1D4ED8;}");
+    connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+    connect(submit, &QPushButton::clicked, &dialog, [&]() {
+        QListWidgetItem *selectedShift = shiftList->currentItem();
+        if (!selectedShift)
+        {
+            QMessageBox::warning(&dialog, QString::fromUtf8("Chưa chọn ca làm"),
+                                 QString::fromUtf8("Hãy chọn ca làm cần xin nghỉ."));
+            return;
+        }
+        QString error;
+        if (!leaveRequestModel.submitLeaveRequest(currentEmployeeId,
+                                                   selectedShift->data(Qt::UserRole).toInt(),
+                                                   reasonEdit->toPlainText(), &error)) {
+            QMessageBox::warning(&dialog, QString::fromUtf8("Không thể gửi yêu cầu"), error);
+            return;
+        }
+        dialog.accept();
+    });
+
+    if (dialog.exec() == QDialog::Accepted)
+        view->showSuccess(QString::fromUtf8("Đã gửi yêu cầu nghỉ phép. Vui lòng chờ quản lý duyệt."));
 }
 
 Schedule_View *Schedule_Control::getView() const
@@ -882,6 +979,9 @@ void Schedule_Control::onAddEmployeeToShift(int employeeId, QDate date,
                                             QTime startTime, QTime endTime,
                                             const QString &reason)
 {
+    if (!model || !view)
+        return;
+
     ManagerScheduleChange change;
     change.type = ManagerScheduleChangeType::Add;
     change.employeeId = employeeId;
@@ -889,6 +989,49 @@ void Schedule_Control::onAddEmployeeToShift(int employeeId, QDate date,
     change.startTime = startTime;
     change.endTime = endTime;
     change.reason = reason;
+
+    if (!date.isValid() || !startTime.isValid() || !endTime.isValid() ||
+        startTime >= endTime)
+    {
+        view->resetManagerAddButton();
+        view->showError(QString::fromUtf8("Ngày hoặc khoảng giờ thêm vào không hợp lệ."));
+        return;
+    }
+
+    const QList<EligibleEmployeeInfo> eligibleEmployees =
+        model->getEligibleEmployees(date, startTime, endTime);
+    auto employeeIt = std::find_if(
+        eligibleEmployees.cbegin(), eligibleEmployees.cend(),
+        [employeeId](const EligibleEmployeeInfo &employee) {
+            return employee.employeeId == employeeId;
+        });
+    if (employeeIt == eligibleEmployees.cend())
+    {
+        view->resetManagerAddButton();
+        view->showError(QString::fromUtf8("Không tìm thấy nhân viên để thêm vào ca."));
+        return;
+    }
+    if (!employeeIt->eligible)
+    {
+        view->resetManagerAddButton();
+        view->showError(QString::fromUtf8("Không thể thêm %1: %2")
+                            .arg(employeeIt->employeeName, employeeIt->reason));
+        return;
+    }
+    change.employeeName = employeeIt->employeeName;
+    change.role = employeeIt->role;
+
+    QList<ManagerScheduleChange> candidateChanges = managerDraftChanges;
+    candidateChanges.append(change);
+    const QStringList validationErrors =
+        model->validateManagerScheduleChanges(candidateChanges);
+    if (!validationErrors.isEmpty())
+    {
+        view->resetManagerAddButton();
+        view->showError(validationErrors.join("\n"));
+        return;
+    }
+
     managerDraftChanges.erase(
         std::remove_if(managerDraftChanges.begin(), managerDraftChanges.end(),
                        [change](const ManagerScheduleChange &existing)

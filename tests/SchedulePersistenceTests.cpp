@@ -4,6 +4,8 @@
 #include "model/Login_Model.h"
 #include "model/Salary_Model.h"
 #include "model/Schedule_Model.h"
+#include "model/Notification_Model.h"
+#include "model/LeaveRequest_Model.h"
 #include "utils/Config.h"
 #include "utils/Security.h"
 #include "utils/Database.h"
@@ -63,7 +65,8 @@ private slots:
         QVERIFY(execute(
             "INSERT INTO PROFILES (idEmployee, role, isFixed) VALUES "
             "(1001, 'Cashier', 1), (1002, 'HallStaff', 0), "
-            "(1003, 'Cashier', 0), (1004, 'Cashier', 0)"));
+            "(1003, 'Cashier', 0), (1004, 'Cashier', 0), "
+            "(2001, 'Manager', 0)"));
         QSqlQuery account(database());
         account.prepare(
             "INSERT INTO ACCOUNTS (idEmployee, userName, passWord) "
@@ -76,6 +79,9 @@ private slots:
     {
         QVERIFY(execute("DROP TRIGGER IF EXISTS reject_evening"));
         QVERIFY(execute("DELETE FROM SHIFT"));
+        QVERIFY(execute("DELETE FROM NOTIFICATION"));
+        QVERIFY(execute("DELETE FROM LEAVE_REQUEST"));
+        QVERIFY(execute("DELETE FROM SHIFT_AUDIT"));
     }
 
     void employeePayTypeIsStored()
@@ -272,8 +278,73 @@ private slots:
         AutoSchedulePreview preview = model.previewGeneratedSchedule(weekStart);
 
         QCOMPARE(scalar("SELECT status FROM SHIFT WHERE IdShift = 1"), 0);
+        QCOMPARE(preview.changes.first().type,
+                 ManagerScheduleChangeType::Approve);
         QVERIFY(preview.approvedCount + preview.declinedCount ==
                 preview.changes.size());
+    }
+
+    void automaticPreviewCarriesOptimizerAssignedTime()
+    {
+        Config::setRoles({{"HallStaff", {1, 6}}});
+        Config::setMinimumDaysWorkPerWeek_PT(1);
+        Config::setMinimumHourWorkPerDay_PT(1);
+        Config::setMaximumHourWorkPerDay_PT(8);
+        QVERIFY(execute(
+            "INSERT INTO SHIFT (idEmployee, workDate, startTime, endTime, status) "
+            "VALUES (1002, '2026-08-03', '10:00', '20:00', 0)"));
+
+        Schedule_Model model;
+        AutoSchedulePreview preview = model.previewGeneratedSchedule(weekStart);
+
+        QCOMPARE(preview.changes.size(), 1);
+        QCOMPARE(preview.changes.first().type,
+                 ManagerScheduleChangeType::Approve);
+        QCOMPARE(preview.changes.first().startTime, QTime(10, 0));
+        QCOMPARE(preview.changes.first().endTime, QTime(12, 0));
+        QCOMPARE(scalar("SELECT status FROM SHIFT WHERE IdShift = 1"), 0);
+    }
+
+    void automaticPreviewParsesDatabaseTimesWithMilliseconds()
+    {
+        Config::setRoles({{"HallStaff", {1, 6}}});
+        Config::setMinimumDaysWorkPerWeek_PT(1);
+        Config::setMinimumHourWorkPerDay_PT(1);
+        Config::setMaximumHourWorkPerDay_PT(8);
+        QVERIFY(execute(
+            "INSERT INTO SHIFT (idEmployee, workDate, startTime, endTime, status) "
+            "VALUES (1002, '2026-08-03', '10:00:00.000', '20:00:00.000', 0)"));
+
+        Schedule_Model model;
+        AutoSchedulePreview preview = model.previewGeneratedSchedule(weekStart);
+
+        QCOMPARE(preview.changes.size(), 1);
+        QCOMPARE(preview.changes.first().type,
+                 ManagerScheduleChangeType::Approve);
+        QCOMPARE(preview.changes.first().startTime, QTime(10, 0));
+        QCOMPARE(preview.changes.first().endTime, QTime(12, 0));
+    }
+
+    void approvingScheduleChangePersistsAssignedTime()
+    {
+        QVERIFY(execute(
+            "INSERT INTO SHIFT (idEmployee, workDate, startTime, endTime, status) "
+            "VALUES (1002, '2026-08-03', '10:00', '20:00', 0)"));
+
+        Schedule_Model model;
+        QList<ManagerScheduleChange> changes = {
+            {ManagerScheduleChangeType::Approve, 1, 1002, "Employee", "HallStaff",
+             weekStart, QTime(10, 0), QTime(12, 0), "Automatic assignment"}};
+        QStringList errors;
+        QVERIFY2(model.applyManagerScheduleChanges(changes, &errors),
+                 qPrintable(errors.join(" | ")));
+        QCOMPARE(scalar("SELECT status FROM SHIFT WHERE IdShift = 1"), 1);
+
+        QSqlQuery query(database());
+        QVERIFY(query.exec("SELECT startTime, endTime FROM SHIFT WHERE IdShift = 1"));
+        QVERIFY(query.next());
+        QCOMPARE(query.value(0).toTime(), QTime(10, 0));
+        QCOMPARE(query.value(1).toTime(), QTime(12, 0));
     }
 
     void draftValidationRejectsConflictingShiftActions()
@@ -292,6 +363,118 @@ private slots:
 
         QVERIFY(!errors.isEmpty());
         QCOMPARE(scalar("SELECT status FROM SHIFT WHERE IdShift = 1"), 0);
+    }
+
+    void managerDecisionCreatesStaffNotification()
+    {
+        QVERIFY(execute(
+            "INSERT INTO SHIFT (idEmployee, workDate, startTime, endTime, status) "
+            "VALUES (1002, '2026-08-03', '07:00', '12:00', 0)"));
+
+        Schedule_Model schedule;
+        QList<ManagerScheduleChange> changes = {
+            {ManagerScheduleChangeType::Approve, 1, 1002, "Employee", "HallStaff",
+             weekStart, QTime(7, 0), QTime(12, 0), "Approved for coverage"}};
+        QStringList errors;
+        QVERIFY2(schedule.applyManagerScheduleChanges(changes, &errors),
+                 qPrintable(errors.join(" | ")));
+
+        Notification_Model notifications;
+        const QList<NotificationInfo> staffNotifications =
+            notifications.getNotifications(1002);
+        QCOMPARE(staffNotifications.size(), 1);
+        QCOMPARE(staffNotifications.first().type, QString("SHIFT_APPROVED"));
+        QCOMPARE(notifications.getUnreadCount(1002), 1);
+        QVERIFY(notifications.markAsRead(staffNotifications.first().id, 1002));
+        QCOMPARE(notifications.getUnreadCount(1002), 0);
+    }
+
+    void newPendingShiftNotifiesManagerOnlyOnce()
+    {
+        Schedule_Model schedule;
+        const QList<StaffShiftRegistration> registrations = {
+            {weekStart, QTime(7, 0), QTime(12, 0)}};
+        QVERIFY(schedule.replacePendingShiftsForWeek(1002, weekStart, registrations));
+        QVERIFY(schedule.replacePendingShiftsForWeek(1002, weekStart, registrations));
+
+        Notification_Model notifications;
+        const QList<NotificationInfo> managerNotifications =
+            notifications.getNotifications(2001);
+        QCOMPARE(managerNotifications.size(), 1);
+        QCOMPARE(managerNotifications.first().type, QString("SHIFT_SUBMITTED"));
+    }
+
+    void leaveApprovalCancelsAffectedShiftAndNotifiesStaff()
+    {
+        const QDate leaveDate = QDate::currentDate().addDays(5);
+        QSqlQuery shift(database());
+        shift.prepare(
+            "INSERT INTO SHIFT (idEmployee, workDate, startTime, endTime, status) "
+            "VALUES (1002, :date, '07:00', '12:00', 1)");
+        shift.bindValue(":date", leaveDate);
+        QVERIFY(shift.exec());
+        const int shiftId = shift.lastInsertId().toInt();
+
+        LeaveRequest_Model leaveRequests;
+        QString error;
+        const QList<LeaveShiftOption> availableShifts =
+            leaveRequests.getActiveShiftsForWeek(1002, leaveDate.addDays(-2));
+        QCOMPARE(availableShifts.size(), 1);
+        QCOMPARE(availableShifts.first().shiftId, shiftId);
+        QVERIFY2(leaveRequests.submitLeaveRequest(1002, shiftId, "Medical appointment", &error),
+                 qPrintable(error));
+
+        Notification_Model notifications;
+        const QList<NotificationInfo> managerNotifications =
+            notifications.getNotifications(2001);
+        QCOMPARE(managerNotifications.size(), 1);
+        QCOMPARE(managerNotifications.first().type, QString("LEAVE_SUBMITTED"));
+
+        const int requestId = managerNotifications.first().relatedLeaveRequestId;
+        QVERIFY(requestId > 0);
+        QVERIFY2(leaveRequests.decideLeaveRequest(requestId, 2001, true,
+                                                   "Approved", &error),
+                 qPrintable(error));
+        QVERIFY(notifications.markLeaveRequestReviewed(
+            managerNotifications.first().id, 2001, true));
+        const QList<NotificationInfo> reviewedManagerNotifications =
+            notifications.getNotifications(2001);
+        QCOMPARE(reviewedManagerNotifications.first().type, QString("LEAVE_APPROVED"));
+        QCOMPARE(reviewedManagerNotifications.first().status, QString("Read"));
+        QCOMPARE(scalar("SELECT status FROM SHIFT WHERE idEmployee = 1002"), -2);
+        QCOMPARE(scalar("SELECT COUNT(*) FROM SHIFT_AUDIT WHERE action = 'cancel'"), 1);
+
+        const QList<NotificationInfo> staffNotifications =
+            notifications.getNotifications(1002);
+        QCOMPARE(staffNotifications.size(), 1);
+        QCOMPARE(staffNotifications.first().type, QString("LEAVE_APPROVED"));
+    }
+
+    void leaveDeclineNotifiesStaffWithoutChangingShift()
+    {
+        const QDate leaveDate = QDate::currentDate().addDays(6);
+        QSqlQuery shift(database());
+        shift.prepare(
+            "INSERT INTO SHIFT (idEmployee, workDate, startTime, endTime, status) "
+            "VALUES (1002, :date, '12:00', '17:00', 0)");
+        shift.bindValue(":date", leaveDate);
+        QVERIFY(shift.exec());
+        LeaveRequest_Model leaveRequests;
+        QString error;
+        QVERIFY2(leaveRequests.submitLeaveRequest(1002, shift.lastInsertId().toInt(),
+                                                   "Personal matter", &error),
+                 qPrintable(error));
+        Notification_Model notifications;
+        const int requestId = notifications.getNotifications(2001).first()
+                                  .relatedLeaveRequestId;
+        QVERIFY2(leaveRequests.decideLeaveRequest(requestId, 2001, false,
+                                                   "Insufficient coverage", &error),
+                 qPrintable(error));
+        const QList<NotificationInfo> staffNotifications =
+            notifications.getNotifications(1002);
+        QCOMPARE(staffNotifications.size(), 1);
+        QCOMPARE(staffNotifications.first().type, QString("LEAVE_DECLINED"));
+        QCOMPARE(scalar("SELECT status FROM SHIFT"), 0);
     }
 };
 
