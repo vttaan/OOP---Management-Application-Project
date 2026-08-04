@@ -804,10 +804,12 @@ void Schedule_Control::onConfirmRequested()
     reviewTable->setSelectionMode(QAbstractItemView::NoSelection);
     reviewTable->setWordWrap(true);
     reviewTable->setStyleSheet(
-        "QTableWidget { background:#FFFFFF;border:1px solid #E2E8F0;border-radius:8px; }"
+        "QTableWidget { background:#FFFFFF;color:#1E293B;"
+        "border:1px solid #E2E8F0;border-radius:8px; }"
         "QHeaderView::section { background:#EFF6FF;color:#1E3A8A;"
         "font-weight:700;padding:8px;border:none; }"
-        "QTableWidget::item { padding:8px;border-bottom:1px solid #E2E8F0; }");
+        "QTableWidget::item { color:#1E293B;padding:8px;"
+        "border-bottom:1px solid #E2E8F0; }");
     int reviewRow = 0;
     for (const ShiftImpact &impact : impacts)
     {
@@ -842,6 +844,15 @@ void Schedule_Control::onConfirmRequested()
         QDialogButtonBox::Cancel, Qt::Horizontal, &review);
     QPushButton *publishButton = reviewButtons->addButton(
         "Công bố lịch", QDialogButtonBox::AcceptRole);
+    if (QPushButton *cancelButton = reviewButtons->button(QDialogButtonBox::Cancel))
+    {
+        cancelButton->setStyleSheet(
+            "QPushButton { background:#FFFFFF;color:#475569;"
+            "border:1px solid #CBD5E1;border-radius:6px;"
+            "padding:8px 18px;font-weight:600; }"
+            "QPushButton:hover { background:#F8FAFC;color:#1E293B; }"
+            "QPushButton:pressed { background:#F1F5F9; }");
+    }
     publishButton->setEnabled(validationErrors.isEmpty());
     publishButton->setStyleSheet(
         "QPushButton { background:#16A34A;color:white;border:none;border-radius:6px;"
