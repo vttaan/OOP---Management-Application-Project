@@ -213,8 +213,8 @@ void Schedule_Control::load()
         view->updateTableHeaders(weekStart);
 
         // Fetch shift status for coloring the interactive grid
-        QMap<int, QList<Shift*>> pendingShifts = model->getRawStaffShifts(currentEmployeeId, weekStart, 0); // 0 = Pending
-        QMap<int, QList<Shift*>> acceptedShifts = model->getRawStaffShifts(currentEmployeeId, weekStart, 1); // 1 = Accepted
+        QMap<int, QList<Shift *>> pendingShifts = model->getRawStaffShifts(currentEmployeeId, weekStart, 0);  // 0 = Pending
+        QMap<int, QList<Shift *>> acceptedShifts = model->getRawStaffShifts(currentEmployeeId, weekStart, 1); // 1 = Accepted
         QMap<int, QMap<int, ShiftBlock *>> managerGrid = model->getManagerWeeklyGrid(weekStart, 1);
 
         view->updateStaffInteractiveGridStatus(pendingShifts, acceptedShifts, managerGrid);
@@ -233,7 +233,7 @@ void Schedule_Control::load()
 }
 
 void Schedule_Control::onSaveFullTimeScheduleRequested(
-    const QList<QList<int>>& selectedShiftsByDay)
+    const QList<QList<int>> &selectedShiftsByDay)
 {
     if (!model || !view || currentEmployeeId < 0 ||
         employeeScheduleLayoutMode != EmployeeScheduleLayoutMode::FullTimeSchedule)
@@ -245,8 +245,8 @@ void Schedule_Control::onSaveFullTimeScheduleRequested(
         QTime(12, 0), QTime(17, 0), QTime(22, 0)};
 
     QDate weekStart = currentEmployeeRegistrationWeekStart.isValid()
-        ? currentEmployeeRegistrationWeekStart
-        : Config::getStartOfCurrentWeek(QDate::currentDate()).addDays(7);
+                          ? currentEmployeeRegistrationWeekStart
+                          : Config::getStartOfCurrentWeek(QDate::currentDate()).addDays(7);
     QList<StaffShiftRegistration> registrations;
     for (int day = 0; day < selectedShiftsByDay.size() && day < 7; ++day)
     {
@@ -270,7 +270,7 @@ void Schedule_Control::onSaveFullTimeScheduleRequested(
         view->showFullTimeSaveFeedback(
             "Đã lưu lịch đăng ký chờ duyệt thành công.");
     }
-    if (false)
+    else
     {
         view->showError(
             "Không thể cập nhật lịch toàn thời gian. Ca đã duyệt hoặc lỗi "
@@ -283,70 +283,71 @@ void Schedule_Control::onSaveFullTimeScheduleRequested(
 // Converts the interactive grid selection into time-ranged shifts and saves.
 // ─────────────────────────────────────────────
 
-void Schedule_Control::onSaveGridRequested(const QList<QList<int>>& selectedHoursByDay)
+void Schedule_Control::onSaveGridRequested(const QList<QList<int>> &selectedHoursByDay)
 {
     if (!model || !view)
         return;
     if (true)
     {
-    if (currentEmployeeId < 0)
-        return;
+        if (currentEmployeeId < 0)
+            return;
 
-    QDate weekStart = currentEmployeeRegistrationWeekStart.isValid()
-        ? currentEmployeeRegistrationWeekStart
-        : Config::getStartOfCurrentWeek(QDate::currentDate()).addDays(7);
-    int openHour = Config::getOpenHour();
-    int rowCount = Config::getCloseHour() - openHour;
-    QList<StaffShiftRegistration> registrations;
+        QDate weekStart = currentEmployeeRegistrationWeekStart.isValid()
+                              ? currentEmployeeRegistrationWeekStart
+                              : Config::getStartOfCurrentWeek(QDate::currentDate()).addDays(7);
+        int openHour = Config::getOpenHour();
+        int rowCount = Config::getCloseHour() - openHour;
+        QList<StaffShiftRegistration> registrations;
 
-    for (int col = 0; col < 7 && col < selectedHoursByDay.size(); ++col)
-    {
-        QList<int> rows = selectedHoursByDay[col];
-        rows.erase(std::remove_if(rows.begin(), rows.end(),
-                                  [rowCount](int row)
-                                  { return row < 0 || row >= rowCount; }),
-                   rows.end());
-        std::sort(rows.begin(), rows.end());
-        rows.erase(std::unique(rows.begin(), rows.end()), rows.end());
-        if (rows.isEmpty())
-            continue;
-
-        QDate shiftDate = weekStart.addDays(col);
-
-        // Group contiguous rows into [startRow, endRow] spans
-        int spanStart = rows[0];
-        int spanEnd   = rows[0];
-        for (int k = 1; k < rows.size(); ++k)
+        for (int col = 0; col < 7 && col < selectedHoursByDay.size(); ++col)
         {
-            if (rows[k] == spanEnd + 1)
-            {
-                spanEnd = rows[k];
-            }
-            else
-            {
-                registrations.append({shiftDate,
-                                      QTime(openHour + spanStart, 0),
-                                      QTime(openHour + spanEnd + 1, 0)});
-                spanStart = rows[k];
-                spanEnd   = rows[k];
-            }
-        }
-        registrations.append({shiftDate,
-                              QTime(openHour + spanStart, 0),
-                              QTime(openHour + spanEnd + 1, 0)});
-    }
+            QList<int> rows = selectedHoursByDay[col];
+            rows.erase(std::remove_if(rows.begin(), rows.end(),
+                                      [rowCount](int row)
+                                      { return row < 0 || row >= rowCount; }),
+                       rows.end());
+            std::sort(rows.begin(), rows.end());
+            rows.erase(std::unique(rows.begin(), rows.end()), rows.end());
+            if (rows.isEmpty())
+                continue;
 
-    bool saved = model->replacePendingShiftsForWeek(
-        currentEmployeeId, weekStart, registrations);
-    if (saved)
-    {
-        view->showSuccess("Đã lưu lịch đăng ký thành công!");
-        load();
+            QDate shiftDate = weekStart.addDays(col);
+
+            // Group contiguous rows into [startRow, endRow] spans
+            int spanStart = rows[0];
+            int spanEnd = rows[0];
+            for (int k = 1; k < rows.size(); ++k)
+            {
+                if (rows[k] == spanEnd + 1)
+                {
+                    spanEnd = rows[k];
+                }
+                else
+                {
+                    registrations.append({shiftDate,
+                                          QTime(openHour + spanStart, 0),
+                                          QTime(openHour + spanEnd + 1, 0)});
+                    spanStart = rows[k];
+                    spanEnd = rows[k];
+                }
+            }
+            registrations.append({shiftDate,
+                                  QTime(openHour + spanStart, 0),
+                                  QTime(openHour + spanEnd + 1, 0)});
+        }
+
+        bool saved = model->replacePendingShiftsForWeek(
+            currentEmployeeId, weekStart, registrations);
+        if (saved)
+        {
+            view->showSuccess("Đã lưu lịch đăng ký thành công!");
+            load();
+        }
+        else
+            view->showError(
+                "Không thể cập nhật lịch chờ duyệt. Lịch đã duyệt hoặc lỗi cơ sở "
+                "dữ liệu có thể đang ngăn thay đổi này.");
     }
-    }
-        view->showError(
-            "Không thể cập nhật lịch chờ duyệt. Lịch đã duyệt hoặc lỗi cơ sở "
-            "dữ liệu có thể đang ngăn thay đổi này.");
 }
 
 void Schedule_Control::handleGenSchedule()
@@ -370,7 +371,8 @@ void Schedule_Control::handleGenSchedule()
     for (const ManagerScheduleChange &change : preview.changes)
     {
         int day = currentAssignMonday.daysTo(change.date);
-        if (day < 0 || day >= 7) continue;
+        if (day < 0 || day >= 7)
+            continue;
         for (int row = 0; row < 3; ++row)
         {
             if (!(change.startTime < ends[row] && change.endTime > starts[row]))
@@ -398,8 +400,10 @@ void Schedule_Control::handleGenSchedule()
             const BlockCounts after = afterCounts.value(day).value(row);
             bool wasMissing = before.accepted < before.required;
             bool stillMissing = after.accepted < after.required;
-            if (wasMissing && !stillMissing) ++resolvedShifts;
-            if (stillMissing) ++remainingShortages;
+            if (wasMissing && !stillMissing)
+                ++resolvedShifts;
+            if (stillMissing)
+                ++remainingShortages;
         }
 
     QDialog dialog(view);
@@ -412,14 +416,16 @@ void Schedule_Control::handleGenSchedule()
     QLabel *subtitle = new QLabel(
         QString("Tuần %1 - %2 • Chưa có thay đổi nào được lưu")
             .arg(currentAssignMonday.toString("dd/MM/yyyy"),
-                 currentAssignMonday.addDays(6).toString("dd/MM/yyyy")), &dialog);
+                 currentAssignMonday.addDays(6).toString("dd/MM/yyyy")),
+        &dialog);
     subtitle->setStyleSheet("color:#64748B;font-size:12px;");
     layout->addWidget(title);
     layout->addWidget(subtitle);
 
     QHBoxLayout *metrics = new QHBoxLayout();
     auto metric = [&dialog](const QString &label, int value,
-                            const QString &background, const QString &color) {
+                            const QString &background, const QString &color)
+    {
         QFrame *card = new QFrame(&dialog);
         card->setStyleSheet(QString("QFrame { background:%1;border-radius:9px; }")
                                 .arg(background));
@@ -499,7 +505,8 @@ void Schedule_Control::onPreviousManagerWeek()
         view->showError("Hãy công bố hoặc xóa bản nháp trước khi đổi tuần.");
         return;
     }
-    if (!currentAssignMonday.isValid()) return;
+    if (!currentAssignMonday.isValid())
+        return;
     currentAssignMonday = currentAssignMonday.addDays(-7);
     load();
 }
@@ -511,7 +518,8 @@ void Schedule_Control::onNextManagerWeek()
         view->showError("Hãy công bố hoặc xóa bản nháp trước khi đổi tuần.");
         return;
     }
-    if (!currentAssignMonday.isValid()) return;
+    if (!currentAssignMonday.isValid())
+        return;
     currentAssignMonday = currentAssignMonday.addDays(7);
     load();
 }
@@ -530,7 +538,8 @@ void Schedule_Control::onCurrentManagerWeek()
 
 void Schedule_Control::onUndoManagerDraft()
 {
-    if (managerDraftChanges.isEmpty() || !view) return;
+    if (managerDraftChanges.isEmpty() || !view)
+        return;
     managerDraftChanges.removeLast();
     view->setManagerDraftStatus(managerDraftChanges.size());
     if (selectedManagerDay >= 0 && selectedManagerShift >= 0)
@@ -539,7 +548,8 @@ void Schedule_Control::onUndoManagerDraft()
 
 void Schedule_Control::onClearManagerDraft()
 {
-    if (managerDraftChanges.isEmpty() || !view) return;
+    if (managerDraftChanges.isEmpty() || !view)
+        return;
     if (QMessageBox::question(view, "Xóa bản nháp",
                               "Xóa toàn bộ thay đổi chưa công bố?",
                               QMessageBox::Yes | QMessageBox::No,
@@ -608,9 +618,11 @@ void Schedule_Control::onApproveShift(PendingShiftInfo request)
     change.reason = "Manager approval";
     managerDraftChanges.erase(
         std::remove_if(managerDraftChanges.begin(), managerDraftChanges.end(),
-                       [change](const ManagerScheduleChange &existing) {
-                         return change.shiftId > 0 && existing.shiftId == change.shiftId;
-                       }), managerDraftChanges.end());
+                       [change](const ManagerScheduleChange &existing)
+                       {
+                           return change.shiftId > 0 && existing.shiftId == change.shiftId;
+                       }),
+        managerDraftChanges.end());
     managerDraftChanges.append(change);
     view->setManagerDraftStatus(managerDraftChanges.size());
 }
@@ -632,9 +644,11 @@ void Schedule_Control::onDeclineShift(PendingShiftInfo request)
     change.reason = "Manager decline";
     managerDraftChanges.erase(
         std::remove_if(managerDraftChanges.begin(), managerDraftChanges.end(),
-                       [change](const ManagerScheduleChange &existing) {
-                         return change.shiftId > 0 && existing.shiftId == change.shiftId;
-                       }), managerDraftChanges.end());
+                       [change](const ManagerScheduleChange &existing)
+                       {
+                           return change.shiftId > 0 && existing.shiftId == change.shiftId;
+                       }),
+        managerDraftChanges.end());
     managerDraftChanges.append(change);
     view->setManagerDraftStatus(managerDraftChanges.size());
     return;
@@ -692,13 +706,22 @@ void Schedule_Control::onConfirmRequested()
         QString action;
         switch (change.type)
         {
-        case ManagerScheduleChangeType::Approve: action = "Duyệt"; break;
-        case ManagerScheduleChangeType::Decline: action = "Từ chối"; break;
-        case ManagerScheduleChangeType::Add: action = "Thêm"; break;
-        case ManagerScheduleChangeType::Cancel: action = "Gỡ"; break;
+        case ManagerScheduleChangeType::Approve:
+            action = "Duyệt";
+            break;
+        case ManagerScheduleChangeType::Decline:
+            action = "Từ chối";
+            break;
+        case ManagerScheduleChangeType::Add:
+            action = "Thêm";
+            break;
+        case ManagerScheduleChangeType::Cancel:
+            action = "Gỡ";
+            break;
         }
         QString employee = change.employeeName.isEmpty()
-            ? QString("ID %1").arg(change.employeeId) : change.employeeName;
+                               ? QString("ID %1").arg(change.employeeId)
+                               : change.employeeName;
         bool mapped = false;
         int day = currentAssignMonday.daysTo(change.date);
         if (day >= 0 && day < 7 && change.startTime.isValid() && change.endTime.isValid())
@@ -748,7 +771,9 @@ void Schedule_Control::onConfirmRequested()
     reviewTitle->setStyleSheet("color:#0F172A;font-size:20px;font-weight:800;");
     QLabel *reviewSubtitle = new QLabel(
         QString("%1 thay đổi • %2 ca bị ảnh hưởng")
-            .arg(managerDraftChanges.size()).arg(impacts.size()), &review);
+            .arg(managerDraftChanges.size())
+            .arg(impacts.size()),
+        &review);
     reviewSubtitle->setStyleSheet("color:#64748B;font-size:12px;");
     reviewLayout->addWidget(reviewTitle);
     reviewLayout->addWidget(reviewSubtitle);
@@ -757,7 +782,8 @@ void Schedule_Control::onConfirmRequested()
     {
         QLabel *validation = new QLabel(
             QString("Không thể công bố:\n• %1")
-                .arg(validationErrors.join("\n• ")), &review);
+                .arg(validationErrors.join("\n• ")),
+            &review);
         validation->setWordWrap(true);
         validation->setStyleSheet(
             "background:#FEF2F2;color:#B91C1C;border:1px solid #FECACA;"
@@ -786,10 +812,10 @@ void Schedule_Control::onConfirmRequested()
     for (const ShiftImpact &impact : impacts)
     {
         QString shiftText = impact.shiftRow >= 0
-            ? QString("%1\n%2").arg(impact.date.toString("dd/MM/yyyy"),
-                                     shiftNames[impact.shiftRow])
-            : (impact.date.isValid() ? impact.date.toString("dd/MM/yyyy")
-                                     : "Chưa xác định");
+                                ? QString("%1\n%2").arg(impact.date.toString("dd/MM/yyyy"),
+                                                        shiftNames[impact.shiftRow])
+                                : (impact.date.isValid() ? impact.date.toString("dd/MM/yyyy")
+                                                         : "Chưa xác định");
         QString resultText;
         if (impact.required <= 0)
             resultText = "Không đổi định biên";
@@ -800,13 +826,12 @@ void Schedule_Control::onConfirmRequested()
         reviewTable->setItem(reviewRow, 0, new QTableWidgetItem(shiftText));
         reviewTable->setItem(reviewRow, 1,
                              new QTableWidgetItem(impact.actions.join("\n")));
-        reviewTable->setItem(reviewRow, 2, new QTableWidgetItem(
-            impact.required > 0 ? QString("%1/%2").arg(impact.before).arg(impact.required) : "—"));
-        reviewTable->setItem(reviewRow, 3, new QTableWidgetItem(
-            impact.required > 0 ? QString("%1/%2").arg(impact.after).arg(impact.required) : "—"));
+        reviewTable->setItem(reviewRow, 2, new QTableWidgetItem(impact.required > 0 ? QString("%1/%2").arg(impact.before).arg(impact.required) : "—"));
+        reviewTable->setItem(reviewRow, 3, new QTableWidgetItem(impact.required > 0 ? QString("%1/%2").arg(impact.after).arg(impact.required) : "—"));
         QTableWidgetItem *resultItem = new QTableWidgetItem(resultText);
         resultItem->setForeground(impact.required > 0 && impact.after < impact.required
-                                      ? QColor("#B91C1C") : QColor("#047857"));
+                                      ? QColor("#B91C1C")
+                                      : QColor("#047857"));
         reviewTable->setItem(reviewRow, 4, resultItem);
         reviewTable->setRowHeight(reviewRow, qMax(52, 24 + impact.actions.size() * 18));
         ++reviewRow;
@@ -843,8 +868,8 @@ void Schedule_Control::onConfirmRequested()
 
 // ─────────────────────────────────────────────
 void Schedule_Control::onAddEmployeeToShift(int employeeId, QDate date,
-                                             QTime startTime, QTime endTime,
-                                             const QString &reason)
+                                            QTime startTime, QTime endTime,
+                                            const QString &reason)
 {
     ManagerScheduleChange change;
     change.type = ManagerScheduleChangeType::Add;
@@ -855,19 +880,21 @@ void Schedule_Control::onAddEmployeeToShift(int employeeId, QDate date,
     change.reason = reason;
     managerDraftChanges.erase(
         std::remove_if(managerDraftChanges.begin(), managerDraftChanges.end(),
-                       [change](const ManagerScheduleChange &existing) {
-                         return existing.type == ManagerScheduleChangeType::Add &&
-                                existing.employeeId == change.employeeId &&
-                                existing.date == change.date &&
-                                existing.startTime == change.startTime &&
-                                existing.endTime == change.endTime;
-                       }), managerDraftChanges.end());
+                       [change](const ManagerScheduleChange &existing)
+                       {
+                           return existing.type == ManagerScheduleChangeType::Add &&
+                                  existing.employeeId == change.employeeId &&
+                                  existing.date == change.date &&
+                                  existing.startTime == change.startTime &&
+                                  existing.endTime == change.endTime;
+                       }),
+        managerDraftChanges.end());
     managerDraftChanges.append(change);
     view->setManagerDraftStatus(managerDraftChanges.size());
 }
 
 void Schedule_Control::onRemoveAssignedShift(int shiftId, int employeeId,
-                                               const QString &reason)
+                                             const QString &reason)
 {
     ManagerScheduleChange change;
     change.type = ManagerScheduleChangeType::Cancel;
@@ -891,9 +918,11 @@ void Schedule_Control::onRemoveAssignedShift(int shiftId, int employeeId,
     }
     managerDraftChanges.erase(
         std::remove_if(managerDraftChanges.begin(), managerDraftChanges.end(),
-                       [shiftId](const ManagerScheduleChange &existing) {
-                         return shiftId > 0 && existing.shiftId == shiftId;
-                       }), managerDraftChanges.end());
+                       [shiftId](const ManagerScheduleChange &existing)
+                       {
+                           return shiftId > 0 && existing.shiftId == shiftId;
+                       }),
+        managerDraftChanges.end());
     managerDraftChanges.append(change);
     view->setManagerDraftStatus(managerDraftChanges.size());
 }

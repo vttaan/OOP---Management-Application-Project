@@ -289,6 +289,9 @@ void Schedule_View::setUpUI()
       "border-radius:6px;padding:6px 10px;font-weight:600; }"
       "QPushButton:hover { background:#F8FAFC;border-color:#94A3B8; }"
       "QPushButton:disabled { color:#CBD5E1;border-color:#E2E8F0; }";
+  prevWeek->setStyleSheet(draftToolStyle);
+  nextWeek->setStyleSheet(draftToolStyle);
+  currentWeek->setStyleSheet(draftToolStyle);
   managerUndoDraftButton->setStyleSheet(draftToolStyle);
   managerClearDraftButton->setStyleSheet(draftToolStyle);
   managerUndoDraftButton->setEnabled(false);
@@ -382,9 +385,11 @@ void Schedule_View::setUpUI()
   ui->tableSum->setSelectionMode(QAbstractItemView::NoSelection);
 
   this->setObjectName("ScheduleViewMain");
-  this->setStyleSheet("#ScheduleViewMain { background-color: #F8FAFC; color: #1F2937; } #ScheduleViewMain QLabel { background-color: transparent; }");
+  this->setStyleSheet("#ScheduleViewMain { background-color: #F8FAFC; color: #1F2937; } #ScheduleViewMain QLabel { background-color: transparent; color: #1F2937; }");
   ui->DangKyLich->setStyleSheet(
       "color:#1F2937;font-size:20px;font-weight:700;padding:2px 0 4px 0;");
+  ui->XacNhanLich->setStyleSheet(
+      "color:#1F2937;font-size:18px;font-weight:700;padding:2px 0 4px 0;");
 
   ui->buttonLuu->setStyleSheet(
       "QPushButton { background-color: #219653; color: white; border-radius: "
@@ -439,13 +444,18 @@ void Schedule_View::setUpUI()
   managerWorkspaceLayout->setSpacing(12);
   ui->frameLayout->removeWidget(ui->tableSum);
   ui->tableSum->setFixedHeight(managerScheduleHeight);
-  ui->tableSum->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+  // Cell widgets contain fairly long labels, so their size hints can otherwise
+  // force the table wider than the available 1080p workspace.  Let the table
+  // yield width to the detail drawer and let the headers stretch into it.
+  ui->tableSum->setMinimumWidth(0);
+  ui->tableSum->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
+  ui->tableSum->horizontalHeader()->setMinimumSectionSize(0);
   managerWorkspaceLayout->addWidget(ui->tableSum, 1);
 
   shiftDetailDrawer = new QFrame(managerWorkspace);
   shiftDetailDrawer->setObjectName("shiftDetailDrawer");
-  shiftDetailDrawer->setMinimumWidth(380);
-  shiftDetailDrawer->setMaximumWidth(440);
+  shiftDetailDrawer->setMinimumWidth(300);
+  shiftDetailDrawer->setMaximumWidth(400);
   shiftDetailDrawer->setFixedHeight(managerScheduleHeight);
   shiftDetailDrawer->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   shiftDetailDrawer->setStyleSheet(
