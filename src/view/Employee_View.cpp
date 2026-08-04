@@ -20,21 +20,8 @@ Employee_View::Employee_View(QWidget *parent) : QWidget(parent), ui(new Ui::Empl
   ui->filterBtn->setIcon(QIcon(":/images/filter.svg"));
   ui->sortBtn->setIcon(QIcon(":/images/sort-vertical-svgrepo-com.svg"));
 
-  // Append dynamically created metric cards into the metricsLayout placeholder
-  m_payrollCard = createMetricCard(
-      ":/images/dolar-svgrepo-com.svg", "#DBEAFE", "#2563EB",
-      "Lương dự kiến tháng này", "-- vnđ",
-      "");
-  m_staffCard = createMetricCard(
-      ":/images/people-svgrepo-com.svg", "#DCFCE7", "#16A34A",
-      "Nhân viên đang làm việc", "0 / 0", "Hiện đang trong ca");
-  m_managerCard = createMetricCard(
-      ":/images/people-svgrepo-com.svg", "#FEF9C3", "#CA8A04",
-      "Số quản lý", "0", "Hiện đang hoạt động");
+  // Metric cards removed
 
-  ui->metricsLayout->addWidget(m_payrollCard);
-  ui->metricsLayout->addWidget(m_staffCard);
-  ui->metricsLayout->addWidget(m_managerCard);
 
   setupTableHeader();
   buildFilterDropdown();
@@ -220,47 +207,12 @@ void Employee_View::setupConnections()
 // loadEmployees — called by Controller to update the table
 // ============================================================
 
-void Employee_View::loadEmployees(const QList<User *> &employees, long long totalPayroll, int managerCount)
+void Employee_View::loadEmployees(const QList<User *> &employees)
 {
   // The controller already applied filter→search→sort before calling us;
   // just render what we received.
   m_allEmployees = employees;
-  updateMetricCards(totalPayroll, managerCount);
   renderTable(employees);
-}
-
-void Employee_View::updateMetricCards(long long totalPayroll, int managerCount)
-{
-  int total = m_allEmployees.size();
-  // Since there is no status field in the model yet, all employees are
-  // treated as "active" ("Đang làm") for now. Placeholders left for future.
-  int active = total; // TODO: count by status when field added
-
-  // ---- Staff card ----
-  if (m_staffCard)
-  {
-    QLabel *val = m_staffCard->findChild<QLabel *>("metricValue");
-    if (val)
-      val->setText(QString("%1 / %2").arg(active).arg(total));
-  }
-
-  // ---- Manager card ----
-  if (m_managerCard)
-  {
-    QLabel *val = m_managerCard->findChild<QLabel *>("metricValue");
-    if (val)
-      val->setText(QString::number(managerCount));
-  }
-
-  // ---- Payroll card ----
-  if (m_payrollCard)
-  {
-      QLabel *val = m_payrollCard->findChild<QLabel *>("metricValue");
-      if (val) {
-          QLocale locale(QLocale::Vietnamese, QLocale::Vietnam);
-          val->setText(locale.toString(totalPayroll) + " vnđ");
-      }
-  }
 }
 
 void Employee_View::renderTable(const QList<User *> &employees)
@@ -278,9 +230,8 @@ void Employee_View::renderTable(const QList<User *> &employees)
 
   ui->rosterSubtitle->setText(QString("Tổng cộng %1 nhân viên").arg(total));
   ui->footerLabel->setText(
-      QString("Hiển thị %1 / %2 nhân viên  ·  %3 đang làm, %4 vắng, %5 chờ duyệt")
+      QString("Hiển thị %1 nhân viên  ·  %2 đang làm, %3 vắng, %4 chờ duyệt")
           .arg(shown)
-          .arg(total)
           .arg(active)
           .arg(absent)
           .arg(pending));
@@ -547,90 +498,6 @@ QLabel *Employee_View::createAvatar(const QString &avatarPath)
   avatar->setAlignment(Qt::AlignCenter);
   avatar->setPixmap(rounded);
   return avatar;
-}
-
-QFrame *Employee_View::createMetricCard(
-    const QString &iconText, const QString &iconBg, const QString &iconColor,
-    const QString &title, const QString &value, const QString &subtitle,
-    const QString &badge, const QString &badgeColor)
-{
-  QFrame *card = new QFrame();
-  card->setObjectName("metricCard");
-  card->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-  card->setMinimumHeight(108);
-  card->setStyleSheet(
-      "QFrame#metricCard {"
-      "  background-color: #FFFFFF;"
-      "  border: 1px solid #E5E7EB;"
-      "  border-radius: 12px;"
-      "}"
-  );
-
-  // Soft drop shadow to lift card off the page
-  QGraphicsDropShadowEffect *shadow = new QGraphicsDropShadowEffect(card);
-  shadow->setBlurRadius(14);
-  shadow->setOffset(0, 3);
-  shadow->setColor(QColor(0, 0, 0, 18));
-  card->setGraphicsEffect(shadow);
-
-  QHBoxLayout *cardLayout = new QHBoxLayout(card);
-  cardLayout->setContentsMargins(16, 14, 16, 14);
-  cardLayout->setSpacing(14);
-
-  QLabel *iconLabel = new QLabel();
-  if (iconText.startsWith(":/images/"))
-  {
-    QPixmap pix(iconText);
-    iconLabel->setPixmap(
-        pix.scaled(24, 24, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-  }
-  else
-  {
-    iconLabel->setText(iconText);
-  }
-  iconLabel->setObjectName("metricIcon");
-  iconLabel->setFixedSize(50, 50);
-  iconLabel->setAlignment(Qt::AlignCenter);
-  iconLabel->setStyleSheet(QString("background-color: %1;"
-                                   "color: %2;"
-                                   "border-radius: 25px;"
-                                   "font-size: 20px;"
-                                   "border: none;")
-                               .arg(iconBg, iconColor));
-
-  QVBoxLayout *textLayout = new QVBoxLayout();
-  textLayout->setSpacing(3);
-
-  QLabel *titleLabel = new QLabel(title);
-  titleLabel->setObjectName("metricTitle");
-
-  QLabel *valueLabel = new QLabel(value);
-  valueLabel->setObjectName("metricValue");
-
-  QHBoxLayout *subRow = new QHBoxLayout();
-  subRow->setSpacing(5);
-  QLabel *subtitleLabel = new QLabel(subtitle);
-  subtitleLabel->setObjectName("metricSubtitle");
-  subRow->addWidget(subtitleLabel);
-  if (!badge.isEmpty())
-  {
-    QLabel *badgeLabel = new QLabel(badge);
-    badgeLabel->setStyleSheet(
-        QString("color: %1; font-weight: bold; font-size: 10px;")
-            .arg(badgeColor));
-    subRow->addWidget(badgeLabel);
-  }
-  subRow->addStretch();
-
-  textLayout->addWidget(titleLabel);
-  textLayout->addWidget(valueLabel);
-  textLayout->addLayout(subRow);
-
-  cardLayout->addWidget(iconLabel);
-  cardLayout->addLayout(textLayout);
-  cardLayout->addStretch();
-
-  return card;
 }
 
 

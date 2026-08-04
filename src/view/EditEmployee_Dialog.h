@@ -19,6 +19,8 @@ public:
     QString getCitizenId() const;
     QString getAvatarPath() const;
     QString getGender() const;
+    int getSalary() const;
+    bool getIsFixedSalary() const;
     std::function<QString(const EditEmployee_Dialog*)> validatorDelegate;
 private slots:
     void onConfirm();
@@ -34,8 +36,10 @@ private:
     QLineEdit *inpDob;
     QLineEdit *inpAddress;
     QLineEdit *inpCitizenId;
+    QLineEdit *inpSalary;
     QComboBox *cmbRole;
     QComboBox *cmbGender;
+    QComboBox *cmbIsFixedSalary;
 
     QLabel *lblAvatarPreview;
     QPushButton *btnUpload;

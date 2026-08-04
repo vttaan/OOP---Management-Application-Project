@@ -71,6 +71,13 @@ void EditEmployee_Dialog::setupUi(User *emp)
     cmbGender->addItem("Nữ");
     cmbGender->setMinimumHeight(32);
 
+    cmbIsFixedSalary = new QComboBox();
+    cmbIsFixedSalary->addItem("Toàn thời gian (Cố định)");
+    cmbIsFixedSalary->addItem("Bán thời gian (Theo giờ)");
+    cmbIsFixedSalary->setMinimumHeight(32);
+
+    inpSalary = makeInput("vd: 20000", emp ? QString::number(emp->getSalary()) : "");
+
     if (emp) {
         // Map English role to Vietnamese display text
         QString displayRole = emp->getRole();
@@ -81,14 +88,15 @@ void EditEmployee_Dialog::setupUi(User *emp)
         else displayRole = "Nhân viên";
         int idx = cmbRole->findText(displayRole);
         if (idx >= 0) cmbRole->setCurrentIndex(idx);
-    }
-    if (emp) {
-        // Map English role to Vietnamese display text
-        QString displayRole = emp->getGender();
-        if (displayRole == "Nam") displayRole = "Nam";
-        else displayRole = "Nữ";
-        int idx = cmbGender->findText(displayRole);
-        if (idx >= 0) cmbGender->setCurrentIndex(idx);
+
+        QString displayGender = emp->getGender();
+        if (displayGender == "Nam") displayGender = "Nam";
+        else displayGender = "Nữ";
+        int idxGender = cmbGender->findText(displayGender);
+        if (idxGender >= 0) cmbGender->setCurrentIndex(idxGender);
+
+        if (emp->getIsFixedEmployee()) cmbIsFixedSalary->setCurrentIndex(0);
+        else cmbIsFixedSalary->setCurrentIndex(1);
     }
 
     //AVATAR UPLOAD SECTION
@@ -172,6 +180,8 @@ void EditEmployee_Dialog::setupUi(User *emp)
     form->addRow(makeLabel("Ngày sinh"),      inpDob);
     form->addRow(makeLabel("Địa chỉ"),        inpAddress);
     form->addRow(makeLabel("CCCD / CMND"),    inpCitizenId);
+    form->addRow(makeLabel("Loại lương *"),   cmbIsFixedSalary);
+    form->addRow(makeLabel("Lương(VNĐ) *"),   inpSalary);
 
     mainLayout->addLayout(form);
 
@@ -245,3 +255,5 @@ QString EditEmployee_Dialog::getDob()       const { return inpDob->text().trimme
 QString EditEmployee_Dialog::getAddress()   const { return inpAddress->text().trimmed(); }
 QString EditEmployee_Dialog::getCitizenId() const { return inpCitizenId->text().trimmed(); }
 QString EditEmployee_Dialog::getAvatarPath() const { return m_avatarPath; }
+int EditEmployee_Dialog::getSalary() const { return inpSalary->text().trimmed().toInt(); }
+bool EditEmployee_Dialog::getIsFixedSalary() const { return cmbIsFixedSalary->currentIndex() == 0; }

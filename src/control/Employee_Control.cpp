@@ -55,9 +55,7 @@ void Employee_Control::handleLoadEmployees()
     m_model->loadData();
 
     if (m_view) {
-          long long totalPayroll = m_model->calculateExpectedPayrollCurrentMonth();
-          int managerCount = m_model->countManagers();
-          m_view->loadEmployees(m_model->getListEmployee(), totalPayroll, managerCount);
+          m_view->loadEmployees(m_model->getListEmployee());
     }
 }
 
@@ -146,6 +144,10 @@ void Employee_Control::handleEditEmployee(int idEmployee)
 
         if (!Validator::isValidDate(d->getDob()))
             s += "⚠ Ngày sinh không hợp lệ. Cần nhập đúng (YYYY-MM-DD).\n";
+
+        if (d->getSalary() <= 0)
+            s += "⚠ Lương phải là một số lớn hơn 0.\n";
+
         return s;
     };
 
@@ -160,6 +162,10 @@ void Employee_Control::handleEditEmployee(int idEmployee)
     emp->setIndentityID(dlg.getCitizenId());
     emp->setAva(dlg.getAvatarPath()); // Update with new avatar path
     emp->setGender(dlg.getGender());
+    emp->setBaseSalary(dlg.getSalary());
+
+    emp->setFixedEmployee(dlg.getIsFixedSalary());
+
     // Call Model to update DB
     if (m_model->updateEmployee(emp)) {
         m_view->showSuccess(QString("Employee '%1' updated successfully!").arg(emp->getName()));
@@ -201,8 +207,8 @@ void Employee_Control::handleUpdate(const QString &searchText,
 {
     if (!m_view || !m_model) return;
     QList<User*> result = m_model->SearchSortFilter(searchText, sortDir, contentSort, contentFilter);
-    long long totalPayroll = m_model->calculateExpectedPayrollCurrentMonth();
-    int managerCount = m_model->countManagers();
-    m_view->loadEmployees(result, totalPayroll, managerCount);
-}
 
+    if (m_view) {
+        m_view->loadEmployees(result);
+    }
+}
