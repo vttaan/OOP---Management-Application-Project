@@ -179,26 +179,7 @@ Dashboard_View::Dashboard_View(Dashboard_Control *controller, QWidget *parent)
     m_salaryCard->setStyleSheet(
         "QFrame { background-color: #ffffff; border-radius: 16px; border: 1px solid #eef0f4; }");
 
-    // -- Panel 4 (Bottom-Right): Absent employees ----------------------------
-    m_absentLayout = new QVBoxLayout();
-    m_absentLayout->setContentsMargins(0, 0, 0, 0);
-    m_absentLayout->setSpacing(6);
-    m_absentLayout->addStretch();
-
-    QScrollArea* scrollAbsent = new QScrollArea();
-    scrollAbsent->setWidgetResizable(true);
-    scrollAbsent->setStyleSheet("QScrollArea { background: transparent; border: none; }");
-    QWidget* absentWrapper = new QWidget();
-    absentWrapper->setStyleSheet("background: transparent;");
-    absentWrapper->setLayout(m_absentLayout);
-    scrollAbsent->setWidget(absentWrapper);
-
-    QVBoxLayout* absentOuter = new QVBoxLayout();
-    absentOuter->setContentsMargins(0, 0, 0, 0);
-    absentOuter->addWidget(scrollAbsent);
-    QFrame* frame4 = makeCard(QString::fromUtf8("Nhân Viên Nghỉ Ca Hiện Tại"), absentOuter, true);
-
-    // -- Clear old layout from pageOverview and install 2x2 grid -------------
+    // -- Clear old layout from pageOverview and install 2-column grid --------
     QLayout* oldLayout = ui->pageOverview->layout();
     if (oldLayout) {
         QLayoutItem* item;
@@ -213,15 +194,14 @@ Dashboard_View::Dashboard_View(Dashboard_Control *controller, QWidget *parent)
     QGridLayout* grid = new QGridLayout(ui->pageOverview);
     grid->setContentsMargins(24, 24, 24, 24);
     grid->setSpacing(16);
-    grid->setColumnStretch(0, 75); // 75% width for left frames
-    grid->setColumnStretch(1, 25); // 25% width for right frames
+    grid->setColumnStretch(0, 75);
+    grid->setColumnStretch(1, 25);
     grid->setRowStretch(0, 4);
     grid->setRowStretch(1, 6);
 
     grid->addWidget(frame1, 0, 0);
     grid->addWidget(frame2, 0, 1);
     grid->addWidget(m_salaryCard, 1, 0);
-    grid->addWidget(frame4, 1, 1);
 }
 
 Dashboard_View::~Dashboard_View() { delete ui; }
@@ -286,21 +266,26 @@ void Dashboard_View::clearEmployeeGrid()
 }
 
 // ---------------------------------------------------------------------------
-// Panel 1: add a single employee card in a 3-column grid (auto-wraps down)
+// Panel 1: add a single employee card in a 4-column grid (auto-wraps down)
 // ---------------------------------------------------------------------------
 void Dashboard_View::addEmployeeCard(EmployeeCard* card)
 {
     QGridLayout* grid = qobject_cast<QGridLayout*>(m_empGridWidget->layout());
     if (!grid) {
         grid = new QGridLayout(m_empGridWidget);
-        grid->setContentsMargins(6, 6, 6, 6);
-        // Let grid manage stretching naturally
-        grid->setAlignment(Qt::AlignTop);
+        grid->setContentsMargins(12, 12, 12, 12);
+        grid->setSpacing(16);
+        grid->setAlignment(Qt::AlignTop | Qt::AlignLeft);
     }
     // 4 columns
     const int COLS = 4;
     int count = grid->count();
-    card->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    
+    // Constrain dimensions to prevent the card from stretching indefinitely across empty columns when there are only 1-2 cards
+    card->setMinimumWidth(220);
+    card->setMaximumWidth(280);
+    card->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    
     grid->addWidget(card, count / COLS, count % COLS);
 }
 
@@ -406,49 +391,6 @@ void Dashboard_View::updateNextShiftPanel(const QList<ShiftEmployeeInfo>& entrie
     }
 }
 
-// ---------------------------------------------------------------------------
-// Panel 4: render absent employee rows
-// ---------------------------------------------------------------------------
-void Dashboard_View::updateAbsentPanel(const QStringList& names)
-{
-    while (m_absentLayout->count() > 1) {
-        QLayoutItem* i = m_absentLayout->takeAt(0);
-        if (i->widget()) i->widget()->deleteLater();
-        delete i;
-    }
-
-    if (names.isEmpty()) {
-        QLabel* lbl = new QLabel(QString::fromUtf8("Tất cả nhân viên đã có mặt."));
-        lbl->setStyleSheet(
-            "color:#1e8e3e; font-style:italic; padding:4px 0;"
-            "background:transparent; border:none;");
-        m_absentLayout->insertWidget(0, lbl);
-        return;
-    }
-
-    int idx = 0;
-    for (const QString& n : names) {
-        QWidget* row = new QWidget();
-        row->setStyleSheet("background: transparent;");
-
-        QHBoxLayout* hl = new QHBoxLayout(row);
-        hl->setContentsMargins(4, 6, 4, 6);
-        hl->setSpacing(10);
-
-        QLabel* dot = new QLabel();
-        dot->setFixedSize(10, 10);
-        dot->setStyleSheet("background:#ff4842; border-radius:5px; border:none;");
-
-        QLabel* lbl = new QLabel(n);
-        lbl->setStyleSheet(
-            "font-size:13px; color:#c5221f; background:transparent; border:none;");
-        lbl->setWordWrap(true);
-
-        hl->addWidget(dot);
-        hl->addWidget(lbl, 1);
-        m_absentLayout->insertWidget(idx++, row);
-    }
-}
 
 // ---------------------------------------------------------------------------
 // Panel 3: update chart bars and year tabs

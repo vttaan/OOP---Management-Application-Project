@@ -22,9 +22,6 @@ void Dashboard_Control::init()
 {
     if (!view) return;
 
-    // Seed sample data so the dashboard always shows something on first run
-    dashModel->seedTodayShifts();
-
     empModel->loadData();
     QList<User*> all = empModel->getListEmployee();
 
@@ -78,14 +75,11 @@ void Dashboard_Control::loadEmployeeCards(const QList<User*>& list)
     }
 }
 
-// Panel 2 (next shift) + Panel 4 (absent employees)
+// Panel 2 (next shift)
 void Dashboard_Control::loadShiftPanel()
 {
     QList<ShiftEmployeeInfo> nextShift = dashModel->getNextShiftEmployees();
     view->updateNextShiftPanel(nextShift);
-
-    QStringList absent = dashModel->getAbsentEmployees();
-    view->updateAbsentPanel(absent);
 }
 
 // Panel 3: Salary bar chart for (m_selectedYear - 1) vs m_selectedYear

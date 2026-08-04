@@ -25,8 +25,6 @@ public:
     // Panel 2 - takes structured DTOs directly from Model (via Controller)
     void updateNextShiftPanel(const QList<ShiftEmployeeInfo>& entries);
 
-    // Panel 4
-    void updateAbsentPanel(const QStringList& names);
 
     // Panel 3 - chart with VND tooltip support
     void updateSalaryChart(const QVector<double>& lastYear, const QVector<double>& thisYear,
@@ -47,7 +45,6 @@ private:
     Dashboard_Control  *controller;
 
     QVBoxLayout* m_nextShiftLayout  = nullptr;
-    QVBoxLayout* m_absentLayout     = nullptr;
     QLabel*      m_lblLastYearCount = nullptr;
     QLabel*      m_lblThisYearCount = nullptr;
     QLabel*      m_tooltipLabel     = nullptr;   // Hover tooltip for chart bars
