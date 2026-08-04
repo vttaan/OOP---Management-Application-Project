@@ -53,12 +53,10 @@ void Schedule_View::setManagerMode(bool isManager)
       toolbar->setVisible(true);
     if (QWidget *summaryBar = findChild<QWidget *>("managerSummaryBar"))
       summaryBar->setVisible(true);
-    if (fullTimeInfoWidget)
-      fullTimeInfoWidget->setVisible(false);
+    if (staffInfoStack)
+      staffInfoStack->setVisible(false);
     if (lblFullTimeFooterMessage)
       lblFullTimeFooterMessage->setVisible(false);
-    if (partTimeInfoWidget)
-      partTimeInfoWidget->setVisible(false);
     if (lblPartTimeFooterMessage)
       lblPartTimeFooterMessage->setVisible(false);
     ui->DangKyLich->setVisible(false);
@@ -1202,4 +1200,3 @@ void Schedule_View::updateManagerMissingShifts(
     tableMissingStaff->setCellWidget(i, 4, actionCell);
   }
 }
-

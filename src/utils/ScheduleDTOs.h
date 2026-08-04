@@ -94,7 +94,8 @@ enum class FullTimeShiftStatus {
     Pending,
     Approved,
     Declined,
-    StaffShortage
+    StaffShortage,
+    StaffSufficient
 };
 
 // Outer list index = day (Monday-Sunday), inner list index = shift (morning-evening).
