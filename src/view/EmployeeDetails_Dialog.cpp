@@ -102,9 +102,8 @@ void EmployeeDetails_Dialog::setupUi(User* emp)
     addRowToForm(form, "Mã Nhân Viên:", "NV-" + QString::number(emp->getIdEmployee()), true);
     addRowToForm(form, "Căn Cước (CCCD):", emp->getIdentityID());
 
-    QString gender = (emp->getGender() == "Male")? "Nam" : "Nữ";
-    if(emp->getGender() != "Male" && emp->getGender() != "Female") gender = "Khác";
-    addRowToForm(form, "Giới Tính:", gender);
+
+    addRowToForm(form, "Giới Tính:", emp->getGender());
     addRowToForm(form, "Ngày Sinh:", emp->getDOB());
     addRowToForm(form, "Số Điện Thoại:", emp->getPhoneNum());
     addRowToForm(form, "Địa Chỉ:", emp->getAddress());
