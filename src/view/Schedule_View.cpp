@@ -17,7 +17,8 @@ enum FullTimeVisualState {
   VisualDeclined,
   VisualSelected,
   VisualPendingRemoval,
-  VisualStaffShortage
+  VisualStaffShortage,
+  VisualStaffSufficient
 };
 
 enum PartTimeVisualState {
@@ -62,9 +63,9 @@ public:
     switch (visualState)
     {
       case VisualRegistered:
-        background = QColor("#ECFDF5");
-        border = QColor("#A7F3D0");
-        foreground = QColor("#047857");
+        background = QColor("#FEF9C3");
+        border = QColor("#FDE68A");
+        foreground = QColor("#854D0E");
         break;
       case VisualApproved:
         background = QColor("#D1FAE5");
@@ -91,6 +92,11 @@ public:
         border = QColor("#FECACA");
         foreground = QColor("#DC2626");
         break;
+      case VisualStaffSufficient:
+        background = QColor("#ECFDF5");
+        border = QColor("#A7F3D0");
+        foreground = QColor("#047857");
+        break;
       case VisualUnregistered:
       default:
         background = QColor("#F8FAFC");
@@ -100,7 +106,7 @@ public:
         break;
     }
 
-    bool canHover = visualState != VisualStaffShortage;
+    bool canHover = visualState != VisualApproved;
     if (canHover && option.state.testFlag(QStyle::State_MouseOver))
     {
       background = QColor("#EFF6FF");
@@ -236,6 +242,7 @@ Schedule_View::Schedule_View(QWidget *parent)
       tableMissingStaff(nullptr), lblManagerDraftStatus(nullptr),
       lblManagerSummary(nullptr), fullTimeInfoWidget(nullptr),
       lblFullTimeWeekRange(nullptr), lblFullTimeFooterMessage(nullptr),
+      staffInfoStack(nullptr),
       partTimeInfoWidget(nullptr), lblPartTimeRegistrationState(nullptr),
       lblPartTimeWeekRange(nullptr), lblPartTimeFooterMessage(nullptr)
 {
@@ -502,16 +509,16 @@ void Schedule_View::setUpUI()
   legendTitle->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
   legendTitle->setStyleSheet("color:#64748B;font-size:11px;font-weight:600;");
   legendRow->addWidget(legendTitle);
-  legendRow->addWidget(makeLegendPill("Đã đăng ký", "#D1FAE5", "#047857",
+  legendRow->addWidget(makeLegendPill("Thiếu", "#FEE2E2", "#B91C1C",
                                       fullTimeInfoWidget));
-  legendRow->addWidget(makeLegendPill("Chưa đăng ký", "#E2E8F0", "#475569",
+  legendRow->addWidget(makeLegendPill("Đủ", "#D1FAE5", "#047857",
                                       fullTimeInfoWidget));
-  legendRow->addWidget(makeLegendPill("Thiếu nhân viên", "#FEE2E2", "#DC2626",
+  legendRow->addWidget(makeLegendPill("Chờ duyệt", "#FEF9C3", "#854D0E",
+                                      fullTimeInfoWidget));
+  legendRow->addWidget(makeLegendPill("Đã duyệt", "#A7F3D0", "#065F46",
                                       fullTimeInfoWidget));
   legendRow->addStretch();
   infoLayout->addLayout(legendRow);
-  ui->verticalLayout->insertWidget(1, fullTimeInfoWidget);
-
   lblFullTimeFooterMessage = new QLabel(this);
   lblFullTimeFooterMessage->setVisible(false);
   ui->horizontalLayout_2->insertWidget(0, lblFullTimeFooterMessage);
@@ -568,7 +575,14 @@ void Schedule_View::setUpUI()
       makeLegendPill("Đã duyệt", "#A7F3D0", "#065F46", partTimeInfoWidget));
   partTimeLegendRow->addStretch();
   partTimeInfoLayout->addLayout(partTimeLegendRow);
-  ui->verticalLayout->insertWidget(1, partTimeInfoWidget);
+  staffInfoStack = new QStackedWidget(this);
+  staffInfoStack->setObjectName("staffInfoStack");
+  staffInfoStack->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+  staffInfoStack->setFixedHeight(92);
+  staffInfoStack->addWidget(fullTimeInfoWidget);
+  staffInfoStack->addWidget(partTimeInfoWidget);
+  staffInfoStack->setVisible(false);
+  ui->verticalLayout->insertWidget(1, staffInfoStack);
 
   lblPartTimeFooterMessage = new QLabel(this);
   lblPartTimeFooterMessage->setStyleSheet(

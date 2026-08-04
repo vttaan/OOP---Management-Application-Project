@@ -236,6 +236,7 @@ FullTimeScheduleGrid Schedule_Model::getFullTimeScheduleGrid(
         case FullTimeShiftStatus::Declined: return 2;
         case FullTimeShiftStatus::Available: return 1;
         case FullTimeShiftStatus::StaffShortage: return 0;
+        case FullTimeShiftStatus::StaffSufficient: return 0;
         }
         return 0;
     };
@@ -283,8 +284,8 @@ FullTimeScheduleGrid Schedule_Model::getFullTimeScheduleGrid(
         return result;
     }
 
-    // A partially staffed block is shown as unavailable. Completely empty blocks
-    // remain available so employees can submit the first registration.
+    // Derive the same staffing states used by the hourly grid for cells without
+    // a pending, approved, or declined registration from this employee.
     QSqlQuery profile(database);
     profile.prepare("SELECT role FROM PROFILES WHERE idEmployee = :id");
     profile.bindValue(":id", employeeId);
@@ -323,11 +324,16 @@ FullTimeScheduleGrid Schedule_Model::getFullTimeScheduleGrid(
             {
                 for (int shift = 0; shift < 3; ++shift)
                 {
-                    if (result[day][shift] == FullTimeShiftStatus::Available &&
-                        acceptedCounts[day][shift] > 0 &&
-                        acceptedCounts[day][shift] < minimumForRole)
+                    if (result[day][shift] != FullTimeShiftStatus::Available)
+                        continue;
+
+                    if (acceptedCounts[day][shift] < minimumForRole)
                     {
                         result[day][shift] = FullTimeShiftStatus::StaffShortage;
+                    }
+                    else
+                    {
+                        result[day][shift] = FullTimeShiftStatus::StaffSufficient;
                     }
                 }
             }

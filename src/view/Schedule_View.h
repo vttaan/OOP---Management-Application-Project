@@ -120,6 +120,7 @@ private:
     QWidget*        fullTimeInfoWidget;
     QLabel*         lblFullTimeWeekRange;
     QLabel*         lblFullTimeFooterMessage;
+    QStackedWidget* staffInfoStack;
     QWidget*        partTimeInfoWidget;
     QLabel*         lblPartTimeRegistrationState;
     QLabel*         lblPartTimeWeekRange;

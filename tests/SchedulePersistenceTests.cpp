@@ -63,7 +63,7 @@ private slots:
         QVERIFY(execute(
             "INSERT INTO PROFILES (idEmployee, role, isFixed) VALUES "
             "(1001, 'Cashier', 1), (1002, 'HallStaff', 0), "
-            "(1003, 'Cashier', 0)"));
+            "(1003, 'Cashier', 0), (1004, 'Cashier', 0)"));
         QSqlQuery account(database());
         account.prepare(
             "INSERT INTO ACCOUNTS (idEmployee, userName, passWord) "
@@ -119,13 +119,15 @@ private slots:
         Config::setRoles({{"Cashier", {2, 6}}});
         QVERIFY(execute(
             "INSERT INTO SHIFT (idEmployee, workDate, startTime, endTime, status) "
-            "VALUES (1003, '2026-08-03', '07:00', '12:00', 1)"));
+            "VALUES (1003, '2026-08-03', '07:00', '12:00', 1), "
+            "(1003, '2026-08-03', '12:00', '17:00', 1), "
+            "(1004, '2026-08-03', '12:00', '17:00', 1)"));
 
         Schedule_Model model;
         FullTimeScheduleGrid grid =
             model.getFullTimeScheduleGrid(1001, weekStart);
         QCOMPARE(grid[0][0], FullTimeShiftStatus::StaffShortage);
-        QCOMPARE(grid[0][1], FullTimeShiftStatus::Available);
+        QCOMPARE(grid[0][1], FullTimeShiftStatus::StaffSufficient);
     }
 
     void salaryUsesStoredPayType()

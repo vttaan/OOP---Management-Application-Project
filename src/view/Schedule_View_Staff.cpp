@@ -22,7 +22,8 @@ enum FullTimeVisualState {
   VisualDeclined,
   VisualSelected,
   VisualPendingRemoval,
-  VisualStaffShortage
+  VisualStaffShortage,
+  VisualStaffSufficient
 };
 
 enum PartTimeVisualState {
@@ -111,9 +112,12 @@ void Schedule_View::setUpInteractiveGrid(QDate weekStart, int openTime, int clos
   m_partTimeApprovedDays.clear();
   m_fullTimeStatuses.clear();
   m_fullTimeSelections.clear();
-  fullTimeInfoWidget->setVisible(false);
+  if (staffInfoStack)
+  {
+    staffInfoStack->setCurrentWidget(partTimeInfoWidget);
+    staffInfoStack->setVisible(true);
+  }
   lblFullTimeFooterMessage->setVisible(false);
-  partTimeInfoWidget->setVisible(true);
   lblPartTimeFooterMessage->setVisible(true);
   m_openHour  = openTime;
   m_closeHour = closeTime;
@@ -228,8 +232,11 @@ void Schedule_View::setUpFullTimeScheduleGrid(
   m_isFullTimeMode = true;
   m_partTimeDragActive = false;
   m_partTimeDragVisited.clear();
-  if (partTimeInfoWidget)
-    partTimeInfoWidget->setVisible(false);
+  if (staffInfoStack)
+  {
+    staffInfoStack->setCurrentWidget(fullTimeInfoWidget);
+    staffInfoStack->setVisible(true);
+  }
   if (lblPartTimeFooterMessage)
     lblPartTimeFooterMessage->setVisible(false);
   m_fullTimeStatuses = FullTimeScheduleGrid(
@@ -272,7 +279,6 @@ void Schedule_View::setUpFullTimeScheduleGrid(
       "color:#1F2937;font-size:20px;font-weight:700;padding:2px 0 4px 0;");
   updateFullTimeWeekMetadata(weekStart);
   resetFullTimeFooterHint();
-  fullTimeInfoWidget->setVisible(true);
 }
 
 void Schedule_View::updateFullTimeWeekMetadata(QDate weekStart)
@@ -290,7 +296,7 @@ void Schedule_View::resetFullTimeFooterHint()
   if (!lblFullTimeFooterMessage)
     return;
   lblFullTimeFooterMessage->setText(
-      "Các ca màu đỏ hiện không thể đăng ký.");
+      "Chọn ca phù hợp rồi nhấn Lưu / Xác nhận.");
   lblFullTimeFooterMessage->setStyleSheet(
       "color:#64748B;font-size:12px;padding-left:4px;");
   lblFullTimeFooterMessage->setVisible(true);
@@ -324,15 +330,6 @@ void Schedule_View::renderFullTimeCell(int row, int col)
   item->setFont(font);
   item->setToolTip(QString());
 
-  if (savedStatus == FullTimeShiftStatus::StaffShortage)
-  {
-    item->setText("Thiếu nhân viên");
-    item->setData(FULL_TIME_VISUAL_ROLE, VisualStaffShortage);
-    item->setFlags(Qt::NoItemFlags);
-    item->setToolTip("Ca này hiện không thể đăng ký cho vai trò này");
-    return;
-  }
-
   if (savedStatus == FullTimeShiftStatus::Approved)
   {
     item->setText("Đã duyệt");
@@ -358,6 +355,18 @@ void Schedule_View::renderFullTimeCell(int row, int col)
     item->setText("Đã chọn");
     item->setData(FULL_TIME_VISUAL_ROLE, VisualSelected);
   }
+  else if (savedStatus == FullTimeShiftStatus::StaffShortage)
+  {
+    item->setText("Thiếu");
+    item->setData(FULL_TIME_VISUAL_ROLE, VisualStaffShortage);
+    item->setToolTip("Ca đang thiếu nhân viên; nhấn để đăng ký");
+  }
+  else if (savedStatus == FullTimeShiftStatus::StaffSufficient)
+  {
+    item->setText("Đủ");
+    item->setData(FULL_TIME_VISUAL_ROLE, VisualStaffSufficient);
+    item->setToolTip("Ca đã đủ nhân viên; nhấn để đăng ký");
+  }
   else if (savedStatus == FullTimeShiftStatus::Declined)
   {
     item->setText("Đã từ chối\nNhấn để chọn lại");
@@ -366,11 +375,9 @@ void Schedule_View::renderFullTimeCell(int row, int col)
   }
   else
   {
-    item->setText("Chưa đăng ký");
-    item->setData(FULL_TIME_VISUAL_ROLE, VisualUnregistered);
-    item->setToolTip("Nhấn để chọn");
-    font.setBold(false);
-    item->setFont(font);
+    item->setText("Thiếu");
+    item->setData(FULL_TIME_VISUAL_ROLE, VisualStaffShortage);
+    item->setToolTip("Chưa có đủ dữ liệu nhân sự; nhấn để đăng ký");
   }
 }
 
@@ -378,8 +385,7 @@ void Schedule_View::onFullTimeCellClicked(int row, int col)
 {
   if (!m_isFullTimeMode || row < 0 || row >= 3 || col < 0 || col >= 7)
     return;
-  if (m_fullTimeStatuses[col][row] == FullTimeShiftStatus::StaffShortage ||
-      m_fullTimeStatuses[col][row] == FullTimeShiftStatus::Approved)
+  if (m_fullTimeStatuses[col][row] == FullTimeShiftStatus::Approved)
     return;
 
   QPair<int, int> coordinate = qMakePair(row, col);
@@ -451,8 +457,7 @@ bool Schedule_View::eventFilter(QObject *watched, QEvent *event)
       {
         FullTimeShiftStatus status =
             m_fullTimeStatuses[index.column()][index.row()];
-        bool unavailable = status == FullTimeShiftStatus::StaffShortage ||
-                           status == FullTimeShiftStatus::Approved;
+        bool unavailable = status == FullTimeShiftStatus::Approved;
         ui->tableInteractiveGrid->viewport()->setCursor(
             unavailable ? Qt::ForbiddenCursor : Qt::PointingHandCursor);
       }
