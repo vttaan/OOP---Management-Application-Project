@@ -58,31 +58,34 @@ QList<ShiftEmployeeInfo> Dashboard_Model::getNextShiftEmployees()
     QTime now = QTime::currentTime();
     QDate today = QDate::currentDate();
     QString nextDate = today.toString(Qt::ISODate);
-    QString nextStart;
+    QString nextBlockStart, nextBlockEnd;
 
     // Calculate the exact start time and date of the next logical shift block: Morning -> Afternoon -> Evening -> Morning
     if (now < QTime(7, 0)) {
-        nextStart = "07:00:00"; // Currently early morning -> next shift is today's morning shift
+        nextBlockStart = "07:00:00"; nextBlockEnd = "12:00:00"; // Currently early morning -> next shift is today's morning shift
     } else if (now < QTime(12, 0)) {
-        nextStart = "12:00:00"; // Currently in morning shift -> next shift is afternoon
+        nextBlockStart = "12:00:00"; nextBlockEnd = "17:00:00"; // Currently in morning shift -> next shift is afternoon
     } else if (now < QTime(17, 0)) {
-        nextStart = "17:00:00"; // Currently in afternoon shift -> next shift is evening
+        nextBlockStart = "17:00:00"; nextBlockEnd = "22:00:00"; // Currently in afternoon shift -> next shift is evening
     } else {
-        nextStart = "07:00:00"; // After 17:00 (evening shift or closed) -> next shift is tomorrow morning
+        nextBlockStart = "07:00:00"; nextBlockEnd = "12:00:00"; // After 17:00 (evening shift or closed) -> next shift is tomorrow morning
         nextDate = today.addDays(1).toString(Qt::ISODate);
     }
 
-    // Fetch all employees whose shifts strictly start at the determined next chronological block
-
+    // Fetch all employees whose shifts strictly overlap with the determined next chronological block
     QSqlQuery q(db);
     q.prepare(
-        "SELECT P.name, P.phoneNum, P.role, P.avatarPath "
+        "SELECT DISTINCT P.name, P.phoneNum, P.role, P.avatarPath "
         "FROM SHIFT S JOIN PROFILES P ON S.idEmployee = P.idEmployee "
-        "WHERE S.workDate = :ndate AND S.startTime = :nst AND S.status = 1 "
+        "WHERE S.workDate = :ndate "
+        "  AND S.startTime < :nextBlockEnd "
+        "  AND S.endTime > :nextBlockStart "
+        "  AND S.status = 1 "
         "ORDER BY P.name"
     );
     q.bindValue(":ndate", nextDate);
-    q.bindValue(":nst",   nextStart);
+    q.bindValue(":nextBlockStart", nextBlockStart);
+    q.bindValue(":nextBlockEnd", nextBlockEnd);
 
     if (q.exec()) {
         while (q.next()) {
