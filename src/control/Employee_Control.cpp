@@ -98,7 +98,7 @@ void Employee_Control::handleAddEmployee()
 
     if (dlg.exec() != QDialog::Accepted) return;
     if(m_model->addEmployee(dlg.getRole(), dlg.getAvatarPath(), dlg.getCitizenId(), dlg.getName(),
-                             dlg.getDob(), dlg.getAddress(), dlg.getPhone(), dlg.getGender(), dlg.getSalary(),
+                             dlg.getDob(), dlg.getAddress(), dlg.getPhone(), dlg.getGender(), dlg.getSalary(), dlg.getIsFixedSalary(),
                              dlg.getUsername(), dlg.getPassword())) {
         m_view->showSuccess(QString("THÊM NHÂN VIÊN %1 THÀNH CÔNG").arg(dlg.getName()));
         handleLoadEmployees();

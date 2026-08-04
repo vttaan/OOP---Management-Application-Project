@@ -52,10 +52,10 @@ bool Employee_Model::popUserInList(short idEmployee)
 
 bool Employee_Model::addEmployee(const QString &role, const QString &avatarPath, const QString &citizenId,
                                  const QString &name, const QString &dob, const QString &address,
-                                 const QString &phone, const QString &gender, const int& baseSalary,
+                                 const QString &phone, const QString &gender, const int& baseSalary, bool isFixedSalary,
                                  const QString &username, const QString &password)
 {
-  User *emp = UserFactory::createNewUser(role, avatarPath, citizenId, name, dob, address, phone, gender, baseSalary);
+  User *emp = UserFactory::createNewUser(role, avatarPath, citizenId, name, dob, address, phone, gender, baseSalary, isFixedSalary);
     if (emp == nullptr) {
       qDebug() << "Create fail\n";
         return false;
@@ -73,8 +73,8 @@ bool Employee_Model::addEmployee(const QString &role, const QString &avatarPath,
   QSqlQuery qProfile(db);
   qProfile.prepare(
       "INSERT INTO PROFILES (idEmployee, role, name, phoneNum, dob, address, "
-      "avatarPath, IdCitizenIdentity, Gender, Salary) "
-      "VALUES (:id,:role,:name,:phone,:dob,:address,:avatar,:citizen, :Gender, :Salary)");
+      "avatarPath, IdCitizenIdentity, Gender, Salary, isFixed) "
+      "VALUES (:id,:role,:name,:phone,:dob,:address,:avatar,:citizen, :Gender, :Salary, :isFixed)");
   qProfile.bindValue(":id", emp->getIdEmployee());
   qProfile.bindValue(":role", emp->getRole());
   qProfile.bindValue(":name", emp->getName());
@@ -85,6 +85,7 @@ bool Employee_Model::addEmployee(const QString &role, const QString &avatarPath,
   qProfile.bindValue(":citizen", emp->getIdentityID());
   qProfile.bindValue(":Gender", emp->getGender());
   qProfile.bindValue(":Salary", emp->getBaseSalary());
+  qProfile.bindValue(":isFixed", emp->getIsFixedSalary());
   if (!qProfile.exec())
   {
     qDebug() << "Error adding profile" << qProfile.lastError().text();
@@ -131,7 +132,8 @@ bool Employee_Model::updateEmployee(User *emp)
   query.prepare("UPDATE PROFILES SET role = :role, name = :name, phoneNum = "
                 ":phone, dob = :dob, "
                 "address = :address, avatarPath = :avatar, IdCitizenIdentity "
-                "= :citizen, Gender = :gender, Salary = :salary WHERE idEmployee = :id");
+                "= :citizen, Gender = :gender, Salary = :salary, isFixed = :isFixed "
+                "WHERE idEmployee = :id");
   query.bindValue(":role", emp->getRole());
   query.bindValue(":name", emp->getName());
   query.bindValue(":phone", emp->getPhoneNum());
@@ -142,6 +144,7 @@ bool Employee_Model::updateEmployee(User *emp)
   query.bindValue(":id", emp->getIdEmployee());
   query.bindValue(":gender", emp->getGender());
   query.bindValue(":salary", emp->getBaseSalary());
+  query.bindValue(":isFixed", emp->getIsFixedSalary());
 
   if (!query.exec())
   {

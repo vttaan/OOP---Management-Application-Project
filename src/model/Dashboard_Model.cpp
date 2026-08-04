@@ -227,7 +227,7 @@ SalaryChartData Dashboard_Model::getSalaryStats(int year)
     for (int y : {year - 1, year}) {
         QSqlQuery q(Database::getInstance()->getDbConnect());
         q.prepare(
-            "SELECT S.idEmployee, P.role, P.Salary, "
+            "SELECT S.idEmployee, P.role, P.Salary, P.isFixed, "
             "       CAST(strftime('%m', S.workDate) AS INTEGER), "
             "       S.startTime, S.endTime, S.isHoliday "
             "FROM SHIFT S JOIN PROFILES P ON S.idEmployee = P.idEmployee "
@@ -256,13 +256,12 @@ SalaryChartData Dashboard_Model::getSalaryStats(int year)
                 int id       = q.value(0).toInt();
                 QString role = q.value(1).toString();
                 double base  = q.value(2).toDouble();
-                // isFixed: Manager/Admin = fixed salary, others = hourly
-                bool isFixed = (role == "Manager" || role == "Admin");
-                int m        = q.value(3).toInt() - 1;
+                bool isFixed = q.value(3).toBool();
+                int m        = q.value(4).toInt() - 1;
                 if (m < 0 || m > 11) continue;
                 
-                double hrs        = q.value(4).toTime().secsTo(q.value(5).toTime()) / 3600.0;
-                double multiplier = q.value(6).toBool() ? 2.0 : 1.0;
+                double hrs        = q.value(5).toTime().secsTo(q.value(6).toTime()) / 3600.0;
+                double multiplier = q.value(7).toBool() ? 2.0 : 1.0;
 
                 yearEmployees.insert(id);
                 

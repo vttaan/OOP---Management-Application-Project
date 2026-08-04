@@ -2,7 +2,7 @@
 #define CASHIER_H
 #include "global.h"
 #include "core/Staff.h"
-class Cashier:public Staff{
+class Cashier : public Staff {
 private:
     double allowanceCashier;
 public:

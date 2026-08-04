@@ -13,12 +13,17 @@ class Config
 private:
     // Time
     inline static short openHour;
-    inline static short closeHour ;
+    inline static short closeHour;
     inline static Qt::DayOfWeek dayOpenRegisShift;
 
+    // < < < < < < < < < Temporary merge branch 1 static const Qt::DayOfWeek dayOpenRegisShift = Qt::Sunday;
+    // static const short minStaffPerShift = 4;
+    // static const short maxStaffPerShift = 6;
+    // == == == == =
     //static const Qt::DayOfWeek dayOpenRegisShift = Qt::Sunday;
     static const int baseSalaryStaff = 25000;
-    // Number of staff min and max in specific role. First is Min, Second is Max
+
+     // Number of staff min and max in specific role. First is Min, Second is Max
     inline static QMap<QString, QPair<short, short>> numberEmployeeOfRoles;
 
     // Rule for full time
@@ -38,7 +43,8 @@ public:
     static void setCloseHour(short h) { closeHour = h; }
     static void setDayOpenRegisShift(Qt::DayOfWeek day) { dayOpenRegisShift = day; }
 
-    static void setRoles(const QMap<QString, QPair<short, short>>& roles) {
+    static void setRoles(const QMap<QString, QPair<short, short>> &roles)
+    {
         numberEmployeeOfRoles = roles;
     }
 
@@ -56,9 +62,11 @@ public:
     static short getCloseHour() { return closeHour; }
     static Qt::DayOfWeek getDayOpenRegisShift() { return dayOpenRegisShift; }
 
-    static int getMaxStaffPerShift() {
+    static int getMaxStaffPerShift()
+    {
         int total = 0;
-        for (const QString& role : numberEmployeeOfRoles.keys()) {
+        for (const QString &role : numberEmployeeOfRoles.keys())
+        {
             total += numberEmployeeOfRoles[role].second;
         }
         return total > 0 ? total : 6;
@@ -66,38 +74,41 @@ public:
 
     static int getBaseSalaryStaff() { return baseSalaryStaff; }
 
-
-
     static QDate getStartOfCurrentWeek(QDate date)
     {
         int diff = dayOpenRegisShift - date.dayOfWeek();
-        if (diff > 0) diff -= 7;
+        if (diff > 0)
+            diff -= 7;
         return date.addDays(diff);
     }
 
-    static int getMinStaffForRole(const QString& roleName) {
+    static int getMinStaffForRole(const QString &roleName)
+    {
         if (numberEmployeeOfRoles.contains(roleName))
             return numberEmployeeOfRoles[roleName].first;
         return 0;
     }
 
-    static int getMaxStaffForRole(const QString& roleName) {
+    static int getMaxStaffForRole(const QString &roleName)
+    {
         if (numberEmployeeOfRoles.contains(roleName))
             return numberEmployeeOfRoles[roleName].second;
         return 99;
     }
 
-    static QList<QString> getAllRoles() {
+    static QList<QString> getAllRoles()
+    {
         return numberEmployeeOfRoles.keys();
     }
 
-    static short getMinimumDaysWorkPerWeek_FT() {  return minimumDaysWorkPerWeek_FT; }
+    static short getMinimumDaysWorkPerWeek_FT() { return minimumDaysWorkPerWeek_FT; }
     static short getMaximumLeavePerMonth_FT() { return maximumLeavePerMonth_FT; }
 
-    static short getMinimumDaysWorkPerWeek_PT() { return minimumDaysWorkPerWeek_PT ; }
-    static short getMinimumHourWorkPerDay_PT() { return minimumHourWorkPerDay_PT ; }
-    static short getMaximumHourWorkPerDay_PT() { return maximumHourWorkPerDay_PT ; }
-    static short getGuaranteedDaysPerWeek_FT() {
+    static short getMinimumDaysWorkPerWeek_PT() { return minimumDaysWorkPerWeek_PT; }
+    static short getMinimumHourWorkPerDay_PT() { return minimumHourWorkPerDay_PT; }
+    static short getMaximumHourWorkPerDay_PT() { return maximumHourWorkPerDay_PT; }
+    static short getGuaranteedDaysPerWeek_FT()
+    {
         return guaranteedDaysPerWeek_FT > 0 ? guaranteedDaysPerWeek_FT : 5;
     }
 };

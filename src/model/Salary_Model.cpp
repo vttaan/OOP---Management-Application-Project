@@ -13,6 +13,15 @@ Salary_Model::~Salary_Model()
 
 SalaryData Salary_Model::getSalarySummary(short int id, QString role, double base, int month, int year)
 {
+    QSqlDatabase openData = Database::getInstance()->getDbConnect();
+    QSqlQuery query(openData);
+
+    query.prepare("SELECT isFixed FROM PROFILES WHERE idEmployee = :id");
+    query.bindValue(":id", id);
+    bool isFixedEmployee = (role == "Manager" || role == "Admin");
+    if (query.exec() && query.next())
+        isFixedEmployee = query.value("isFixed").toBool();
+
     SalaryData data = {0, 0, 0, 0, 0, 0}; // normal hours, holiday hours, normal salary, holiday salary, penalty, total
     QMap<QString, int> normalDays = Salary_Model::getNormalDaysData(id, role, base, month, year);
     QMap<QString, int> holidayDays = Salary_Model::getHolidayDaysData(id, role, base, month, year);
@@ -21,7 +30,7 @@ SalaryData Salary_Model::getSalarySummary(short int id, QString role, double bas
     QDate endDate = startDate.addMonths(1).addDays(-1);
     if (endDate > QDate::currentDate()) endDate = QDate::currentDate();
 
-    if (role == "Manager") {
+    if (role == "Manager" || isFixedEmployee) {
         int totalDaysWorked = normalDays.size() + holidayDays.size();
         int absentDays = 0;
         if (QDate::currentDate() >= startDate) {
@@ -36,7 +45,7 @@ SalaryData Salary_Model::getSalarySummary(short int id, QString role, double bas
         data.penalty = absentDays * PENALTY;
 
         data.totalSalary = data.normalSalary + data.holidaySalary - data.penalty;
-    } else if (role == "Staff") {
+    } else {
         for (int hours : normalDays.values()) {
             data.normalHours += hours;
         }
