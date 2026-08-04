@@ -2,6 +2,7 @@
 #include "Dashboard_Control.h"
 #include "view/Dashboard_View.h"
 #include "view/employeecard.h"
+#include <QTimer>
 
 Dashboard_Control::Dashboard_Control(QObject *parent)
     : QObject(parent)
@@ -9,8 +10,13 @@ Dashboard_Control::Dashboard_Control(QObject *parent)
     , currentSession(SessionManager::getInstance())
     , empModel(new Employee_Model())
     , dashModel(new Dashboard_Model())
+    , m_refreshTimer(new QTimer(this))
     , m_selectedYear(QDate::currentDate().year())
-{}
+{
+    m_refreshTimer->setSingleShot(true);
+    connect(m_refreshTimer, &QTimer::timeout, this, &Dashboard_Control::autoRefresh);
+    scheduleNextHourRefresh();
+}
 
 Dashboard_Control::~Dashboard_Control()
 {
@@ -21,9 +27,6 @@ Dashboard_Control::~Dashboard_Control()
 void Dashboard_Control::init()
 {
     if (!view) return;
-
-    // Seed sample data so the dashboard always shows something on first run
-    dashModel->seedTodayShifts();
 
     empModel->loadData();
     QList<User*> all = empModel->getListEmployee();
@@ -52,6 +55,25 @@ void Dashboard_Control::onYearChanged(int year)
     loadSalaryChart();
 }
 
+void Dashboard_Control::scheduleNextHourRefresh()
+{
+    QTime now = QTime::currentTime();
+    int msToNextHour = (59 - now.minute()) * 60000 + (59 - now.second()) * 1000 + (1000 - now.msec());
+    // Adding 1000ms extra padding to make sure it crosses the hour boundary
+    m_refreshTimer->start(msToNextHour + 1000);
+}
+
+void Dashboard_Control::autoRefresh()
+{
+    if (!view) return;
+    QList<User*> all = empModel->getListEmployee();
+    loadEmployeeCards(all);
+    loadShiftPanel();
+
+    // Re-schedule for the next hour
+    scheduleNextHourRefresh();
+}
+
 // Panel 1: Employee cards for the current active shift
 void Dashboard_Control::loadEmployeeCards(const QList<User*>& list)
 {
@@ -78,14 +100,11 @@ void Dashboard_Control::loadEmployeeCards(const QList<User*>& list)
     }
 }
 
-// Panel 2 (next shift) + Panel 4 (absent employees)
+// Panel 2 (next shift)
 void Dashboard_Control::loadShiftPanel()
 {
     QList<ShiftEmployeeInfo> nextShift = dashModel->getNextShiftEmployees();
     view->updateNextShiftPanel(nextShift);
-
-    QStringList absent = dashModel->getAbsentEmployees();
-    view->updateAbsentPanel(absent);
 }
 
 // Panel 3: Salary bar chart for (m_selectedYear - 1) vs m_selectedYear

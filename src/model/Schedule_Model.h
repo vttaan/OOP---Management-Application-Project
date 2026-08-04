@@ -69,6 +69,10 @@ public:
     bool approveShift(int shiftId);
     bool declineShift(int shiftId);
 
+    // Replacement feature
+    QList<PendingShiftInfo> getEligibleReplacements(int oldShiftId, const QString &role);
+    bool replaceShift(int oldShiftId, int newShiftId);
+
 signals:
 
     QStringList generateSchedule();

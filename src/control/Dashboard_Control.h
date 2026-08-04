@@ -15,12 +15,14 @@ private:
     Dashboard_View  *view;
     Employee_Model  *empModel;
     Dashboard_Model *dashModel;     // Owns all DB logic for the dashboard
+    class QTimer *m_refreshTimer;
 
     int m_selectedYear = 0;         // Year currently shown in the chart
 
     void loadEmployeeCards(const QList<User*>& list);
     void loadShiftPanel();
     void loadSalaryChart();
+    void scheduleNextHourRefresh();
 
 public:
     SessionManager *currentSession;
@@ -35,4 +37,5 @@ signals:
 
 public slots:
     void onYearChanged(int year);   // Triggered by View when user picks a different year tab
+    void autoRefresh();             // Triggered by timer every minute
 };

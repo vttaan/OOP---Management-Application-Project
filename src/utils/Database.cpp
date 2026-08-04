@@ -1,23 +1,31 @@
 #include "global.h"
 #include "utils/Database.h"
 
-Database* Database::instance = nullptr;
+Database *Database::instance = nullptr;
 
-Database::Database() {
+Database::Database()
+{
     this->dbConnect = QSqlDatabase::addDatabase("QSQLITE");
-    qDebug() << "FOLDER CONTAINS DATABASE\n" << QDir::currentPath() << '\n';
+    qDebug() << "FOLDER CONTAINS DATABASE\n"
+             << QDir::currentPath() << '\n';
     dbConnect.setDatabaseName("database/Systems.db");
 
     // isOpen -> open
-    if (!dbConnect.open()) {
+    if (!dbConnect.open())
+    {
         qDebug() << "ERROR CAN NOT OPEN DATABASE\n";
-    } else {
+    }
+    else
+    {
         qDebug() << "OPEN DATABASE SUCCESS\n";
+        QSqlQuery alterQuery(dbConnect);
+        alterQuery.exec("ALTER TABLE PROFILES ADD COLUMN status TEXT DEFAULT 'active'");
         ensureSchema();
     }
 }
 
-void Database::ensureSchema() {
+void Database::ensureSchema()
+{
     QSqlQuery query(dbConnect);
     const QStringList statements = {
         "CREATE TABLE IF NOT EXISTS SHIFT_AUDIT ("
@@ -37,52 +45,61 @@ void Database::ensureSchema() {
         "CREATE INDEX IF NOT EXISTS idx_notification_recipient "
         "ON NOTIFICATION(recipientEmployeeId, status, createdAt)",
         "CREATE INDEX IF NOT EXISTS idx_leave_request_employee "
-        "ON LEAVE_REQUEST(idEmployee, status, leaveDate)"
-    };
+        "ON LEAVE_REQUEST(idEmployee, status, leaveDate)"};
 
-    for (const QString &statement : statements) {
+    for (const QString &statement : statements)
+    {
         if (!query.exec(statement))
             qWarning() << "Schema migration failed:" << query.lastError().text();
     }
 
     bool hasRelatedShiftColumn = false;
-    if (query.exec("PRAGMA table_info(LEAVE_REQUEST)")) {
-        while (query.next()) {
-            if (query.value(1).toString() == "relatedShiftId") {
+    if (query.exec("PRAGMA table_info(LEAVE_REQUEST)"))
+    {
+        while (query.next())
+        {
+            if (query.value(1).toString() == "relatedShiftId")
+            {
                 hasRelatedShiftColumn = true;
                 break;
             }
         }
     }
     if (!hasRelatedShiftColumn &&
-        !query.exec("ALTER TABLE LEAVE_REQUEST ADD COLUMN relatedShiftId INTEGER")) {
+        !query.exec("ALTER TABLE LEAVE_REQUEST ADD COLUMN relatedShiftId INTEGER"))
+    {
         qWarning() << "Leave request migration failed:" << query.lastError().text();
     }
 }
 
-Database* Database::getInstance() {
+Database *Database::getInstance()
+{
     return Database::instance != nullptr ? Database::instance : Database::instance = new Database();
-    //return Database::instance != nullptr ? Database::instance : new Database();
+    // return Database::instance != nullptr ? Database::instance : new Database();
 }
 
-QSqlDatabase Database::getDbConnect() {
-	return this->dbConnect;
+QSqlDatabase Database::getDbConnect()
+{
+    return this->dbConnect;
 }
 
-void Database::closeConnect() {
-	if (this->dbConnect.isOpen()) {
-		this->dbConnect.close();
-		qDebug() << "CLOSE DATABASE SUCCESS\n";
-	}
+void Database::closeConnect()
+{
+    if (this->dbConnect.isOpen())
+    {
+        this->dbConnect.close();
+        qDebug() << "CLOSE DATABASE SUCCESS\n";
+    }
 }
 
-QSqlQuery Database::execQuery(const QString& query) {
-	QSqlQuery ansForQuery(this->dbConnect);
-    //if (ansForQuery.exec(query))
-    if (!ansForQuery.exec(query)) {
-		ansForQuery.exec(query);
-		qDebug() << "ERROR EXEC QUERY " << ansForQuery.lastError().text() << '\n';
-	}
-	return ansForQuery;
+QSqlQuery Database::execQuery(const QString &query)
+{
+    QSqlQuery ansForQuery(this->dbConnect);
+    // if (ansForQuery.exec(query))
+    if (!ansForQuery.exec(query))
+    {
+        ansForQuery.exec(query);
+        qDebug() << "ERROR EXEC QUERY " << ansForQuery.lastError().text() << '\n';
+    }
+    return ansForQuery;
 }
-

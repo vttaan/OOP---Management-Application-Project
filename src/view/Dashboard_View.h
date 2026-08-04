@@ -25,8 +25,8 @@ public:
     // Panel 2 - takes structured DTOs directly from Model (via Controller)
     void updateNextShiftPanel(const QList<ShiftEmployeeInfo>& entries);
 
-    // Panel 4
-    void updateAbsentPanel(const QStringList& names);
+
+    void updateAbsentPanel(const QList<ShiftEmployeeInfo>& list);
 
     // Panel 3 - chart with VND tooltip support
     void updateSalaryChart(const QVector<double>& lastYear, const QVector<double>& thisYear,

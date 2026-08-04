@@ -12,8 +12,9 @@ protected:
 	QString address;
 	QString phoneNum;
     QString gender;
+    QString status;
 public:
-    User(QString r, short int idEmp, QString ava, QString idCit, QString n, QString d, QString add, QString phone ,QString gender);
+    User(QString r, short int idEmp, QString ava, QString idCit, QString n, QString d, QString add, QString phone, QString gender, QString status = "active");
 	virtual ~User() = default;
     virtual double getSalary() const = 0;
     virtual double getBaseSalary() const = 0;
@@ -42,6 +43,7 @@ public:
 	QString getAvatarPath() const;
 	QString getPhoneNum() const;
     QString getGender() const;
+    QString getStatus() const;
     QString getAnyAttributes(QString content) const;
 	void setRole(QString r);
     void setGender(QString g);
@@ -52,4 +54,5 @@ public:
 	void setAddress(QString add);
 	void setDOB(QString d);
 	void setPhoneNum(QString phone);
+    void setStatus(QString s);
 };

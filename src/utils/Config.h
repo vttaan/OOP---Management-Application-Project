@@ -37,6 +37,8 @@ private:
 
     inline static short guaranteedDaysPerWeek_FT = 0;
 
+    //inline static double baseSalaryStaff;
+
 public:
     // ------SETTERS----
     static void setOpenHour(short h) { openHour = h; }

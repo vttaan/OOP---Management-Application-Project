@@ -21,6 +21,7 @@ public:
     QString getAvatarPath() const;
     int getSalary()     const;
     bool getIsFixedSalary() const;
+    bool isDobSelected() const;
     // Auto-generated (not shown in UI): username = citizenId, password = default
     QString getUsername()   const;
     QString getPassword()   const;
@@ -39,7 +40,7 @@ private:
     // Input fields
     QLineEdit *inpName;
     QLineEdit *inpPhone;
-    QLineEdit *inpDob;
+    QDateEdit *inpDob;
     QLineEdit *inpAddress;
     QLineEdit *inpCitizenId;
     QLineEdit *inpUsername;

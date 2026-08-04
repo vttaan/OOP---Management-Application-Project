@@ -1,7 +1,28 @@
 #include "global.h"
 #include "AddEmployee_Dialog.h"
-
+#include <QPainterPath>
+#include <QFileDialog>
+#include <QEvent>
 #include <QScrollArea>
+
+namespace {
+    class CalendarEventFilter : public QObject {
+    public:
+        CalendarEventFilter(QDateEdit* de, QObject* parent = nullptr) : QObject(parent), m_dateEdit(de) {}
+    protected:
+        bool eventFilter(QObject* obj, QEvent* event) override {
+            if (event->type() == QEvent::Show) {
+                if (m_dateEdit->date() == QDate(1900, 1, 1)) {
+                    QCalendarWidget* cal = qobject_cast<QCalendarWidget*>(obj);
+                    if (cal) cal->setCurrentPage(2000, 1);
+                }
+            }
+            return QObject::eventFilter(obj, event);
+        }
+    private:
+        QDateEdit* m_dateEdit;
+    };
+}
 
 AddEmployee_Dialog::AddEmployee_Dialog(QWidget *parent)
     : QDialog(parent)
@@ -74,7 +95,61 @@ void AddEmployee_Dialog::setupUi()
 
     inpName      = makeInput("vd: Nguyễn Văn A");
     inpPhone     = makeInput("vd: 0901234567");
-    inpDob       = makeInput("YYYY-MM-DD");
+
+    inpDob = new QDateEdit(scrollContent);
+    inpDob->setCalendarPopup(true);
+    inpDob->setDisplayFormat("yyyy-MM-dd");
+    inpDob->setMinimumDate(QDate(1900, 1, 1));
+    inpDob->setMaximumDate(QDate::currentDate());
+    inpDob->setSpecialValueText("----/--/--");
+    inpDob->setDate(QDate(1900, 1, 1)); // This triggers the special value text
+    inpDob->setMinimumHeight(32);
+    inpDob->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    inpDob->setProperty("dateSelected", false);
+
+    connect(inpDob, &QDateEdit::dateChanged, this, [this]() {
+        inpDob->setProperty("dateSelected", true);
+    });
+    
+    // Prevent manual text input, force using the calendar
+    QLineEdit *leDob = inpDob->findChild<QLineEdit*>();
+    if (leDob) leDob->setReadOnly(true);
+
+    // Make the calendar year a spinbox without manual text input
+    if (QCalendarWidget *cal = inpDob->calendarWidget()) {
+        cal->setMinimumWidth(350); // Provide enough width for "Tháng Mười Một"
+        if (QSpinBox *yearSpin = cal->findChild<QSpinBox*>()) {
+            yearSpin->setReadOnly(true);
+        }
+        cal->installEventFilter(new CalendarEventFilter(inpDob, cal));
+
+        // Add year navigation buttons to the calendar navigation bar
+        QWidget *navBar = cal->findChild<QWidget*>("qt_calendar_navigationbar");
+        if (navBar) {
+            QHBoxLayout *navLayout = qobject_cast<QHBoxLayout*>(navBar->layout());
+            if (navLayout) {
+                QToolButton *prevYearBtn = new QToolButton(navBar);
+                prevYearBtn->setText(QString::fromUtf8("\u00AB"));
+                prevYearBtn->setAutoRaise(true);
+                prevYearBtn->setFixedSize(28, 28);
+                connect(prevYearBtn, &QToolButton::clicked, cal, [cal]() {
+                    cal->showPreviousYear();
+                });
+
+                QToolButton *nextYearBtn = new QToolButton(navBar);
+                nextYearBtn->setText(QString::fromUtf8("\u00BB"));
+                nextYearBtn->setAutoRaise(true);
+                nextYearBtn->setFixedSize(28, 28);
+                connect(nextYearBtn, &QToolButton::clicked, cal, [cal]() {
+                    cal->showNextYear();
+                });
+
+                navLayout->insertWidget(0, prevYearBtn);
+                navLayout->addWidget(nextYearBtn);
+            }
+        }
+    }
+
     inpAddress   = makeInput("vd: 123 Lê Lợi, TP.HCM");
     inpCitizenId = makeInput("vd: 012345678901");
     inpSalary    = makeInput("vd: 20000");
@@ -178,7 +253,7 @@ void AddEmployee_Dialog::setupUi()
 
     auto updateAutoCredentials = [=]() {
         QString name = inpName->text().trimmed();
-        QString dob = inpDob->text().trimmed();
+        QString dob = inpDob->date().toString("yyyy-MM-dd");
 
         // update user's password
         if (!name.isEmpty() && dob.length() == 10 && passwordGeneratorDelegate) {
@@ -200,7 +275,7 @@ void AddEmployee_Dialog::setupUi()
     };
 
     connect(inpName, &QLineEdit::textChanged, this, updateAutoCredentials);
-    connect(inpDob, &QLineEdit::textChanged, this, updateAutoCredentials);
+    connect(inpDob, &QDateEdit::dateChanged, this, updateAutoCredentials);
 
 
     connect(cmbRole, &QComboBox::currentTextChanged, this, updateAutoCredentials);
@@ -288,7 +363,8 @@ QString AddEmployee_Dialog::getRole()       const
 
 QString AddEmployee_Dialog::getGender()     const { return cmbGender->currentText(); }
 QString AddEmployee_Dialog::getPhone()      const { return inpPhone->text().trimmed(); }
-QString AddEmployee_Dialog::getDob()        const { return inpDob->text().trimmed(); }
+bool AddEmployee_Dialog::isDobSelected()    const { return inpDob->property("dateSelected").toBool(); }
+QString AddEmployee_Dialog::getDob()        const { return inpDob->date().toString("yyyy-MM-dd"); }
 QString AddEmployee_Dialog::getAddress()    const { return inpAddress->text().trimmed(); }
 QString AddEmployee_Dialog::getCitizenId()  const { return inpCitizenId->text().trimmed(); }
 QString AddEmployee_Dialog::getAvatarPath() const { return m_avatarPath; }

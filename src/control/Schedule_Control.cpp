@@ -288,20 +288,22 @@ void Schedule_Control::load()
         QDate weekStart = Config::getStartOfCurrentWeek(today).addDays(7);
         currentEmployeeRegistrationWeekStart = weekStart;
 
-        if (employeeScheduleLayoutMode == EmployeeScheduleLayoutMode::FullTimeSchedule)
-        {
-            view->enableRegistration(true);
-            fullTimeScheduleStatuses =
-                model->getFullTimeScheduleGrid(currentEmployeeId, weekStart);
-            view->setUpFullTimeScheduleGrid(weekStart,
-                                            fullTimeScheduleStatuses);
-            return;
-        }
-
         bool registrationOpen = (today.dayOfWeek() == Config::getDayOpenRegisShift());
         int daysUntilRegistration =
             (Config::getDayOpenRegisShift() - today.dayOfWeek() + 7) % 7;
         QDate nextRegistrationDate = today.addDays(daysUntilRegistration);
+
+        if (employeeScheduleLayoutMode == EmployeeScheduleLayoutMode::FullTimeSchedule)
+        {
+            fullTimeScheduleStatuses =
+                model->getFullTimeScheduleGrid(currentEmployeeId, weekStart);
+            view->setUpFullTimeScheduleGrid(weekStart,
+                                            fullTimeScheduleStatuses);
+            view->setPartTimeRegistrationState(registrationOpen,
+                                               nextRegistrationDate);
+            return;
+        }
+
         view->setPartTimeRegistrationState(registrationOpen,
                                            nextRegistrationDate);
         view->setUpInteractiveGrid(weekStart, Config::getOpenHour(), Config::getCloseHour());
@@ -335,6 +337,13 @@ void Schedule_Control::onSaveFullTimeScheduleRequested(
     if (!model || !view || currentEmployeeId < 0 ||
         employeeScheduleLayoutMode != EmployeeScheduleLayoutMode::FullTimeSchedule)
         return;
+
+    QDate today = QDate::currentDate();
+    if (today.dayOfWeek() != Config::getDayOpenRegisShift())
+    {
+        view->showError("Đăng ký ca làm việc chỉ mở vào ngày được quy định!");
+        return;
+    }
 
     static const QTime shiftStarts[3] = {
         QTime(7, 0), QTime(12, 0), QTime(17, 0)};
