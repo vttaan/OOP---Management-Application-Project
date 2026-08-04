@@ -78,7 +78,8 @@ void Profile_View::loadUserData(SessionManager* currentSession) {
         roleDisplay = "Nhân viên";
     }
     QString typeEmployee = (user->getIsFixedEmployee()) ? " toàn thời gian" : " bán thời gian";
-    ui->lblProfileRole->setText(roleDisplay + typeEmployee);
+    if (roleDisplay == "Quản lý") ui->lblProfileRole->setText(roleDisplay);
+    else ui->lblProfileRole->setText(roleDisplay + typeEmployee);
 
     ui->lblVal_Id->setText(QString::number(user->getIdEmployee()));
     ui->lblVal_DoB->setText(user->getDOB());
