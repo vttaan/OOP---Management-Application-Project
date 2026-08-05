@@ -57,7 +57,7 @@ bool Setting_Model::loadData(short &openHour, short &closeHour, Qt::DayOfWeek &d
     Config::setOpenHour(openHour);
     Config::setCloseHour(closeHour);
     Config::setDayOpenRegisShift(dayOpenRegis);
-    Config::setMaximumLeavePerMonth_FT(maxLeaveFT);
+    Config::setMaximumAbsentPerWeek_FT(maxLeaveFT);
     Config::setMinimumDaysWorkPerWeek_PT(maxDaysPT);
     Config::setMaximumHourWorkPerDay_PT(maxHourPT);
     Config::setRoles(roles);
@@ -115,7 +115,7 @@ bool Setting_Model::saveData(short openHour, short closeHour, Qt::DayOfWeek dayO
         Config::setOpenHour(openHour);
         Config::setCloseHour(closeHour);
         Config::setDayOpenRegisShift(dayOpenRegis);
-        Config::setMaximumLeavePerMonth_FT(maxLeaveFT);
+        Config::setMaximumAbsentPerWeek_FT(maxLeaveFT);
         Config::setMinimumDaysWorkPerWeek_PT(maxDaysPT);
         Config::setMaximumHourWorkPerDay_PT(maxHourPT);
         Config::setRoles(roles);

@@ -1,4 +1,5 @@
 #include "Salary_Model.h"
+#include "utils/Config.h"
 
 const int PENALTY = 500000;
 
@@ -18,7 +19,7 @@ SalaryData Salary_Model::getSalarySummary(short int id, QString role, double bas
 
     query.prepare("SELECT isFixed FROM PROFILES WHERE idEmployee = :id");
     query.bindValue(":id", id);
-    bool isFixedEmployee = (role == "Manager" || role == "Admin");
+    bool isFixedEmployee = false;
     if (query.exec() && query.next())
         isFixedEmployee = query.value("isFixed").toBool();
 
@@ -30,21 +31,26 @@ SalaryData Salary_Model::getSalarySummary(short int id, QString role, double bas
     QDate endDate = startDate.addMonths(1).addDays(-1);
     if (endDate > QDate::currentDate()) endDate = QDate::currentDate();
 
-    if (role == "Manager" || isFixedEmployee) {
+    if (isFixedEmployee) {
         int totalDaysWorked = normalDays.size() + holidayDays.size();
-        int absentDays = 0;
-        if (QDate::currentDate() >= startDate) {
-            absentDays = endDate.day() - totalDaysWorked;
-            if (absentDays < 0) absentDays = 0;
-        }
+        int allowedAbsent = Config::getMaximumAbsentPerWeek_FT();
+        int estimateDays = (7 - allowedAbsent) * 4;
+        int dailyWage = base / estimateDays;
+        int bonusPenalty = 0;
         
+        if (totalDaysWorked > 28) {
+            bonusPenalty = (totalDaysWorked - 28) * dailyWage;
+        } else if (totalDaysWorked < estimateDays) {
+            bonusPenalty = -(estimateDays - totalDaysWorked) * dailyWage;
+        }
+
         data.normalHours = normalDays.size();
         data.holidayHours = holidayDays.size();
-        data.normalSalary = data.normalHours * base;
-        data.holidaySalary = data.holidayHours * base * 2;
-        data.penalty = absentDays * PENALTY;
+        data.normalSalary = base;
+        data.holidaySalary = 0;
+        data.penalty = bonusPenalty;
 
-        data.totalSalary = data.normalSalary + data.holidaySalary - data.penalty;
+        data.totalSalary = data.normalSalary + data.holidaySalary + data.penalty;
     } else {
         for (int hours : normalDays.values()) {
             data.normalHours += hours;

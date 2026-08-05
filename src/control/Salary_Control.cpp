@@ -37,11 +37,11 @@ void Salary_Control::loadData(int month, int year)
     SalaryData summary = Salary_Model::getSalarySummary(currentUser->getIdEmployee(), currentUser->getRole(), currentUser->getBaseSalary(), month, year);
     QMap<QString, int> normalDays = model->getNormalDaysData(currentUser->getIdEmployee(), currentUser->getRole(), currentUser->getBaseSalary(), month, year);
     QMap<QString, int> holidayDays = model->getHolidayDaysData(currentUser->getIdEmployee(), currentUser->getRole(), currentUser->getBaseSalary(), month, year);
-    QString baseSalary = QString::number(currentUser->getBaseSalary());
+    QString baseSalary = QString::number(static_cast<long long>(currentUser->getBaseSalary()));
     
     //qDebug() << month << ' ' << year << "!!!";
 
-    view->setRole(currentUser->getRole());
+    view->setEmployeeType(currentUser->getIsFixedEmployee());
     view->setBaseSalary(baseSalary);
     view->populateNormalTable(normalDays);
     view->populateHolidayTable(holidayDays);
