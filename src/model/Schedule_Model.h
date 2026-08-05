@@ -61,6 +61,11 @@ public:
     // Raw shifts for 15x7 rendering
     QMap<int, QList<Shift*>> getRawStaffShifts(short int id, QDate monday, int status);
 
+    // Seeds the target registration week from the previous approved week.
+    // A durable per-employee marker makes this safe to call repeatedly.
+    bool ensurePendingCarryForwardForWeek(QDate weekStart,
+                                          QStringList *errors = nullptr);
+
     // Database-backed 3x7 schedule for fixed-salary employees.
     FullTimeScheduleGrid getFullTimeScheduleGrid(short int employeeId,
                                                  QDate weekStart);

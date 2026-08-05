@@ -74,8 +74,8 @@ void Schedule_Control::setView(Schedule_View *v)
     connect(view, &Schedule_View::requestDeclineShift,
             this, &Schedule_Control::onDeclineShift);
 
-    connect(view, &Schedule_View::requestAddEmployee,
-            this, &Schedule_Control::onAddEmployeeToShift);
+    connect(view, &Schedule_View::requestAddEmployees,
+            this, &Schedule_Control::onAddEmployeesToShift);
     connect(view, &Schedule_View::requestRemoveAssignedShift,
             this, &Schedule_Control::onRemoveAssignedShift);
     connect(view, &Schedule_View::requestPreviousManagerWeek,
@@ -101,7 +101,7 @@ void Schedule_Control::onLeaveRequested()
 
     const QDate weekStart = currentEmployeeRegistrationWeekStart.isValid()
         ? currentEmployeeRegistrationWeekStart
-        : Config::getStartOfCurrentWeek(QDate::currentDate()).addDays(7);
+        : Config::getStartOfActiveWorkingWeek(QDate::currentDate());
     const QList<LeaveShiftOption> shiftOptions =
         leaveRequestModel.getActiveShiftsForWeek(currentEmployeeId, weekStart);
     if (shiftOptions.isEmpty())
@@ -274,13 +274,24 @@ void Schedule_Control::load()
             currentUser->getIsFixedSalary());
     }
 
+    const QDate registrationToday = QDate::currentDate();
+    const QDate registrationWeekStart =
+        Config::getStartOfActiveWorkingWeek(registrationToday);
+    if (registrationToday.dayOfWeek() == Config::getDayOpenRegisShift())
+    {
+        QStringList carryErrors;
+        if (!model->ensurePendingCarryForwardForWeek(registrationWeekStart,
+                                                     &carryErrors))
+            qWarning() << "Weekly shift carry-forward failed:" << carryErrors;
+    }
+
     if (isManager)
     {
         QDate today = QDate::currentDate();
-        // Manager sees and assigns schedule for NEXT WEEK on first load.
+        // Manager sees and assigns the active configured working week.
         if (!managerWeekInitialized || !currentAssignMonday.isValid())
         {
-            currentAssignMonday = Config::getStartOfCurrentWeek(today).addDays(7);
+            currentAssignMonday = Config::getStartOfActiveWorkingWeek(today);
             managerWeekInitialized = true;
         }
 
@@ -351,7 +362,7 @@ void Schedule_Control::load()
             return;
 
         QDate today = QDate::currentDate();
-        QDate weekStart = Config::getStartOfCurrentWeek(today).addDays(7);
+        QDate weekStart = Config::getStartOfActiveWorkingWeek(today);
         currentEmployeeRegistrationWeekStart = weekStart;
 
         bool registrationOpen = (today.dayOfWeek() == Config::getDayOpenRegisShift());
@@ -418,7 +429,7 @@ void Schedule_Control::onSaveFullTimeScheduleRequested(
 
     QDate weekStart = currentEmployeeRegistrationWeekStart.isValid()
                           ? currentEmployeeRegistrationWeekStart
-                          : Config::getStartOfCurrentWeek(QDate::currentDate()).addDays(7);
+                          : Config::getStartOfActiveWorkingWeek(QDate::currentDate());
     QList<StaffShiftRegistration> registrations;
     for (int day = 0; day < selectedShiftsByDay.size() && day < 7; ++day)
     {
@@ -466,7 +477,7 @@ void Schedule_Control::onSaveGridRequested(const QList<QList<int>> &selectedHour
 
         QDate weekStart = currentEmployeeRegistrationWeekStart.isValid()
                               ? currentEmployeeRegistrationWeekStart
-                              : Config::getStartOfCurrentWeek(QDate::currentDate()).addDays(7);
+                              : Config::getStartOfActiveWorkingWeek(QDate::currentDate());
         int openHour = Config::getOpenHour();
         int rowCount = Config::getCloseHour() - openHour;
         QList<StaffShiftRegistration> registrations;
@@ -703,7 +714,7 @@ void Schedule_Control::onCurrentManagerWeek()
         view->showError("Hãy công bố hoặc xóa bản nháp trước khi đổi tuần.");
         return;
     }
-    currentAssignMonday = Config::getStartOfCurrentWeek(QDate::currentDate()).addDays(7);
+    currentAssignMonday = Config::getStartOfActiveWorkingWeek(QDate::currentDate());
     managerWeekInitialized = true;
     load();
 }
@@ -1050,54 +1061,115 @@ void Schedule_Control::onConfirmRequested()
 }
 
 // ─────────────────────────────────────────────
-void Schedule_Control::onAddEmployeeToShift(int employeeId, QDate date,
-                                            QTime startTime, QTime endTime,
-                                            const QString &reason)
+void Schedule_Control::onAddEmployeesToShift(
+    QDate date, QTime blockStart, QTime blockEnd,
+    const QList<ManagerEmployeeSelection> &selections)
 {
     if (!model || !view)
         return;
 
-    ManagerScheduleChange change;
-    change.type = ManagerScheduleChangeType::Add;
-    change.employeeId = employeeId;
-    change.date = date;
-    change.startTime = startTime;
-    change.endTime = endTime;
-    change.reason = reason;
-
-    if (!date.isValid() || !startTime.isValid() || !endTime.isValid() ||
-        startTime >= endTime)
+    if (!date.isValid() || !blockStart.isValid() || !blockEnd.isValid() ||
+        blockStart >= blockEnd || selections.isEmpty())
     {
         view->resetManagerAddButton();
-        view->showError(QString::fromUtf8("Ngày hoặc khoảng giờ thêm vào không hợp lệ."));
+        view->showError(QString::fromUtf8(
+            "Ngày, khung giờ hoặc danh sách nhân viên không hợp lệ."));
         return;
     }
 
-    const QList<EligibleEmployeeInfo> eligibleEmployees =
-        model->getEligibleEmployees(date, startTime, endTime);
-    auto employeeIt = std::find_if(
-        eligibleEmployees.cbegin(), eligibleEmployees.cend(),
-        [employeeId](const EligibleEmployeeInfo &employee) {
-            return employee.employeeId == employeeId;
-        });
-    if (employeeIt == eligibleEmployees.cend())
+    QList<ManagerScheduleChange> additions;
+    QStringList selectionErrors;
+    QSet<int> selectedEmployeeIds;
+    for (const ManagerEmployeeSelection &selection : selections)
+    {
+        if (selection.employeeId <= 0 ||
+            selectedEmployeeIds.contains(selection.employeeId))
+        {
+            selectionErrors.append(QString::fromUtf8(
+                "Danh sách có nhân viên trùng hoặc không hợp lệ."));
+            continue;
+        }
+        selectedEmployeeIds.insert(selection.employeeId);
+
+        const QList<EligibleEmployeeInfo> blockEligibility =
+            model->getEligibleEmployees(date, blockStart, blockEnd);
+        auto profileIt = std::find_if(
+            blockEligibility.cbegin(), blockEligibility.cend(),
+            [selection](const EligibleEmployeeInfo &employee) {
+                return employee.employeeId == selection.employeeId;
+            });
+        if (profileIt == blockEligibility.cend())
+        {
+            selectionErrors.append(QString::fromUtf8(
+                "Không tìm thấy nhân viên ID %1.").arg(selection.employeeId));
+            continue;
+        }
+
+        const bool isManagerRole =
+            profileIt->role.compare("Manager", Qt::CaseInsensitive) == 0 ||
+            profileIt->role.compare("Manage", Qt::CaseInsensitive) == 0;
+        if (isManagerRole)
+        {
+            selectionErrors.append(QString::fromUtf8(
+                "Không thể thêm quản lý vào ca bằng chức năng thêm nhân viên."));
+            continue;
+        }
+        const bool lockedToBlock = profileIt->isFixedSalary;
+        QTime requestedStart = lockedToBlock ? blockStart : selection.startTime;
+        QTime requestedEnd = lockedToBlock ? blockEnd : selection.endTime;
+        if (!requestedStart.isValid() || !requestedEnd.isValid() ||
+            requestedStart >= requestedEnd)
+        {
+            selectionErrors.append(QString::fromUtf8(
+                "%1: giờ bắt đầu phải nhỏ hơn giờ kết thúc.")
+                .arg(selection.employeeName));
+            continue;
+        }
+
+        const QList<EligibleEmployeeInfo> currentEligibility =
+            model->getEligibleEmployees(date, requestedStart, requestedEnd);
+        auto employeeIt = std::find_if(
+            currentEligibility.cbegin(), currentEligibility.cend(),
+            [selection](const EligibleEmployeeInfo &employee) {
+                return employee.employeeId == selection.employeeId;
+            });
+        if (employeeIt == currentEligibility.cend())
+        {
+            selectionErrors.append(QString::fromUtf8(
+                "Không tìm thấy nhân viên ID %1.").arg(selection.employeeId));
+            continue;
+        }
+        if (!employeeIt->eligible)
+        {
+            selectionErrors.append(QString::fromUtf8("Không thể thêm %1: %2")
+                                       .arg(employeeIt->employeeName,
+                                            employeeIt->reason));
+            continue;
+        }
+
+        ManagerScheduleChange change;
+        change.type = ManagerScheduleChangeType::Add;
+        change.employeeId = employeeIt->employeeId;
+        change.employeeName = employeeIt->employeeName;
+        change.role = employeeIt->role;
+        change.date = date;
+        change.startTime = requestedStart;
+        change.endTime = requestedEnd;
+        change.reason = employeeIt->isFixedSalary
+            ? QString::fromUtf8("Quản lý bổ sung nhân sự cố định")
+            : QString::fromUtf8("Quản lý bổ sung nhân sự theo giờ");
+        additions.append(change);
+    }
+
+    if (!selectionErrors.isEmpty())
     {
         view->resetManagerAddButton();
-        view->showError(QString::fromUtf8("Không tìm thấy nhân viên để thêm vào ca."));
+        view->showError(selectionErrors.join("\n"));
         return;
     }
-    if (!employeeIt->eligible)
-    {
-        view->resetManagerAddButton();
-        view->showError(QString::fromUtf8("Không thể thêm %1: %2")
-                            .arg(employeeIt->employeeName, employeeIt->reason));
-        return;
-    }
-    change.employeeName = employeeIt->employeeName;
-    change.role = employeeIt->role;
 
     QList<ManagerScheduleChange> candidateChanges = managerDraftChanges;
-    candidateChanges.append(change);
+    candidateChanges.append(additions);
     const QStringList validationErrors =
         model->validateManagerScheduleChanges(candidateChanges);
     if (!validationErrors.isEmpty())
@@ -1107,18 +1179,7 @@ void Schedule_Control::onAddEmployeeToShift(int employeeId, QDate date,
         return;
     }
 
-    managerDraftChanges.erase(
-        std::remove_if(managerDraftChanges.begin(), managerDraftChanges.end(),
-                       [change](const ManagerScheduleChange &existing)
-                       {
-                           return existing.type == ManagerScheduleChangeType::Add &&
-                                  existing.employeeId == change.employeeId &&
-                                  existing.date == change.date &&
-                                  existing.startTime == change.startTime &&
-                                  existing.endTime == change.endTime;
-                       }),
-        managerDraftChanges.end());
-    managerDraftChanges.append(change);
+    managerDraftChanges.append(additions);
     view->setManagerDraftStatus(managerDraftChanges.size());
 }
 
@@ -1174,7 +1235,7 @@ QDate Schedule_Control::dayStringToDate(const QString &day) const
     if (idx < 0)
         return QDate(); // invalid
 
-    // Nhan vien dang ky lich lam la cho TUAN SAU
-    QDate monday = Config::getStartOfCurrentWeek(QDate::currentDate()).addDays(7);
+    // Employee registration uses the active configured working week.
+    QDate monday = Config::getStartOfActiveWorkingWeek(QDate::currentDate());
     return monday.addDays(idx);
 }

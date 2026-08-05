@@ -156,6 +156,10 @@ private:
     QDate m_lastDrawerDate;
     QTime m_lastDrawerStart;
     QTime m_lastDrawerEnd;
+    QList<ManagerEmployeeSelection> m_managerEmployeeSelections;
+    QDate m_managerSelectionDate;
+    QTime m_managerSelectionStart;
+    QTime m_managerSelectionEnd;
 
 signals:
 
@@ -177,8 +181,8 @@ signals:
     // Fired from the popup dialog
     void requestApproveShift(PendingShiftInfo request);
     void requestDeclineShift(PendingShiftInfo request);
-    void requestAddEmployee(int employeeId, QDate date, QTime startTime,
-                            QTime endTime, const QString &reason);
+    void requestAddEmployees(QDate date, QTime blockStart, QTime blockEnd,
+                             const QList<ManagerEmployeeSelection> &selections);
     void requestRemoveAssignedShift(int shiftId, int employeeId,
                                     const QString &reason);
     void requestPreviousManagerWeek();
@@ -191,6 +195,7 @@ signals:
 
 private slots:
     void buttonSaveClicked();
+    void clearPendingSelections();
     void onFullTimeCellClicked(int row, int col);
 };
 

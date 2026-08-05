@@ -72,8 +72,9 @@ private slots:
     // Fired from the popup dialog approve/decline buttons
     void onApproveShift(PendingShiftInfo request);
     void onDeclineShift(PendingShiftInfo request);
-    void onAddEmployeeToShift(int employeeId, QDate date, QTime startTime,
-                              QTime endTime, const QString &reason);
+    void onAddEmployeesToShift(
+        QDate date, QTime blockStart, QTime blockEnd,
+        const QList<ManagerEmployeeSelection> &selections);
     void onRemoveAssignedShift(int shiftId, int employeeId,
                                 const QString &reason);
 
