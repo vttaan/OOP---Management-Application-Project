@@ -37,9 +37,8 @@ void ViewSchedule_Control::setView(ViewSchedule_View* v) {
 void ViewSchedule_Control::load() {
     if (!view || currentEmployeeId < 0) return;
 
-    // Show the active configured working week. Previous/next navigation moves
-    // from this anchor without changing the registration-day week boundary.
-    currentViewMonday = Config::getStartOfActiveWorkingWeek(QDate::currentDate());
+    // Viewing schedules defaults to the current calendar week (Monday-Sunday).
+    currentViewMonday = Config::getStartOfCurrentWeek(QDate::currentDate());
     loadData();
 }
 

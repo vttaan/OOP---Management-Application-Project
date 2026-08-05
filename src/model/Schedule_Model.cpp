@@ -122,7 +122,7 @@ Shift *Schedule_Model::handleAddShiftSubmission(short int id, QDate date, QTime 
     newShift->setShiftId(-1); // note for draftshift
     draftShifts.append(newShift);
 
-    QDate monday = Config::getStartOfWorkingWeekContaining(date);
+    QDate monday = Config::getStartOfCurrentWeek(date);
     int dayInWeek = monday.daysTo(date);
     if (dayInWeek >= 0 && dayInWeek < 7)
     {
@@ -555,7 +555,7 @@ AutoSchedulePreview Schedule_Model::previewGeneratedSchedule(QDate weekStart)
 {
     AutoSchedulePreview preview;
     if (!weekStart.isValid())
-        weekStart = Config::getStartOfActiveWorkingWeek(QDate::currentDate());
+        weekStart = Config::getStartOfNextWeek(QDate::currentDate());
     QDate weekEnd = weekStart.addDays(6);
 
     QVector<Shift *> pendingShifts = fetchPendingShifts(weekStart, weekEnd);
@@ -612,7 +612,7 @@ AutoSchedulePreview Schedule_Model::previewGeneratedSchedule(QDate weekStart)
 QStringList Schedule_Model::generateSchedule()
 {
     AutoSchedulePreview preview = previewGeneratedSchedule(
-        Config::getStartOfActiveWorkingWeek(QDate::currentDate()));
+        Config::getStartOfNextWeek(QDate::currentDate()));
     QStringList errors;
     if (!preview.changes.isEmpty() &&
         !applyManagerScheduleChanges(preview.changes, &errors))
@@ -1056,6 +1056,229 @@ Schedule_Model::getAssignBlockCounts(QDate monday)
     return result;
 }
 
+void Schedule_Model::publishStaffingWarningNotifications(QDate monday)
+{
+    if (!monday.isValid())
+        return;
+
+    QSqlDatabase database = Database::getInstance()->getDbConnect();
+    const QList<int> managerIds = Notification_Model::getManagerRecipientIds(database);
+    if (managerIds.isEmpty())
+        return;
+
+    const QMap<int, QMap<int, BlockCounts>> counts = getAssignBlockCounts(monday);
+    const QStringList shiftNames = {
+        QString::fromUtf8("Ca sáng"),
+        QString::fromUtf8("Ca chiều"),
+        QString::fromUtf8("Ca tối")};
+    static const QTime shiftStarts[3] = {QTime(7, 0), QTime(12, 0), QTime(17, 0)};
+    static const QTime shiftEnds[3] = {QTime(12, 0), QTime(17, 0), QTime(22, 0)};
+    QSet<QString> activeWarningKeys;
+
+    const QDate today = QDate::currentDate();
+    const QTime now = QTime::currentTime();
+    for (int day = 0; day < 7; ++day)
+    {
+        const QDate date = monday.addDays(day);
+        if (date < today)
+            continue;
+
+        for (int shift = 0; shift < 3; ++shift)
+        {
+            if (date == today && shiftEnds[shift] <= now)
+                continue;
+
+            const BlockCounts block = counts.value(day).value(shift);
+            const int deficit = qMax(0, block.required - block.accepted);
+            if (deficit <= 0)
+                continue;
+
+            const double deficitRatio = block.required > 0
+                ? static_cast<double>(deficit) / block.required : 0.0;
+            QString severity;
+            int priority = 0;
+            if (deficitRatio >= 0.75)
+            {
+                severity = QString::fromUtf8("Khẩn cấp");
+                priority = 100;
+            }
+            else if (deficitRatio >= 0.4)
+            {
+                severity = QString::fromUtf8("Thiếu nhiều");
+                priority = 80;
+            }
+            else
+            {
+                severity = QString::fromUtf8("Cần bổ sung");
+                priority = 60;
+            }
+
+            const QString shiftName = shiftNames.value(shift);
+            const QString title = QString::fromUtf8("Cảnh báo thiếu nhân sự: %1")
+                                      .arg(severity);
+            const QString message = QString::fromUtf8(
+                "%1 %2: đã xếp %3/%4 nhân viên, còn thiếu %5. Có %6 yêu cầu chờ duyệt.")
+                .arg(date.toString("dd/MM/yyyy"), shiftName,
+                     QString::number(block.accepted), QString::number(block.required),
+                     QString::number(deficit), QString::number(block.pending));
+            const QString dedupeKey = QString("STAFFING_SHORTAGE|%1|%2|%3|%4|%5|%6|%7")
+                .arg(monday.toString(Qt::ISODate), QString::number(shift),
+                     date.toString(Qt::ISODate),
+                     QString::number(block.required), QString::number(block.accepted),
+                     QString::number(block.pending), severity);
+            activeWarningKeys.insert(dedupeKey);
+
+            for (const int managerId : managerIds)
+            {
+                Notification_Model::createIfAbsent(
+                    database, managerId, "STAFFING_SHORTAGE", title, message,
+                    priority, dedupeKey);
+            }
+        }
+    }
+
+    // A warning that no longer appears in the current coverage calculation is
+    // retained as history but removed from the unread queue.
+    const QString weekPrefix = QString("STAFFING_SHORTAGE|%1|")
+        .arg(monday.toString(Qt::ISODate));
+    for (const int managerId : managerIds)
+    {
+        QSqlQuery stale(database);
+        stale.prepare("SELECT id, dedupeKey FROM NOTIFICATION "
+                      "WHERE recipientEmployeeId = :recipient "
+                      "AND type = 'STAFFING_SHORTAGE' AND dedupeKey LIKE :prefix");
+        stale.bindValue(":recipient", managerId);
+        stale.bindValue(":prefix", weekPrefix + "%");
+        if (!stale.exec())
+            continue;
+        while (stale.next())
+        {
+            if (activeWarningKeys.contains(stale.value(1).toString()))
+                continue;
+            QSqlQuery resolve(database);
+            resolve.prepare("UPDATE NOTIFICATION SET status = 'Read', readAt = :at "
+                            "WHERE id = :id AND status = 'Unread'");
+            resolve.bindValue(":at", QDateTime::currentDateTimeUtc().toString(Qt::ISODate));
+            resolve.bindValue(":id", stale.value(0));
+            resolve.exec();
+        }
+    }
+}
+
+void Schedule_Model::publishScheduledStaffingWarningNotifications(QDate today,
+                                                                   QTime now)
+{
+    if (!today.isValid() || !now.isValid())
+        return;
+
+    QSqlDatabase database = Database::getInstance()->getDbConnect();
+    const QList<int> managerIds = Notification_Model::getManagerRecipientIds(database);
+    if (managerIds.isEmpty())
+        return;
+
+    static const QTime shiftStarts[3] = {QTime(7, 0), QTime(12, 0), QTime(17, 0)};
+    static const QTime shiftEnds[3] = {QTime(12, 0), QTime(17, 0), QTime(22, 0)};
+    const QStringList shiftNames = {
+        QString::fromUtf8("Ca sáng"),
+        QString::fromUtf8("Ca chiều"),
+        QString::fromUtf8("Ca tối")};
+
+    auto publishBlockWarning = [&](const QDate &date, int shift,
+                                   const BlockCounts &block,
+                                   const QString &stage) {
+        const int deficit = qMax(0, block.required - block.accepted);
+        if (deficit <= 0)
+            return;
+
+        const double deficitRatio = block.required > 0
+            ? static_cast<double>(deficit) / block.required : 0.0;
+        QString severity;
+        int priority = 0;
+        if (deficitRatio >= 0.75)
+        {
+            severity = QString::fromUtf8("Khẩn cấp");
+            priority = 100;
+        }
+        else if (deficitRatio >= 0.4)
+        {
+            severity = QString::fromUtf8("Thiếu nhiều");
+            priority = 80;
+        }
+        else
+        {
+            severity = QString::fromUtf8("Cần bổ sung");
+            priority = 60;
+        }
+
+        const bool nextShift = stage == "SHIFT_3H";
+        if (nextShift)
+            priority += 100;
+        const QString title = nextShift
+            ? QString::fromUtf8("Cảnh báo ca sắp tới: %1").arg(severity)
+            : QString::fromUtf8("Cảnh báo thiếu nhân sự ngày mai: %1").arg(severity);
+        const QString message = nextShift
+            ? QString::fromUtf8("%1 %2 bắt đầu lúc %3: đã xếp %4/%5 nhân viên, còn thiếu %6.")
+                  .arg(date.toString("dd/MM/yyyy"), shiftNames.value(shift),
+                       shiftStarts[shift].toString("HH:mm"),
+                       QString::number(block.accepted), QString::number(block.required),
+                       QString::number(deficit))
+            : QString::fromUtf8("%1 %2: đã xếp %3/%4 nhân viên, còn thiếu %5. Có %6 yêu cầu chờ duyệt.")
+                  .arg(date.toString("dd/MM/yyyy"), shiftNames.value(shift),
+                       QString::number(block.accepted), QString::number(block.required),
+                       QString::number(deficit), QString::number(block.pending));
+        const QString dedupeKey = QString("STAFFING_SHORTAGE|%1|%2|%3|%4|%5|%6|%7")
+            .arg(date.toString(Qt::ISODate), QString::number(shift), stage,
+                 QString::number(block.required), QString::number(block.accepted),
+                 QString::number(block.pending), severity);
+
+        for (const int managerId : managerIds)
+            Notification_Model::createIfAbsent(
+                database, managerId, "STAFFING_SHORTAGE", title, message,
+                priority, dedupeKey);
+    };
+
+    // One day before: publish every shortage in tomorrow's three shift blocks.
+    const QDate tomorrow = today.addDays(1);
+    const QDate tomorrowWeek = Config::getStartOfCurrentWeek(tomorrow);
+    const QMap<int, QMap<int, BlockCounts>> tomorrowCounts =
+        getAssignBlockCounts(tomorrowWeek);
+    const int tomorrowColumn = tomorrowWeek.daysTo(tomorrow);
+    if (tomorrowColumn >= 0 && tomorrowColumn < 7)
+    {
+        for (int shift = 0; shift < 3; ++shift)
+            publishBlockWarning(tomorrow, shift,
+                                tomorrowCounts.value(tomorrowColumn).value(shift),
+                                "DAY_BEFORE");
+    }
+
+    // Day of work: publish only the next upcoming shift when it is within
+    // three hours. The timer may run late, so the whole [0, 3h] window is valid.
+    int nextShift = -1;
+    for (int shift = 0; shift < 3; ++shift)
+    {
+        if (now < shiftStarts[shift])
+        {
+            nextShift = shift;
+            break;
+        }
+    }
+    if (nextShift < 0)
+        return;
+
+    const int secondsUntilNextShift = now.secsTo(shiftStarts[nextShift]);
+    if (secondsUntilNextShift <= 0 || secondsUntilNextShift > 3 * 60 * 60)
+        return;
+
+    const QDate todayWeek = Config::getStartOfCurrentWeek(today);
+    const int todayColumn = todayWeek.daysTo(today);
+    const QMap<int, QMap<int, BlockCounts>> todayCounts =
+        getAssignBlockCounts(todayWeek);
+    if (todayColumn >= 0 && todayColumn < 7)
+        publishBlockWarning(today, nextShift,
+                            todayCounts.value(todayColumn).value(nextShift),
+                            "SHIFT_3H");
+}
+
 QList<EligibleEmployeeInfo> Schedule_Model::getEligibleEmployees(
     QDate date, QTime startTime, QTime endTime)
 {
@@ -1151,6 +1374,29 @@ QStringList Schedule_Model::validateManagerScheduleChanges(
         if (change.employeeId <= 0)
         {
             errors << "Có thay đổi chứa nhân viên không hợp lệ.";
+            continue;
+        }
+
+        QSqlQuery profile(db);
+        profile.prepare("SELECT role FROM PROFILES WHERE idEmployee = :employee");
+        profile.bindValue(":employee", change.employeeId);
+        if (!profile.exec())
+        {
+            errors << profile.lastError().text();
+            continue;
+        }
+        if (!profile.next())
+        {
+            errors << QString("%1 không còn tồn tại.").arg(employeeLabel);
+            continue;
+        }
+        const QString role = profile.value(0).toString();
+        if (role.compare("Manager", Qt::CaseInsensitive) == 0 ||
+            role.compare("Manage", Qt::CaseInsensitive) == 0 ||
+            role.compare("Admin", Qt::CaseInsensitive) == 0)
+        {
+            errors << QString("%1 không thuộc nhóm nhân viên được phân ca.")
+                          .arg(employeeLabel);
             continue;
         }
 
@@ -1404,7 +1650,15 @@ bool Schedule_Model::applyManagerScheduleChanges(
         }
     }
 
-    return db.commit();
+    if (!db.commit())
+        return false;
+
+    // Publish the same live staffing warnings immediately after a manager
+    // changes coverage. Notification_Control also refreshes them when the
+    // inbox opens, while dedupe keys prevent duplicate rows.
+    publishScheduledStaffingWarningNotifications(QDate::currentDate(),
+                                                 QTime::currentTime());
+    return true;
 }
 
 QList<PendingShiftInfo> Schedule_Model::getShiftsForBlock(QDate monday, int col, int row)

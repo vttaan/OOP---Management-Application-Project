@@ -78,30 +78,14 @@ public:
 
     static QDate getStartOfCurrentWeek(QDate date)
     {
-        int diff = dayOpenRegisShift - date.dayOfWeek();
-        if (diff > 0)
-            diff -= 7;
-        return date.addDays(diff);
-    }
-
-    // The configured change day is a transition day. The newly active
-    // schedule begins on the following day and spans seven days.
-    static QDate getStartOfActiveWorkingWeek(QDate date)
-    {
         if (!date.isValid())
             return {};
-        return getStartOfCurrentWeek(date).addDays(1);
+        return date.addDays(Qt::Monday - date.dayOfWeek());
     }
 
-    // Maps an arbitrary shift date to the Wednesday-Tuesday style range that
-    // contains it. On the transition day itself, that date is the final day
-    // of the previous working range.
-    static QDate getStartOfWorkingWeekContaining(QDate date)
+    static QDate getStartOfNextWeek(QDate date)
     {
-        if (!date.isValid())
-            return {};
-        QDate start = getStartOfActiveWorkingWeek(date);
-        return start > date ? start.addDays(-7) : start;
+        return getStartOfCurrentWeek(date).addDays(7);
     }
 
     static int getMinStaffForRole(const QString &roleName)

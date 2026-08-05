@@ -3,6 +3,8 @@
 #include "global.h"
 #include "model/LeaveRequest_Model.h"
 #include "model/Notification_Model.h"
+#include "model/Schedule_Model.h"
+#include <QTimer>
 
 class Notification_View;
 
@@ -30,4 +32,8 @@ private:
     Notification_View *view = nullptr;
     Notification_Model notificationModel;
     LeaveRequest_Model leaveRequestModel;
+    Schedule_Model scheduleModel;
+    QTimer *staffingWarningTimer = nullptr;
+
+    void publishScheduledStaffingWarnings();
 };

@@ -10,6 +10,8 @@ struct NotificationInfo {
     QString title;
     QString message;
     QString status = "Unread";
+    int priority = 0;
+    QString dedupeKey;
     int relatedShiftId = 0;
     int relatedLeaveRequestId = 0;
     QString relatedLeaveRequestStatus;

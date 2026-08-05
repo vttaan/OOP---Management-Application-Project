@@ -58,6 +58,7 @@ public:
 
     // Manager scheduling API (implemented in Schedule_View_Manager.cpp)
     void setManagerMode(bool isManager);
+    void setManagerAssignmentState(bool isOpen, QDate nextOpenDate);
 
     // ── Xem Lich Lam (View) grid — accepted shifts only ──────────────────────
     void updateManagerPendingGrid(const QMap<int, QMap<int, ShiftBlock*>>& grid);
@@ -121,6 +122,7 @@ private:
     QVBoxLayout*    shiftDetailDrawerLayout = nullptr;
     QPushButton*    activeManagerAddButton = nullptr;
     bool            managerAddRejectedDuringRequest = false;
+    bool            m_managerAssignmentOpen = false;
 
     QWidget*        fullTimeInfoWidget;
     QLabel*         lblFullTimeWeekRange;

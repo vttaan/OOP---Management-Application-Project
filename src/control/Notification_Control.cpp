@@ -3,7 +3,21 @@
 #include "utils/SessionManage.h"
 #include "view/Notification_View.h"
 
-Notification_Control::Notification_Control(QObject *parent) : QObject(parent) {}
+Notification_Control::Notification_Control(QObject *parent) : QObject(parent) {
+    staffingWarningTimer = new QTimer(this);
+    staffingWarningTimer->setInterval(5 * 60 * 1000);
+    connect(staffingWarningTimer, &QTimer::timeout,
+            this, &Notification_Control::publishScheduledStaffingWarnings);
+    staffingWarningTimer->start();
+}
+
+void Notification_Control::publishScheduledStaffingWarnings() {
+    User *user = SessionManager::getInstance()->getCurrentUser();
+    if (!user || (user->getRole() != "Manager" && user->getRole() != "Admin"))
+        return;
+    scheduleModel.publishScheduledStaffingWarningNotifications(
+        QDate::currentDate(), QTime::currentTime());
+}
 
 void Notification_Control::setView(Notification_View *newView) {
     view = newView;
@@ -26,6 +40,8 @@ void Notification_Control::load() {
     User *user = SessionManager::getInstance()->getCurrentUser();
     if (!view || !user) return;
     const bool managerMode = user->getRole() == "Manager" || user->getRole() == "Admin";
+    if (managerMode)
+        publishScheduledStaffingWarnings();
     view->setNotifications(notificationModel.getNotifications(user->getIdEmployee(),
                                                                view->currentFilter()),
                            managerMode);

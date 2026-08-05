@@ -9,6 +9,7 @@ QString displayTime(const QDateTime &time) {
 }
 
 QString accentColor(const NotificationInfo &notification) {
+    if (notification.type == "STAFFING_SHORTAGE") return "#DC2626";
     if (notification.type.contains("APPROVED")) return "#16A34A";
     if (notification.type.contains("DECLINED") || notification.type.contains("CANCELLED"))
         return "#DC2626";
@@ -17,6 +18,7 @@ QString accentColor(const NotificationInfo &notification) {
 }
 
 QString notificationTypeLabel(const NotificationInfo &notification) {
+    if (notification.type == "STAFFING_SHORTAGE") return QString::fromUtf8("Cảnh báo");
     if (notification.type.startsWith("LEAVE_")) return QString::fromUtf8("Nghỉ phép");
     if (notification.type.startsWith("SHIFT_")) return QString::fromUtf8("Lịch làm");
     return QString::fromUtf8("Hệ thống");
@@ -198,6 +200,10 @@ void Notification_View::setNotifications(const QList<NotificationInfo> &notifica
             action->setText(QString::fromUtf8("Đã từ chối"));
             action->setEnabled(false);
         } else if (managerMode && notification.type == "SHIFT_SUBMITTED") {
+            action->setText(QString::fromUtf8("Mở xếp lịch"));
+            connect(action, &QPushButton::clicked, this,
+                    [this, notification] { emit openManagerScheduleRequested(notification.id); });
+        } else if (managerMode && notification.type == "STAFFING_SHORTAGE") {
             action->setText(QString::fromUtf8("Mở xếp lịch"));
             connect(action, &QPushButton::clicked, this,
                     [this, notification] { emit openManagerScheduleRequested(notification.id); });
