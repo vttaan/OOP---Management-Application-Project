@@ -67,6 +67,7 @@ void Sidebar_Widget::setPermission(const bool &permitted)
     ui->buttonRegistrationSchedule->setVisible(!permitted);
     ui->subMenu_Schedule->hide();
     ui->btnMenu_Settings->setVisible(permitted);
+    ui->btnMenu_Salary->setVisible(!permitted);
 }
 
 Sidebar_Widget::~Sidebar_Widget() { delete ui; }

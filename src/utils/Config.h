@@ -28,7 +28,7 @@ private:
 
     // Rule for full time
     inline static short minimumDaysWorkPerWeek_FT;
-    inline static short maximumLeavePerMonth_FT;
+    inline static short maximumAbsentPerWeek_FT;
 
     // Rule for part time
     inline static short minimumDaysWorkPerWeek_PT;
@@ -51,7 +51,7 @@ public:
     }
 
     static void setMinimumDaysWorkPerWeek_FT(short days) { minimumDaysWorkPerWeek_FT = days; }
-    static void setMaximumLeavePerMonth_FT(short days) { maximumLeavePerMonth_FT = days; }
+    static void setMaximumAbsentPerWeek_FT(short days) { maximumAbsentPerWeek_FT = days; }
 
     static void setMinimumDaysWorkPerWeek_PT(short days) { minimumDaysWorkPerWeek_PT = days; }
     static void setMinimumHourWorkPerDay_PT(short hours) { minimumHourWorkPerDay_PT = hours; }
@@ -104,7 +104,7 @@ public:
     }
 
     static short getMinimumDaysWorkPerWeek_FT() { return minimumDaysWorkPerWeek_FT; }
-    static short getMaximumLeavePerMonth_FT() { return maximumLeavePerMonth_FT; }
+    static short getMaximumAbsentPerWeek_FT() { return maximumAbsentPerWeek_FT; }
 
     static short getMinimumDaysWorkPerWeek_PT() { return minimumDaysWorkPerWeek_PT; }
     static short getMinimumHourWorkPerDay_PT() { return minimumHourWorkPerDay_PT; }

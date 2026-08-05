@@ -6,8 +6,13 @@
 #include <QBrush>
 
 QString convertCurrency(QString salary) {
+    bool ok = false;
+    double val = salary.toDouble(&ok);
+    if (ok) {
+        salary = QString::number(static_cast<long long>(val));
+    }
     QString validSalary;
-    if (salary[0] == '-') {
+    if (!salary.isEmpty() && salary[0] == '-') {
         validSalary += "-";
         salary = salary.sliced(1);
     }
@@ -167,20 +172,32 @@ void Salary_View::setBaseSalary(const QString& salary)
     ui->lcbLabel->setText(validSalary);
 }
 
-void Salary_View::setRole(const QString& role)
+void Salary_View::setEmployeeType(bool isFixed)
 {
-    this->currentRole = role;
-    if (role == "Manager") {
-        ui->normalTable->setVisible(false);
-        ui->holidayTable->setVisible(false);
-        ui->normalLabel->setVisible(false);
-        ui->holidayLabel->setVisible(false);
-        ui->summaryTable->setVerticalHeaderLabels({"Tổng ngày công", "Tổng lương", "Khoản phạt", "TỔNG"});
+    this->isFixedEmployee = isFixed;
+    if (isFixed) {
+        ui->normalTable->setVisible(true);
+        ui->holidayTable->setVisible(true);
+        ui->normalTable->setRowHidden(1, true); // Hide hours row
+        ui->holidayTable->setRowHidden(1, true); // Hide hours row
+        
+        ui->normalLabel->setVisible(true);
+        ui->holidayLabel->setVisible(true);
+        
+        ui->summaryTable->setRowHidden(1, true); // Hide normal/holiday salary row
+        ui->summaryTable->setRowHidden(2, false); // Show penalty row
+        ui->summaryTable->setVerticalHeaderLabels({"Tổng ngày công", "Tổng lương", "Thưởng/phạt", "TỔNG"});
     } else {
         ui->normalTable->setVisible(true);
         ui->holidayTable->setVisible(true);
+        ui->normalTable->setRowHidden(1, false);
+        ui->holidayTable->setRowHidden(1, false);
+        
         ui->normalLabel->setVisible(true);
         ui->holidayLabel->setVisible(true);
+        
+        ui->summaryTable->setRowHidden(1, false); // Show normal/holiday salary row
+        ui->summaryTable->setRowHidden(2, true); // Hide penalty row
         ui->summaryTable->setVerticalHeaderLabels({"Tổng giờ công", "Tổng lương", "Khoản phạt", "TỔNG"});
     }
 }
@@ -233,8 +250,8 @@ void Salary_View::populateHolidayTable(const QMap<QString, int>& data)
 
 void Salary_View::populateSummaryTable(const SalaryData& data)
 {
-    QString normalHoursText = QString::number(data.normalHours) + (currentRole == "Manager" ? " ngày" : " giờ");
-    QString holidayHoursText = QString::number(data.holidayHours) + (currentRole == "Manager" ? " ngày" : " giờ");
+    QString normalHoursText = QString::number(data.normalHours) + (isFixedEmployee ? " ngày" : " giờ");
+    QString holidayHoursText = QString::number(data.holidayHours) + (isFixedEmployee ? " ngày" : " giờ");
 
     QTableWidgetItem* normalItem = new QTableWidgetItem(normalHoursText);
     normalItem->setForeground(QBrush(QColor("#334155")));
@@ -258,7 +275,12 @@ void Salary_View::populateSummaryTable(const SalaryData& data)
                           
     QTableWidgetItem* penaltyItem = new QTableWidgetItem(penaltyText);
     penaltyItem->setTextAlignment(Qt::AlignCenter);
-    penaltyItem->setForeground(QBrush(QColor("#E11D48"))); // Rose 600
+    if (data.penalty > 0) {
+        penaltyItem->setForeground(QBrush(QColor("#16A34A"))); // Green 600
+        penaltyItem->setText("+" + penaltyText);
+    } else {
+        penaltyItem->setForeground(QBrush(QColor("#E11D48"))); // Rose 600
+    }
     ui->summaryTable->setItem(2, 0, penaltyItem);
     
     QTableWidgetItem* totalItem = new QTableWidgetItem(convertCurrency(QString::number(data.totalSalary)));
@@ -329,10 +351,14 @@ void Salary_View::showDetailDialog(const QString& date, const QString& hours, co
     dateLabel->setObjectName("infoLabel");
     contentLayout->addWidget(dateLabel);
 
-    QString unit = (currentRole == "Manager") ? "ngày" : "giờ";
+    QString unit = (isFixedEmployee) ? "ngày" : "giờ";
     QLabel* hoursLabel = new QLabel(QString("<b>Giờ công:</b> %1 %2").arg(hours, unit), &dialog);
     hoursLabel->setObjectName("infoLabel");
     contentLayout->addWidget(hoursLabel);
+    
+    if (isFixedEmployee) {
+        hoursLabel->setVisible(false);
+    }
 
     layout->addWidget(contentFrame);
 
