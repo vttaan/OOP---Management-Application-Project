@@ -118,7 +118,7 @@ void Schedule_Control::onLeaveRequested()
         "QLabel{color:#334155;font-weight:600;}"
         "QListWidget,QPlainTextEdit{background:#FFFFFF;color:#1E293B;"
         "border:1px solid #CBD5E1;border-radius:6px;padding:6px;}"
-        "QListWidget::item{padding:9px;border-bottom:1px solid #E2E8F0;}"
+        "QListWidget::item{padding:9px;border-bottom:none;}"
         "QListWidget::item:selected,QListWidget::item:selected:active,"
         "QListWidget::item:selected:!active{background:transparent;color:#1E293B;}"
         "QPushButton{background:#FFFFFF;color:#334155;border:1px solid #CBD5E1;"

@@ -37,7 +37,10 @@ void ViewSchedule_Control::setView(ViewSchedule_View* v) {
 void ViewSchedule_Control::load() {
     if (!view || currentEmployeeId < 0) return;
 
-    currentViewMonday = Config::getStartOfCurrentWeek(QDate::currentDate());
+    // The manager schedules the next registration week. The staff view must
+    // use the same anchor so its weekday columns and dates match the manager's
+    // schedule instead of showing the previous/current calendar week.
+    currentViewMonday = Config::getStartOfCurrentWeek(QDate::currentDate()).addDays(7);
     loadData();
 }
 
