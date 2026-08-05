@@ -26,8 +26,6 @@ public:
     // Panel 2 - takes structured DTOs directly from Model (via Controller)
     void updateNextShiftPanel(const QList<ShiftEmployeeInfo>& entries);
 
-
-    void updateAbsentPanel(const QList<ShiftEmployeeInfo>& list);
     void updateLeaveRequestPanel(const QList<LeaveRequestInfo>& requests);
     void setLeaveRequestPanelVisible(bool visible);
 
@@ -51,7 +49,6 @@ private:
     Dashboard_Control  *controller;
 
     QVBoxLayout* m_nextShiftLayout  = nullptr;
-    QVBoxLayout* m_absentLayout     = nullptr;
     QVBoxLayout* m_leaveRequestLayout = nullptr;
     QLabel*      m_lblLastYearCount = nullptr;
     QLabel*      m_lblThisYearCount = nullptr;

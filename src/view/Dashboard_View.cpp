@@ -103,24 +103,7 @@ Dashboard_View::Dashboard_View(Dashboard_Control *controller, QWidget *parent)
     nextOuter->addWidget(scrollNext);
     QFrame* frame2 = makeCard(QString::fromUtf8("Ca Làm Tiếp Theo"), nextOuter, true);
 
-    // Initialize Panel 4 (Bottom-Right): Absent employees
-    m_absentLayout = new QVBoxLayout();
-    m_absentLayout->setContentsMargins(0, 0, 0, 0);
-    m_absentLayout->setSpacing(6);
-    m_absentLayout->addStretch();
-
-    QScrollArea* scrollAbsent = new QScrollArea();
-    scrollAbsent->setWidgetResizable(true);
-    scrollAbsent->setStyleSheet("QScrollArea { background: transparent; border: none; }");
-    QWidget* absentWrapper = new QWidget();
-    absentWrapper->setStyleSheet("background: transparent;");
-    absentWrapper->setLayout(m_absentLayout);
-    scrollAbsent->setWidget(absentWrapper);
-
-    QVBoxLayout* absentOuter = new QVBoxLayout();
-    absentOuter->setContentsMargins(0, 0, 0, 0);
-    absentOuter->addWidget(scrollAbsent);
-    QFrame* frame3 = makeCard(QString::fromUtf8("Nhân Viên Nghỉ"), absentOuter, true);
+    // (Absent panel removed)
 
     // Initialize Panel 3 (Bottom-Left): Salary bar chart with year selection tabs
     m_yearTabBar = new QTabBar();
@@ -233,8 +216,8 @@ Dashboard_View::Dashboard_View(Dashboard_Control *controller, QWidget *parent)
 
     grid->addWidget(frame1, 0, 0);
     grid->addWidget(frame2, 0, 1);
-    grid->addWidget(m_salaryCard, 1, 0);
-    grid->addWidget(frame3, 1, 1);
+    // Make salary chart span 2 columns
+    grid->addWidget(m_salaryCard, 1, 0, 1, 2);
     grid->addWidget(m_leaveRequestCard, 2, 0, 1, 2);
 }
 
@@ -492,112 +475,7 @@ void Dashboard_View::updateLeaveRequestPanel(const QList<LeaveRequestInfo>& requ
     }
 }
 
-// ---------------------------------------------------------------------------
-// Panel 4: render absent employee rows
-// ---------------------------------------------------------------------------
-void Dashboard_View::updateAbsentPanel(const QList<ShiftEmployeeInfo>& entries)
-{
-    // Remove all except trailing stretch
-    while (m_absentLayout->count() > 1) {
-        QLayoutItem* i = m_absentLayout->takeAt(0);
-        if (i->widget()) i->widget()->deleteLater();
-        delete i;
-    }
 
-    if (entries.isEmpty()) {
-        QLabel* lbl = new QLabel(QString::fromUtf8("Không có nhân viên nghỉ."));
-        lbl->setStyleSheet(
-            "color:#919eab; font-style:italic; padding:4px 0;"
-            "background:transparent; border:none;");
-        m_absentLayout->insertWidget(0, lbl);
-        return;
-    }
-
-    int idx = 0;
-    for (const ShiftEmployeeInfo& e : entries) {
-        QWidget* row = new QWidget();
-        row->setStyleSheet("background: transparent;");
-        row->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-
-        QHBoxLayout* hl = new QHBoxLayout(row);
-        hl->setContentsMargins(4, 4, 4, 4);
-        hl->setSpacing(10);
-
-        // Avatar circle (image or initial letter)
-        QLabel* avatar = new QLabel();
-        avatar->setFixedSize(36, 36);
-        QPixmap pix(e.avatarPath);
-        if (!e.avatarPath.isEmpty() && !pix.isNull()) {
-            QPixmap scaledPix = pix.scaled(36, 36, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
-            QPixmap circularPix(36, 36);
-            circularPix.fill(Qt::transparent);
-            QPainter painter(&circularPix);
-            painter.setRenderHint(QPainter::Antialiasing);
-            QPainterPath path;
-            path.addEllipse(circularPix.rect());
-            painter.setClipPath(path);
-            int x = (36 - scaledPix.width()) / 2;
-            int y = (36 - scaledPix.height()) / 2;
-            painter.drawPixmap(x, y, scaledPix);
-            
-            avatar->setPixmap(circularPix);
-            avatar->setStyleSheet("border: none;");
-        } else {
-            QString initial = e.name.isEmpty() ? "?" : QString(e.name[0]).toUpper();
-            avatar->setText(initial);
-            avatar->setAlignment(Qt::AlignCenter);
-            avatar->setStyleSheet(
-                QString("background:#8B2020; color:white; border-radius:18px;"
-                        "font-weight:bold; font-size:14px; border:none;"));
-        }
-
-        // Name + phone
-        QLabel* lName = new QLabel(e.name);
-        lName->setStyleSheet(
-            "font-weight:600; font-size:13px; color:#212b36; background:transparent; border:none;");
-
-        QLabel* lPhone = new QLabel(e.phone);
-        lPhone->setStyleSheet(
-            "font-size:11px; color:#637381; background:transparent; border:none;");
-
-        QVBoxLayout* nameCol = new QVBoxLayout();
-        nameCol->setSpacing(1);
-        nameCol->addWidget(lName);
-        nameCol->addWidget(lPhone);
-
-        // Role badge
-        QString displayRole = e.role;
-        if (displayRole.compare("Cashier", Qt::CaseInsensitive) == 0) displayRole = QString::fromUtf8("Thu ngân");
-        else if (displayRole.compare("HallStaff", Qt::CaseInsensitive) == 0) displayRole = QString::fromUtf8("Nhân viên sảnh");
-        else if (displayRole.compare("KitchenAssistant", Qt::CaseInsensitive) == 0) displayRole = QString::fromUtf8("Phụ bếp");
-        else if (displayRole.compare("Manager", Qt::CaseInsensitive) == 0) displayRole = QString::fromUtf8("Quản lý");
-        
-        QLabel* lRole = new QLabel(displayRole);
-        lRole->setStyleSheet(
-            "font-size:10px; color:#637381; background:transparent; border:none;");
-        lRole->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-
-        hl->addWidget(avatar);
-        hl->addLayout(nameCol, 1);
-        hl->addWidget(lRole);
-
-        // Separator line
-        QFrame* sep = new QFrame();
-        sep->setFrameShape(QFrame::HLine);
-        sep->setStyleSheet("border: none; border-top: 1px solid #f0f0f0; background: transparent;");
-        sep->setFixedHeight(1);
-
-        QWidget* wrapper = new QWidget();
-        wrapper->setStyleSheet("background: transparent;");
-        QVBoxLayout* wl = new QVBoxLayout(wrapper);
-        wl->setContentsMargins(0, 0, 0, 0);
-        wl->setSpacing(0);
-        wl->addWidget(row);
-        wl->addWidget(sep);
-
-        m_absentLayout->insertWidget(idx++, wrapper);
-    }
-}
 
 // Updates the salary bar chart data and year tabs in Panel 3.
 // Recreates the chart series and adjusts axes based on the provided statistics.

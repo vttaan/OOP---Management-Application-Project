@@ -309,6 +309,52 @@ void Schedule_View::setUpUI()
       "border-radius:6px;padding:6px 10px;font-weight:600; }"
       "QPushButton:hover { background:#F8FAFC;border-color:#94A3B8; }"
       "QPushButton:disabled { color:#CBD5E1;border-color:#E2E8F0; }";
+  
+  const QString managerFilterStyle =
+      "QComboBox {"
+      "   background-color: #F9FAFB;"
+      "   border: 1px solid #D1D5DB;"
+      "   border-radius: 6px;"
+      "   padding: 4px 8px;"
+      "   min-height: 24px;"
+      "   color: #1F2937;"
+      "}"
+      "QComboBox:hover {"
+      "   border: 1px solid #1a73e8;"
+      "}"
+      "QComboBox::drop-down {"
+      "   subcontrol-origin: padding;"
+      "   subcontrol-position: top right;"
+      "   width: 24px;"
+      "   background-color: #1a73e8;"
+      "   border-top-right-radius: 5px;"
+      "   border-bottom-right-radius: 5px;"
+      "}"
+      "QComboBox::drop-down:hover {"
+      "   background-color: #1558d6;"
+      "}"
+      "QComboBox::down-arrow {"
+      "   image: url(:/images/down-arrow.svg);"
+      "   width: 12px; height: 12px;"
+      "}"
+      "QComboBox QAbstractItemView {"
+      "   background-color: #FFFFFF;"
+      "   border: 1px solid #D1D5DB;"
+      "   border-radius: 4px;"
+      "   outline: none;"
+      "}"
+      "QComboBox QAbstractItemView::item {"
+      "   padding: 8px 12px;"
+      "   min-height: 24px;"
+      "}"
+      "QComboBox QAbstractItemView::item:hover, QComboBox QAbstractItemView::item:selected {"
+      "   background-color: #1a73e8;"
+      "   color: white;"
+      "}";
+      
+  managerStatusFilter->setStyleSheet(managerFilterStyle);
+  managerRoleFilter->setStyleSheet(managerFilterStyle);
+
   prevWeek->setStyleSheet(draftToolStyle);
   nextWeek->setStyleSheet(draftToolStyle);
   currentWeek->setStyleSheet(draftToolStyle);
