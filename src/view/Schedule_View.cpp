@@ -254,6 +254,26 @@ Schedule_View::Schedule_View(QWidget *parent)
           &Schedule_View::requestConfirm);
   connect(ui->buttonLuu, &QPushButton::clicked, this,
           &Schedule_View::buttonSaveClicked);
+  connect(ui->buttonClearPending, &QPushButton::clicked, this,
+          &Schedule_View::clearPendingSelections);
+  requestLeaveButton = new QPushButton(QString::fromUtf8("Xin nghỉ phép"), this);
+  requestLeaveButton->setCursor(Qt::PointingHandCursor);
+  requestLeaveButton->setStyleSheet(
+      "QPushButton{background:#FFF7ED;color:#C2410C;border:1px solid #FED7AA;"
+      "border-radius:7px;padding:7px 12px;font-weight:700;}"
+      "QPushButton:hover{background:#FFEDD5;}");
+  ui->headerLayout->insertWidget(1, requestLeaveButton);
+  connect(requestLeaveButton, &QPushButton::clicked, this,
+          &Schedule_View::requestLeave);
+  leaveHistoryButton = new QPushButton(QString::fromUtf8("Lịch sử nghỉ phép"), this);
+  leaveHistoryButton->setCursor(Qt::PointingHandCursor);
+  leaveHistoryButton->setStyleSheet(
+      "QPushButton{background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;"
+      "border-radius:7px;padding:7px 12px;font-weight:700;}"
+      "QPushButton:hover{background:#DBEAFE;}");
+  ui->headerLayout->insertWidget(2, leaveHistoryButton);
+  connect(leaveHistoryButton, &QPushButton::clicked, this,
+          &Schedule_View::requestLeaveHistory);
 }
 
 Schedule_View::~Schedule_View() { delete ui; }
@@ -274,7 +294,7 @@ void Schedule_View::setUpUI()
   toolbarLayout->setSpacing(8);
   QPushButton *prevWeek = new QPushButton("<", managerToolbar);
   QPushButton *nextWeek = new QPushButton(">", managerToolbar);
-  QPushButton *currentWeek = new QPushButton("Tuần hiện tại", managerToolbar);
+  QPushButton *currentWeek = new QPushButton("Tuần cần xếp", managerToolbar);
   lblManagerWeek = new QLabel("Tuần xác nhận", managerToolbar);
   lblManagerWeek->setAlignment(Qt::AlignCenter);
   lblManagerWeek->setStyleSheet("font-weight:700;color:#1E3A8A;padding:8px 14px;");
@@ -289,6 +309,52 @@ void Schedule_View::setUpUI()
       "border-radius:6px;padding:6px 10px;font-weight:600; }"
       "QPushButton:hover { background:#F8FAFC;border-color:#94A3B8; }"
       "QPushButton:disabled { color:#CBD5E1;border-color:#E2E8F0; }";
+  
+  const QString managerFilterStyle =
+      "QComboBox {"
+      "   background-color: #F9FAFB;"
+      "   border: 1px solid #D1D5DB;"
+      "   border-radius: 6px;"
+      "   padding: 4px 8px;"
+      "   min-height: 24px;"
+      "   color: #1F2937;"
+      "}"
+      "QComboBox:hover {"
+      "   border: 1px solid #1a73e8;"
+      "}"
+      "QComboBox::drop-down {"
+      "   subcontrol-origin: padding;"
+      "   subcontrol-position: top right;"
+      "   width: 24px;"
+      "   background-color: #1a73e8;"
+      "   border-top-right-radius: 5px;"
+      "   border-bottom-right-radius: 5px;"
+      "}"
+      "QComboBox::drop-down:hover {"
+      "   background-color: #1558d6;"
+      "}"
+      "QComboBox::down-arrow {"
+      "   image: url(:/images/down-arrow.svg);"
+      "   width: 12px; height: 12px;"
+      "}"
+      "QComboBox QAbstractItemView {"
+      "   background-color: #FFFFFF;"
+      "   border: 1px solid #D1D5DB;"
+      "   border-radius: 4px;"
+      "   outline: none;"
+      "}"
+      "QComboBox QAbstractItemView::item {"
+      "   padding: 8px 12px;"
+      "   min-height: 24px;"
+      "}"
+      "QComboBox QAbstractItemView::item:hover, QComboBox QAbstractItemView::item:selected {"
+      "   background-color: #1a73e8;"
+      "   color: white;"
+      "}";
+      
+  managerStatusFilter->setStyleSheet(managerFilterStyle);
+  managerRoleFilter->setStyleSheet(managerFilterStyle);
+
   prevWeek->setStyleSheet(draftToolStyle);
   nextWeek->setStyleSheet(draftToolStyle);
   currentWeek->setStyleSheet(draftToolStyle);
@@ -337,8 +403,10 @@ void Schedule_View::setUpUI()
     auto *layout = new QVBoxLayout(card);
     layout->setContentsMargins(12, 8, 12, 8);
     QLabel *t = new QLabel(title, card);
+    t->setObjectName("managerMetricTitle");
     t->setStyleSheet("color:#64748B;font-size:11px;font-weight:600;");
     QLabel *v = new QLabel(value, card);
+    v->setObjectName("managerMetricValue");
     v->setStyleSheet(QString("color:%1;font-size:20px;font-weight:800;").arg(fg));
     layout->addWidget(t);
     layout->addWidget(v);
@@ -397,6 +465,13 @@ void Schedule_View::setUpUI()
       "QPushButton:hover { background-color: #1E824C; }"
       "QPushButton:pressed { background-color: #166534; }"
       "QPushButton:disabled { background-color: #D1D5DB; color: #6B7280; }");
+
+  ui->buttonClearPending->setStyleSheet(
+      "QPushButton { background-color:#FFFFFF;color:#B91C1C;border:1px solid #FCA5A5;"
+      "border-radius:8px;padding:10px 22px;font-weight:bold;font-size:14px; }"
+      "QPushButton:hover { background-color:#FEF2F2; }"
+      "QPushButton:pressed { background-color:#FEE2E2; }"
+      "QPushButton:disabled { background-color:#F8FAFC;color:#CBD5E1;border-color:#E2E8F0; }");
 
   ui->btnGenSchedule->setStyleSheet(
       "QPushButton { background-color: #A855F7; color: white; border-radius: "

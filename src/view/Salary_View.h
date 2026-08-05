@@ -19,7 +19,7 @@ public:
     ~Salary_View();
 
     void setBaseSalary(const QString& salary);
-    void setRole(const QString& role);
+    void setEmployeeType(bool isFixed);
     void populateNormalTable(const QMap<QString, int>& data);
     void populateHolidayTable(const QMap<QString, int>& data);
     void populateSummaryTable(const SalaryData& data);
@@ -29,7 +29,7 @@ signals:
 
 private:
     Ui::Salary_View *ui;
-    QString currentRole;
+    bool isFixedEmployee;
     void setupUI();
     void setupConnections();
     void showDetailDialog(const QString& date, const QString& hours, const QString& type);

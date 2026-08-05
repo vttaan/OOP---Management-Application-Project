@@ -6,6 +6,7 @@
 #include "view/Schedule_View.h"
 #include "utils/SessionManage.h"
 #include "utils/Config.h"
+#include "model/LeaveRequest_Model.h"
 class Schedule_Control : public QObject
 {
     Q_OBJECT
@@ -27,6 +28,7 @@ private:
     FullTimeScheduleGrid fullTimeScheduleStatuses;
     QDate currentEmployeeRegistrationWeekStart;
     QList<ManagerScheduleChange> managerDraftChanges;
+    LeaveRequest_Model leaveRequestModel;
     int selectedManagerDay = -1;
     int selectedManagerShift = -1;
 
@@ -70,8 +72,9 @@ private slots:
     // Fired from the popup dialog approve/decline buttons
     void onApproveShift(PendingShiftInfo request);
     void onDeclineShift(PendingShiftInfo request);
-    void onAddEmployeeToShift(int employeeId, QDate date, QTime startTime,
-                              QTime endTime, const QString &reason);
+    void onAddEmployeesToShift(
+        QDate date, QTime blockStart, QTime blockEnd,
+        const QList<ManagerEmployeeSelection> &selections);
     void onRemoveAssignedShift(int shiftId, int employeeId,
                                 const QString &reason);
 
@@ -82,6 +85,8 @@ private slots:
     void onCurrentManagerWeek();
     void onUndoManagerDraft();
     void onClearManagerDraft();
+    void onLeaveRequested();
+    void onLeaveHistoryRequested();
 
 
 signals:

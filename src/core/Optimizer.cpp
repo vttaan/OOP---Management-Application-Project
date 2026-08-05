@@ -143,7 +143,7 @@ Optimizer::RoleSolveResult Optimizer::solveForRole(const QString& role,
     }
 
     // Init Graph
-    const int K = 2; // 0 = Sang (7-15), 1 = Toi (15-23 Fixed / 15-22 Part-time)
+    const int K = 3; // 0 = Sang (7-15), 1 = Toi (15-23 Fixed / 15-22 Part-time)
     const int S = 0, T = 1;
     auto nEmp  = [&](int i)          { return 2 + i; };
     auto nDay  = [&](int i, int d)   { return 2 + E + i * 7 + d; };
@@ -177,7 +177,11 @@ Optimizer::RoleSolveResult Optimizer::solveForRole(const QString& role,
         bool isWeekend = (d >= 5);
         return roleUserMinutes.value(u) / HOUR_SCALE + (isWeekend ? 0 : WEEKDAY_PENALTY);
     };
-    auto blockOfFixed = [&](const QTime& start) { return start.hour() < 15 ? 0 : 1; };
+    auto blockOfFixed = [&](const QTime& start) -> int {
+        if(start<QTime(12,0)) return 0; // ca sang
+        if(start<QTime(17,0)) return 1; // ca chieu
+        return 2; // ca toi
+    };
 
 
     QMap<int,int> registeredDaysFixed;
@@ -217,9 +221,9 @@ Optimizer::RoleSolveResult Optimizer::solveForRole(const QString& role,
     int cost2 = 0;
     minCostFlow(S, T, INF, cost2);
 
-
-    static const QTime SANG_START(7,0),  SANG_END(15,0);
-    static const QTime TOI_START(15,0),  TOI_END_PT(22,0);
+// ---PHASE 3
+    static const QTime BLK_START[3]={QTime(7,0),QTime(12,0),QTime(17,0)};
+    static const QTime BLK_END[3]={QTime(12,0),QTime(17,0),QTime(22,0)};
     const int minMinutesPT = Config::getMinimumHourWorkPerDay_PT() * 60;
     const int maxMinutesPT = Config::getMaximumHourWorkPerDay_PT() * 60;
 
@@ -231,8 +235,8 @@ Optimizer::RoleSolveResult Optimizer::solveForRole(const QString& role,
         bool coCandidate = false;
 
         for (int blk = 0; blk < K; ++blk) {
-            QTime blkStart = (blk == 0) ? SANG_START : TOI_START;
-            QTime blkEnd   = (blk == 0) ? SANG_END   : TOI_END_PT;
+            QTime blkStart=BLK_START[blk];
+            QTime blkEnd=BLK_END[blk];
             QTime ovStart  = qMax(s->getStartTime(), blkStart);
             QTime ovEnd    = qMin(s->getEndTime(),   blkEnd);
             if (ovStart >= ovEnd) continue;
@@ -266,16 +270,21 @@ Optimizer::RoleSolveResult Optimizer::solveForRole(const QString& role,
 
     QMap<int,int> assignedCount;
     QMap<int, QSet<int>> empDaysAssigned;
+    QSet<Shift*> assignedShifts;
 
     for (auto& ae : assignEdges) {
         bool assigned = (m_edges[ae.edgeIdx].flow == 1);
-        ae.shift->setStatus(assigned ? 1 : -1);
         if (assigned) {
+            assignedShifts.insert(ae.shift);
             ae.shift->setAssignedTime(ae.assignStart, ae.assignEnd);
             assignedCount[ae.day * K + ae.blk] = assignedCount.value(ae.day * K + ae.blk, 0) + 1;
             empDaysAssigned[ae.empIdx].insert(ae.day);
         }
     }
+
+    for (Shift *shift : roleShifts)
+        if (shift)
+            shift->setStatus(assignedShifts.contains(shift) ? 1 : -1);
 
     int flowSum = 0;
     for (auto v : assignedCount) flowSum += v;
@@ -284,7 +293,7 @@ Optimizer::RoleSolveResult Optimizer::solveForRole(const QString& role,
     result.feasible  = flowSum > 0;
 
     // insufficient staff
-    static const QStringList BLOCK_NAMES = {"Sáng", "Tối"};
+    static const QStringList BLOCK_NAMES = {"Sáng","Chiều", "Tối"};
     for (int d = 0; d < 7; ++d) {
         for (int blk = 0; blk < K; ++blk) {
             int cnt = assignedCount.value(d * K + blk, 0);

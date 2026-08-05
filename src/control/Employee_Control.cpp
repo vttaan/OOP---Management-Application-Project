@@ -55,9 +55,7 @@ void Employee_Control::handleLoadEmployees()
     m_model->loadData();
 
     if (m_view) {
-          long long totalPayroll = m_model->calculateExpectedPayrollCurrentMonth();
-          int managerCount = m_model->countManagers();
-          m_view->loadEmployees(m_model->getListEmployee(), totalPayroll, managerCount);
+          m_view->loadEmployees(m_model->getListEmployee());
     }
 }
 
@@ -73,12 +71,31 @@ void Employee_Control::handleAddEmployee()
         QString s = "";
         if (d->getName().isEmpty()) s += "⚠ Nhập đúng họ và tên đầy đủ.\n";
         if (d->getUsername().isEmpty()) s+="⚠ Nhập tên đăng nhập hợp lệ.\n";
+        if (d->getAddress().isEmpty()) s += "⚠ Nhập đúng địa chỉ.\n";
         
         if (!Validator::isValidCitizenId(d->getCitizenId()))
             s+= "⚠ Căn cước công dân phải bao gồm đúng 12 chữ số.\n";
             
         if (!Validator::isValidPhoneNumber(d->getPhone()))
             s += "⚠ Số điện thoại phải bao gồm đúng 10 chữ số.\n";
+
+        if (!d->isDobSelected()) {
+            s += "⚠ Vui lòng chọn ngày sinh.\n";
+        } else if (!Validator::isValidDate(d->getDob())) {
+            s += "⚠ Ngày sinh không hợp lệ. Cần nhập đúng (YYYY-MM-DD).\n";
+        } else {
+            QDate dob = QDate::fromString(d->getDob(), "yyyy-MM-dd");
+            QDate today = QDate::currentDate();
+            int age = today.year() - dob.year();
+            if (today.month() < dob.month() || (today.month() == dob.month() && today.day() < dob.day())) {
+                age--;
+            }
+            if (age < 18 || age > 65) {
+                s += "⚠ Năm sinh nhân viên không hợp lệ.\n";
+            }
+        }
+
+        if (d->getSalary() <= 0) s += "⚠ Lương phải là một số lớn hơn 0.\n";
             
         return s; // if return "" it means that no error.
     };
@@ -100,7 +117,7 @@ void Employee_Control::handleAddEmployee()
     if(m_model->addEmployee(dlg.getRole(), dlg.getAvatarPath(), dlg.getCitizenId(), dlg.getName(),
                              dlg.getDob(), dlg.getAddress(), dlg.getPhone(), dlg.getGender(), dlg.getSalary(), dlg.getIsFixedSalary(),
                              dlg.getUsername(), dlg.getPassword())) {
-        m_view->showSuccess(QString("THÊM NHÂN VIÊN %1 THÀNH CÔNG").arg(dlg.getName()));
+        m_view->showSuccess(QString("Thêm nhân viên '%1' thành công!").arg(dlg.getName()));
         handleLoadEmployees();
     }
     else {
@@ -123,7 +140,7 @@ void Employee_Control::handleEditEmployee(int idEmployee)
     }
 
     if (!emp) {
-        m_view->showError(QString("Employee EMP-%1 not found.").arg(idEmployee));
+        m_view->showError(QString("Không tìm thấy nhân viên ID %1.").arg(idEmployee));
         return;
     }
 
@@ -144,8 +161,27 @@ void Employee_Control::handleEditEmployee(int idEmployee)
         if (!Validator::isValidPhoneNumber(d->getPhone()))
             s += "⚠ Số điện thoại phải bao gồm đúng 10 chữ số.\n";
 
-        if (!Validator::isValidDate(d->getDob()))
+        if (!d->isDobSelected()) {
+            s += "⚠ Vui lòng chọn ngày sinh.\n";
+        } else if (!Validator::isValidDate(d->getDob())) {
             s += "⚠ Ngày sinh không hợp lệ. Cần nhập đúng (YYYY-MM-DD).\n";
+        } else {
+            QDate dob = QDate::fromString(d->getDob(), "yyyy-MM-dd");
+            QDate today = QDate::currentDate();
+            int age = today.year() - dob.year();
+            if (today.month() < dob.month() || (today.month() == dob.month() && today.day() < dob.day())) {
+                age--;
+            }
+            if (age < 18) {
+                s += "⚠ Nhân viên chưa đủ tuổi lao động (phải từ 18 tuổi trở lên).\n";
+            } else if (age > 65) {
+                s += "⚠ Nhân viên đã vượt quá độ tuổi lao động (tối đa 65 tuổi).\n";
+            }
+        }
+
+        if (d->getSalary() <= 0)
+            s += "⚠ Lương phải là một số lớn hơn 0.\n";
+
         return s;
     };
 
@@ -160,12 +196,17 @@ void Employee_Control::handleEditEmployee(int idEmployee)
     emp->setIndentityID(dlg.getCitizenId());
     emp->setAva(dlg.getAvatarPath()); // Update with new avatar path
     emp->setGender(dlg.getGender());
+    emp->setBaseSalary(dlg.getSalary());
+    emp->setStatus(dlg.getStatus());
+
+    emp->setFixedEmployee(dlg.getIsFixedSalary());
+
     // Call Model to update DB
     if (m_model->updateEmployee(emp)) {
-        m_view->showSuccess(QString("Employee '%1' updated successfully!").arg(emp->getName()));
+        m_view->showSuccess(QString("Cập nhật thông tin nhân viên '%1' thành công!").arg(emp->getName()));
         handleLoadEmployees(); // reload table
     } else {
-        m_view->showError("Failed to update employee.");
+        m_view->showError("Cập nhật thông tin thất bại!");
     }
 }
 
@@ -175,8 +216,8 @@ void Employee_Control::handleDeleteEmployee(int idEmployee)
 
     // Controller asks for confirmation
     auto reply = QMessageBox::question(
-        m_view, "Confirm Delete",
-        QString("Delete employee EMP-%1?").arg(idEmployee),
+        m_view, "Xác nhận Xóa",
+        QString("Bạn có chắc chắn muốn xóa nhân viên ID %1 không?").arg(idEmployee),
         QMessageBox::Yes | QMessageBox::No);
 
     if (reply != QMessageBox::Yes) return;
@@ -186,7 +227,7 @@ void Employee_Control::handleDeleteEmployee(int idEmployee)
         qDebug() << "Deleted employee id=" << idEmployee;
         handleLoadEmployees();
     } else {
-        m_view->showError("Failed to delete employee.");
+        m_view->showError("Xóa nhân viên thất bại!");
     }
 }
 
@@ -201,8 +242,8 @@ void Employee_Control::handleUpdate(const QString &searchText,
 {
     if (!m_view || !m_model) return;
     QList<User*> result = m_model->SearchSortFilter(searchText, sortDir, contentSort, contentFilter);
-    long long totalPayroll = m_model->calculateExpectedPayrollCurrentMonth();
-    int managerCount = m_model->countManagers();
-    m_view->loadEmployees(result, totalPayroll, managerCount);
-}
 
+    if (m_view) {
+        m_view->loadEmployees(result);
+    }
+}

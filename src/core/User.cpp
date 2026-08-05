@@ -2,10 +2,10 @@
 #include "User.h"
 
 User::User(QString r, short int idEmp, QString ava,
-    QString idCit, QString n, QString d, QString add, QString phone, QString gender)
+    QString idCit, QString n, QString d, QString add, QString phone, QString gender, QString status)
     : role(r), idEmployee(idEmp),
     avatarPath(ava), idCitizenIdentity(idCit), name(n), dob(d),
-    address(add), phoneNum(phone), gender(gender) {
+    address(add), phoneNum(phone), gender(gender), status(status) {
 }
 
 QString User::getRole() const { return role; }
@@ -17,6 +17,8 @@ QString User::getDOB() const { return dob; }
 QString User::getAvatarPath() const { return avatarPath; }
 QString User::getPhoneNum() const { return phoneNum; }
 QString User::getGender() const {return this->gender;}
+QString User::getStatus() const { return status; }
+
 QString User::getAnyAttributes(QString content) const {
     QString check = content.toUpper();
     if(check == "ROLE") return this->getRole();
@@ -26,6 +28,7 @@ QString User::getAnyAttributes(QString content) const {
     else if(check == "DATE OF BIRTH") return this->getDOB();
     else if(check == "PHONE") return this->getPhoneNum();
     else if(check == "GENDER") return this->getGender();
+    else if(check == "STATUS") return this->getStatus();
     else if(check == "ID_INDENTITY") return this->getIdentityID();
     return "";
 }
@@ -56,4 +59,8 @@ void User::setPhoneNum(QString phone) {
 
 void User::setGender(QString g) {
     this->gender = g;
+}
+
+void User::setStatus(QString s) {
+    this->status = s;
 }

@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include "model/Dashboard_Model.h"   // for ShiftEmployeeInfo DTO
+#include "utils/NotificationDTOs.h"
 
 class Dashboard_Control;
 class EmployeeCard;
@@ -25,8 +26,8 @@ public:
     // Panel 2 - takes structured DTOs directly from Model (via Controller)
     void updateNextShiftPanel(const QList<ShiftEmployeeInfo>& entries);
 
-    // Panel 4
-    void updateAbsentPanel(const QStringList& names);
+    void updateLeaveRequestPanel(const QList<LeaveRequestInfo>& requests);
+    void setLeaveRequestPanelVisible(bool visible);
 
     // Panel 3 - chart with VND tooltip support
     void updateSalaryChart(const QVector<double>& lastYear, const QVector<double>& thisYear,
@@ -37,6 +38,7 @@ public:
 signals:
     void profileClicked();
     void yearChanged(int year);   // Emitted when user clicks a different year tab
+    void leaveRequestReviewRequested(int requestId, bool approved);
 
 private slots:
     void onYearTabClicked(int index);
@@ -47,13 +49,14 @@ private:
     Dashboard_Control  *controller;
 
     QVBoxLayout* m_nextShiftLayout  = nullptr;
-    QVBoxLayout* m_absentLayout     = nullptr;
+    QVBoxLayout* m_leaveRequestLayout = nullptr;
     QLabel*      m_lblLastYearCount = nullptr;
     QLabel*      m_lblThisYearCount = nullptr;
     QLabel*      m_tooltipLabel     = nullptr;   // Hover tooltip for chart bars
     QChart*      m_chart            = nullptr;
     QChartView*  m_chartView        = nullptr;
     QFrame*      m_salaryCard       = nullptr;
+    QFrame*      m_leaveRequestCard = nullptr;
     QWidget*     m_empGridWidget    = nullptr;
     QTabBar*     m_yearTabBar       = nullptr;
 

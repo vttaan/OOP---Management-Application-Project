@@ -20,6 +20,7 @@ private:
     QTime endTime;
     QString role;
     QList<User*> employees;
+    QList<int> shiftIds;
 
 public:
     // A canonical manager/staff grid represents the whole shift, not only the
@@ -34,7 +35,10 @@ public:
         employees.clear();
     }
 
-    void addStaff(User* u) { employees.append(u); }
+    void addStaff(User* u, int shiftId = -1) { 
+        employees.append(u); 
+        shiftIds.append(shiftId);
+    }
 
     // Getters
     QDate getDate() const { return date; }
@@ -44,6 +48,7 @@ public:
 
     // 1. Employee List
     QList<User*> getEmployees() const { return employees; }
+    QList<int> getShiftIds() const { return shiftIds; }
     bool isEmpty() const { return employees.isEmpty(); }
 
     // 2. Count

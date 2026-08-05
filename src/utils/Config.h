@@ -28,7 +28,7 @@ private:
 
     // Rule for full time
     inline static short minimumDaysWorkPerWeek_FT;
-    inline static short maximumLeavePerMonth_FT;
+    inline static short maximumAbsentPerWeek_FT;
 
     // Rule for part time
     inline static short minimumDaysWorkPerWeek_PT;
@@ -36,6 +36,8 @@ private:
     inline static short maximumHourWorkPerDay_PT;
 
     inline static short guaranteedDaysPerWeek_FT = 0;
+
+    //inline static double baseSalaryStaff;
 
 public:
     // ------SETTERS----
@@ -49,7 +51,7 @@ public:
     }
 
     static void setMinimumDaysWorkPerWeek_FT(short days) { minimumDaysWorkPerWeek_FT = days; }
-    static void setMaximumLeavePerMonth_FT(short days) { maximumLeavePerMonth_FT = days; }
+    static void setMaximumAbsentPerWeek_FT(short days) { maximumAbsentPerWeek_FT = days; }
 
     static void setMinimumDaysWorkPerWeek_PT(short days) { minimumDaysWorkPerWeek_PT = days; }
     static void setMinimumHourWorkPerDay_PT(short hours) { minimumHourWorkPerDay_PT = hours; }
@@ -76,10 +78,14 @@ public:
 
     static QDate getStartOfCurrentWeek(QDate date)
     {
-        int diff = dayOpenRegisShift - date.dayOfWeek();
-        if (diff > 0)
-            diff -= 7;
-        return date.addDays(diff);
+        if (!date.isValid())
+            return {};
+        return date.addDays(Qt::Monday - date.dayOfWeek());
+    }
+
+    static QDate getStartOfNextWeek(QDate date)
+    {
+        return getStartOfCurrentWeek(date).addDays(7);
     }
 
     static int getMinStaffForRole(const QString &roleName)
@@ -102,7 +108,10 @@ public:
     }
 
     static short getMinimumDaysWorkPerWeek_FT() { return minimumDaysWorkPerWeek_FT; }
-    static short getMaximumLeavePerMonth_FT() { return maximumLeavePerMonth_FT; }
+    static short getMaximumAbsentPerWeek_FT() { return maximumAbsentPerWeek_FT; }
+    // SYSTEM_CONFIG stores the full-time monthly leave limit under the
+    // historical maximumAbsentPerWeek_FT field used by the settings screen.
+    static short getMaximumLeavePerMonth_FT() { return maximumAbsentPerWeek_FT; }
 
     static short getMinimumDaysWorkPerWeek_PT() { return minimumDaysWorkPerWeek_PT; }
     static short getMinimumHourWorkPerDay_PT() { return minimumHourWorkPerDay_PT; }

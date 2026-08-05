@@ -33,6 +33,13 @@
     </widget>
    </item>
    <item>
+    <widget class="QPushButton" name="btnMenu_Notification">
+     <property name="text">
+      <string>   Thông báo</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QPushButton" name="btnMenu_HR">
      <property name="text">
       <string>   Nhân sự</string>

@@ -1,6 +1,7 @@
 #ifndef VIEWSCHEDULE_VIEW_H
 #define VIEWSCHEDULE_VIEW_H
 #include "global.h"
+#include "utils/ScheduleDTOs.h"
 namespace Ui
 {
     class ViewSchedule_View;
@@ -47,20 +48,21 @@ public:
     void updateDateRange(QDate monday);
     void highlightToday(int currentDayIndex);
 
-    // Populates the shift details pane when a cell is clicked (manager only)
-    void updateShiftDetails(const QList<User *> &employees, const QString &timeLabel);
-
-    // Overload that also provides per-employee working time strings (employeeId -> "HH:mm - HH:mm")
-    void updateShiftDetails(const QList<User *> &employees, const QString &timeLabel,
-                            const QMap<int, QString> &employeeTimes);
+    void updateShiftDetails(const QList<User *> &employees, const QList<int>& shiftIds, const QString &timeLabel);
+    void updateShiftDetails(const QList<User *> &employees, const QList<int>& shiftIds, const QString &timeLabel, const QMap<int, QString> &employeeTimes);
 
     void setManagerFeaturesVisible(bool visible);
+    
+    void showReplacementDialog(int oldShiftId, const QList<PendingShiftInfo>& replacements);
 
 signals:
     void requestPrevWeek();
     void requestNextWeek();
     void requestCurrentWeek();
     void shiftClicked(int row, int dayIndex);
+    
+    void requestShowReplacements(int shiftId, const QString &role);
+    void requestConfirmReplacement(int oldShiftId, int newShiftId);
 
 private:
     Ui::ViewSchedule_View *ui;

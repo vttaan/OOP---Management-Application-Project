@@ -41,6 +41,11 @@ public:
     // grid: col (0-6 Mon-Sun) -> row (0-2 shift) -> { pendingCount, acceptedCount, declinedCount }
     QMap<int, QMap<int, BlockCounts>> getAssignBlockCounts(QDate monday);
 
+    // Publishes deduplicated staffing warnings for managers. The warning
+    // severity uses the same shortage thresholds as the manager schedule view.
+    void publishStaffingWarningNotifications(QDate monday);
+    void publishScheduledStaffingWarningNotifications(QDate today, QTime now);
+
     // Returns all shift requests that touch a given shift block (col=day 0-6, row=shift 0-2)
     QList<PendingShiftInfo> getShiftsForBlock(QDate monday, int col, int row);
 
@@ -61,6 +66,11 @@ public:
     // Raw shifts for 15x7 rendering
     QMap<int, QList<Shift*>> getRawStaffShifts(short int id, QDate monday, int status);
 
+    // Seeds the target registration week from the previous approved week.
+    // A durable per-employee marker makes this safe to call repeatedly.
+    bool ensurePendingCarryForwardForWeek(QDate weekStart,
+                                          QStringList *errors = nullptr);
+
     // Database-backed 3x7 schedule for fixed-salary employees.
     FullTimeScheduleGrid getFullTimeScheduleGrid(short int employeeId,
                                                  QDate weekStart);
@@ -68,6 +78,10 @@ public:
     // Approve or decline a shift by its DB rowid; returns true on success
     bool approveShift(int shiftId);
     bool declineShift(int shiftId);
+
+    // Replacement feature
+    QList<PendingShiftInfo> getEligibleReplacements(int oldShiftId, const QString &role);
+    bool replaceShift(int oldShiftId, int newShiftId);
 
 signals:
 

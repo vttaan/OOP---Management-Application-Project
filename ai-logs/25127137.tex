@@ -1,11 +1,24 @@
-\noindent
-\begin{tabularx}{\textwidth}{|p{3cm}|p{2cm}||X|}
-\hline
+\clearpage
+\begingroup
+\small
+\setlength{\parskip}{0pt}
+\begin{longtblr}[
+    caption={25127137 - Vũ Thanh Tân's AI usage log},
+    label={tab:vu-thanh-tan-ai-usage-log}
+]{
+    colspec={|X[2,l]|X[1.3,l]|X[2.4,l]|X[3.2,l]|},
+    rowhead=1,
+    hlines,
+    vlines,
+    rows={valign=t}
+}
 \textbf{Task} & \textbf{AI Tool Used} & \textbf{Prompt / Instruction} & \textbf{Student Verification or Modification} \\
 \hline
 \textbf{Project Planning \& Qt Framework Research} & Google Gemini & Asked for guidance on project planning and how to use the Qt framework for C++ GUI application development. & Created a project plan and did a research on how to use Qt framework. \\
 \hline
 \textbf{Database Design \& SQL Query Familiarization} & Google Gemini & Asked for guidance on database structure and practicing SQL queries before starting backend development. & Made an example database and performed some basic queries on it. \\
+\hline
+\textbf{Login Window Implementation \& GUI Setup} & Google Gemini & Asked for assistance and examples on creating the login interface, layout design, and window controls in Qt C++. & Rewrote and implemented the code for the login window. \\
 \hline
 \textbf{GUI Design \& Implementation (Profile View)} & Google Gemini, Google Antigravity & Asked for layout suggestions for the profile widget, circular avatars, and QSS styling. & Modified the arrangement of labels and elements on the profile page through QSS. Rewrote the change avatar and save avatar locally functions. Manually chose hex colors for backgrounds and headers. \\
 \hline
@@ -21,4 +34,12 @@
 \hline
 \textbf{Database Schema Updates (Gender Field)} & Google Gemini, Google Antigravity & Asked to add a gender field to the Profile database layout and integrate it across MVC files and the Add Employee dialog. & Updated employee-related functions (add, edit) manually to fully include and process the new gender parameter. \\
 \hline
-\end{tabularx}
+\textbf{Employee Model \& Avatar Persistence Bugfixes} & Google Gemini, Google Antigravity & Asked to fix parameter count mismatches in Employee\_Model and resolve avatar saving issues when adding employees or updating profiles. & Rewrote save local avatar function to save avatar in the project's resource folder instead of fetching the original file. \\
+\hline
+\textbf{Full-Time vs. Part-Time Employee Attribute Integration} & Google Gemini, Google Antigravity & Asked to add an isFixedSalary attribute to differentiate Full-Time vs. Part-Time staff and integrate the selector into AddEmployee\_Dialog. & Updated related files (profile, employee) to show the correct role \& full-time/part time suffix. Used a sample profiles dataset to check if the role was shown correctly. \\
+\hline
+\textbf{Schedule \& Shift Registration Enhancements} & Google Gemini, Google Antigravity & Asked to enhance Manager View Schedule with role-specific shift labels and replacement dialogs, enforce registration open days (openRegisterDayOfWeek), and update registration cards for full-time staff. & Later merged the replace function into the arrange schedule instead of in the view schedule page, reverted changes on the view schedule page. \\
+\hline
+\textbf{Salary Page Refactoring for Full-Time \& Part-Time Logic} & Google Gemini, Google Antigravity & Asked to refactor the Salary page to separate Part-Time and Full-Time calculations, hide the page for managers, calculate absence penalty deductions, and fix base salary currency formatting. & Rewrote the salary calculation logic to match the project's original idea on salary calculation for bonus/penalties, rewrote currency formatter for negative numbers. \\
+\hline
+\endgroup

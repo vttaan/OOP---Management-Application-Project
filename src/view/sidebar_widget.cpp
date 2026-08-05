@@ -32,6 +32,8 @@ Sidebar_Widget::Sidebar_Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Si
             { emit menuClicked(2); updateButtonStyles(2); });
     connect(ui->btnMenu_Overview, &QPushButton::clicked, [this]()
             { emit menuClicked(1); updateButtonStyles(1); });
+    connect(ui->btnMenu_Notification, &QPushButton::clicked, [this]()
+            { emit menuClicked(9); updateButtonStyles(9); });
     connect(ui->btnMenu_HR, &QPushButton::clicked, [this]()
             { emit menuClicked(3); updateButtonStyles(3); });
     // connect(ui->btnMenu_Salary, &QPushButton::clicked, [this]() { emit menuClicked(7); updateButtonStyles(7); });
@@ -65,6 +67,7 @@ void Sidebar_Widget::setPermission(const bool &permitted)
     ui->buttonRegistrationSchedule->setVisible(!permitted);
     ui->subMenu_Schedule->hide();
     ui->btnMenu_Settings->setVisible(permitted);
+    ui->btnMenu_Salary->setVisible(!permitted);
 }
 
 Sidebar_Widget::~Sidebar_Widget() { delete ui; }
@@ -165,6 +168,7 @@ void Sidebar_Widget::initUI()
         btn->setIconSize(QSize(sz, sz));
     };
     applyIcon(ui->btnMenu_Overview, ":/images/dashboard-light.svg");
+    applyIcon(ui->btnMenu_Notification, ":/images/notification-bell.svg");
     applyIcon(ui->btnMenu_HR, ":/images/employee-light.svg");
     applyIcon(ui->buttonSchedule, ":/images/calendar-light.svg");
     applyIcon(ui->btnMenu_Salary, ":/images/report-white.svg");
@@ -193,6 +197,7 @@ void Sidebar_Widget::updateButtonStyles(int mainIndex)
     normalSub.replace("padding-left: 35px;", "padding-left: 55px;");
     // Reset all
     ui->btnMenu_Overview->setStyleSheet(normal);
+    ui->btnMenu_Notification->setStyleSheet(normal);
     ui->btnMenu_HR->setStyleSheet(normal);
     ui->buttonSchedule->setStyleSheet(normal);
     ui->btnMenu_Salary->setStyleSheet(normal);
@@ -209,6 +214,9 @@ void Sidebar_Widget::updateButtonStyles(int mainIndex)
         break;
     case 3:
         ui->btnMenu_HR->setStyleSheet(activeMain);
+        break;
+    case 9:
+        ui->btnMenu_Notification->setStyleSheet(activeMain);
         break;
     case 4:
         ui->buttonSchedule->setStyleSheet(activeMain);
@@ -332,4 +340,13 @@ void Sidebar_Widget::paintEvent(QPaintEvent *event)
     opt.initFrom(this);
     QPainter p(this);
     style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
+}
+
+void Sidebar_Widget::setNotificationCount(int count)
+{
+    if (!ui->btnMenu_Notification)
+        return;
+    const QString label = QString::fromUtf8("   Thông báo");
+    ui->btnMenu_Notification->setText(
+        count > 0 ? QString("%1  (%2)").arg(label).arg(count) : label);
 }

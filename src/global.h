@@ -2,12 +2,14 @@
 
 #include <QApplication>
 #include <QByteArray>
+#include <QCalendarWidget>
 #include <QCheckBox>
 #include <QColor>
 #include <QComboBox>
 #include <QCoreApplication>
 #include <QCryptographicHash>
 #include <QDate>
+#include <QDateEdit>
 #include <QDebug>
 #include <QDialog>
 #include <QDir>
@@ -41,6 +43,7 @@
 #include <QResizeEvent>
 #include <QSize>
 #include <QSizePolicy>
+#include <QSpinBox>
 #include <QSplitter>
 #include <QSqlDatabase>
 #include <QSqlError>
@@ -55,6 +58,7 @@
 #include <QTableWidgetItem>
 #include <QTextStream>
 #include <QTime>
+#include <QToolButton>
 #include <QVBoxLayout>
 #include <QTabBar>
 #include <QWidget>
@@ -73,8 +77,10 @@
 #include <QtCharts/QBarSeries>
 #include <QtCharts/QBarSet>
 #include <QtCharts/QBarCategoryAxis>
+#include <QtCharts/QCategoryAxis>
 #include <QtCharts/QValueAxis>
 #include "core/KitchenAssistant.h"
 #include "core/HallStaff.h"
 #include "core/Cashier.h"
 #include "utils/Database.h"
+#include "utils/ScheduleDTOs.h"

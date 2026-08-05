@@ -30,7 +30,7 @@ signals:
 
 public slots:
     // Called by the Controller to push data to the view
-    void loadEmployees(const QList<User *> &employees, long long totalPayroll, int managerCount);
+    void loadEmployees(const QList<User *> &employees);
 
     void showError(const QString &msg);
     void showSuccess(const QString &msg);
@@ -43,8 +43,6 @@ private slots:
     void toggleFilterDropdown();
     // Sort dropdown
     void toggleSortDropdown();
-    // Updates metric card values from m_allEmployees
-    void updateMetricCards(long long totalPayroll, int managerCount);
 
 private:
     // ---- ui pointer (owns all widgets declared in the .ui file) ----
@@ -60,30 +58,18 @@ private:
 
     // --- Widget Factories ---
     QLabel      *createAvatar(const QString &avatarPath);
-    QFrame      *createMetricCard(const QString &iconText,
-                                  const QString &iconBg,
-                                  const QString &iconColor,
-                                  const QString &title,
-                                  const QString &value,
-                                  const QString &subtitle,
-                                  const QString &badge      = QString(),
-                                  const QString &badgeColor = QString());
-    QLabel      *createStatusBadge(const QString &status);
     QLabel      *createRoleBadge(const QString &role);
     QLabel      *createPayTypeBadge(const QString &payType);
     QPushButton *createActionButton(const QString &iconPath, const QString &tooltip);
-
-    // --- Metric Cards (kept for dynamic value updates; built in C++) ---
-    QFrame *m_payrollCard  = nullptr;
-    QFrame *m_staffCard    = nullptr;
-    QFrame *m_managerCard  = nullptr;
 
     // Full unfiltered employee list (for metric card totals)
     QList<User *> m_allEmployees;
 
     // --- Filter Dropdown (floating overlay, child of Employee_View) ---
     QFrame    *filterDropdown;
-    QCheckBox *chkStaff;
+    QCheckBox *chkCashier;
+    QCheckBox *chkHallStaff;
+    QCheckBox *chkKitchenAssistant;
     QCheckBox *chkManager;
     QCheckBox *chkAdmin;
     QCheckBox *chkMale;

@@ -184,6 +184,13 @@
       </spacer>
      </item>
      <item>
+      <widget class="QPushButton" name="buttonClearPending">
+       <property name="text">
+        <string>Xóa hết</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="buttonLuu">
        <property name="text">
         <string>Lưu / Xác Nhận</string>

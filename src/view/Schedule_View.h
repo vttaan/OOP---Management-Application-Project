@@ -58,6 +58,7 @@ public:
 
     // Manager scheduling API (implemented in Schedule_View_Manager.cpp)
     void setManagerMode(bool isManager);
+    void setManagerAssignmentState(bool isOpen, QDate nextOpenDate);
 
     // ── Xem Lich Lam (View) grid — accepted shifts only ──────────────────────
     void updateManagerPendingGrid(const QMap<int, QMap<int, ShiftBlock*>>& grid);
@@ -68,6 +69,7 @@ public:
     // Missing staff table (manager only, shown below the grid in Xep lich page)
     void updateManagerMissingShifts(const QList<MissingShiftInfo>& missingList);
     void setManagerDraftStatus(int changeCount);
+    void resetManagerAddButton();
     void updateManagerSummary(int totalShifts, int shortageShifts,
                               int pendingRequests, int draftChanges,
                               int missingSlots = 0, int staffedShifts = 0);
@@ -114,8 +116,13 @@ private:
     QComboBox*      managerRoleFilter = nullptr;
     QPushButton*    managerUndoDraftButton = nullptr;
     QPushButton*    managerClearDraftButton = nullptr;
+    QPushButton*    requestLeaveButton = nullptr;
+    QPushButton*    leaveHistoryButton = nullptr;
     QFrame*         shiftDetailDrawer = nullptr;
     QVBoxLayout*    shiftDetailDrawerLayout = nullptr;
+    QPushButton*    activeManagerAddButton = nullptr;
+    bool            managerAddRejectedDuringRequest = false;
+    bool            m_managerAssignmentOpen = false;
 
     QWidget*        fullTimeInfoWidget;
     QLabel*         lblFullTimeWeekRange;
@@ -151,6 +158,10 @@ private:
     QDate m_lastDrawerDate;
     QTime m_lastDrawerStart;
     QTime m_lastDrawerEnd;
+    QList<ManagerEmployeeSelection> m_managerEmployeeSelections;
+    QDate m_managerSelectionDate;
+    QTime m_managerSelectionStart;
+    QTime m_managerSelectionEnd;
 
 signals:
 
@@ -172,8 +183,8 @@ signals:
     // Fired from the popup dialog
     void requestApproveShift(PendingShiftInfo request);
     void requestDeclineShift(PendingShiftInfo request);
-    void requestAddEmployee(int employeeId, QDate date, QTime startTime,
-                            QTime endTime, const QString &reason);
+    void requestAddEmployees(QDate date, QTime blockStart, QTime blockEnd,
+                             const QList<ManagerEmployeeSelection> &selections);
     void requestRemoveAssignedShift(int shiftId, int employeeId,
                                     const QString &reason);
     void requestPreviousManagerWeek();
@@ -181,9 +192,12 @@ signals:
     void requestCurrentManagerWeek();
     void requestUndoManagerDraft();
     void requestClearManagerDraft();
+    void requestLeave();
+    void requestLeaveHistory();
 
 private slots:
     void buttonSaveClicked();
+    void clearPendingSelections();
     void onFullTimeCellClicked(int row, int col);
 };
 

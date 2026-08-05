@@ -29,6 +29,7 @@ Control_Navigator::Control_Navigator()
     this->salaryController = new Salary_Control(this);
 
     this->settingController = new Setting_Control(this);
+    this->notificationController = new Notification_Control(this);
 
     this->viewWindow = new View_Navigator(this); // Initialize viewWindow AFTER controllers
     // switch tab side bar do all
@@ -54,6 +55,21 @@ Control_Navigator::Control_Navigator()
                          });
     }
 
+    QObject::connect(this->notificationController,
+                     &Notification_Control::unreadCountChanged,
+                     this->viewWindow->getSideBar(),
+                     &Sidebar_Widget::setNotificationCount);
+    QObject::connect(this->notificationController,
+                     &Notification_Control::openManagerScheduleRequested,
+                     this, [this]() { switchTab(6); });
+    QObject::connect(this->notificationController,
+                     &Notification_Control::leaveRequestDecisionCompleted,
+                     this, [this]() { this->dashboardController->init(); });
+    QObject::connect(this->dashboardController,
+                     &Dashboard_Control::leaveRequestDecisionCompleted,
+                     this->notificationController,
+                     &Notification_Control::refreshUnreadCount);
+
     QObject::connect(this->loginController, &Login_Control::loginSuccessful,
                      this->viewWindow, [this]()
                      {
@@ -65,10 +81,11 @@ Control_Navigator::Control_Navigator()
                          this->switchTab(1); // Switch to Dashboard (index 1)
                          this->profileController->currentSession = this->currentSession;
                          this->profileController->loadUserData();
-                         if (this->viewWindow->getSideBar())
+                        if (this->viewWindow->getSideBar())
                          {
-                             this->viewWindow->getSideBar()->loadUserData(this->currentSession);
-                         }
+                            this->viewWindow->getSideBar()->loadUserData(this->currentSession);
+                        }
+                        this->notificationController->refreshUnreadCount();
                          // qDebug() << "current user: " << this->currentSession->getCurrentUser()->getName();
                          //  the whole app's session is updated
                      });
@@ -133,6 +150,10 @@ void Control_Navigator::switchTab(int index)
         this->settingController->init();
         targetPageIndex = 7;
         break;
+    case 9:
+        this->notificationController->load();
+        targetPageIndex = 8;
+        break;
 
     default:
         break;
@@ -161,6 +182,7 @@ Control_Navigator::~Control_Navigator()
     delete scheduleController;
     delete viewScheduleController;
     delete settingController;
+    delete notificationController;
     currentSession = nullptr;
     viewWindow = nullptr;
     loginController = nullptr;
@@ -170,4 +192,5 @@ Control_Navigator::~Control_Navigator()
     scheduleController = nullptr;
     viewScheduleController = nullptr;
     settingController = nullptr;
+    notificationController = nullptr;
 }

@@ -342,6 +342,9 @@
          <property name="text"><string>MỨC LƯƠNG</string></property>
         </column>
         <column>
+         <property name="text"><string>SỐ ĐIỆN THOẠI</string></property>
+        </column>
+        <column>
          <property name="text"><string>TRẠNG THÁI</string></property>
         </column>
         <column>

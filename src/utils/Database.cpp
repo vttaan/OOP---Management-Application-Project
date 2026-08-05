@@ -1,44 +1,141 @@
 #include "global.h"
 #include "utils/Database.h"
 
-Database* Database::instance = nullptr;
+Database *Database::instance = nullptr;
 
-Database::Database() {
+Database::Database()
+{
     this->dbConnect = QSqlDatabase::addDatabase("QSQLITE");
-    qDebug() << "FOLDER CONTAINS DATABASE\n" << QDir::currentPath() << '\n';
+    qDebug() << "FOLDER CONTAINS DATABASE\n"
+             << QDir::currentPath() << '\n';
     dbConnect.setDatabaseName("database/Systems.db");
 
     // isOpen -> open
-    if (!dbConnect.open()) {
+    if (!dbConnect.open())
+    {
         qDebug() << "ERROR CAN NOT OPEN DATABASE\n";
-    } else {
+    }
+    else
+    {
         qDebug() << "OPEN DATABASE SUCCESS\n";
+        QSqlQuery alterQuery(dbConnect);
+        alterQuery.exec("ALTER TABLE PROFILES ADD COLUMN status TEXT DEFAULT 'active'");
+        ensureSchema();
     }
 }
 
-Database* Database::getInstance() {
+void Database::ensureSchema()
+{
+    QSqlQuery query(dbConnect);
+    const QStringList statements = {
+        "CREATE TABLE IF NOT EXISTS SHIFT_AUDIT ("
+        "id INTEGER PRIMARY KEY AUTOINCREMENT, shiftId INTEGER, "
+        "employeeId INTEGER NOT NULL, action TEXT NOT NULL, reason TEXT, "
+        "changedAt TEXT NOT NULL)",
+        "CREATE TABLE IF NOT EXISTS LEAVE_REQUEST ("
+        "id INTEGER PRIMARY KEY AUTOINCREMENT, idEmployee INTEGER NOT NULL, "
+        "leaveDate TEXT NOT NULL, relatedShiftId INTEGER, reason TEXT NOT NULL, "
+        "status TEXT NOT NULL DEFAULT 'Pending', requestedAt TEXT NOT NULL, "
+        "decidedAt TEXT, decidedBy INTEGER, decisionReason TEXT)",
+        "CREATE TABLE IF NOT EXISTS NOTIFICATION ("
+        "id INTEGER PRIMARY KEY AUTOINCREMENT, recipientEmployeeId INTEGER NOT NULL, "
+        "type TEXT NOT NULL, title TEXT NOT NULL, message TEXT NOT NULL, "
+        "status TEXT NOT NULL DEFAULT 'Unread', priority INTEGER NOT NULL DEFAULT 0, "
+        "dedupeKey TEXT, relatedShiftId INTEGER, "
+        "relatedLeaveRequestId INTEGER, createdAt TEXT NOT NULL, readAt TEXT)",
+        "CREATE TABLE IF NOT EXISTS SHIFT_CARRY_FORWARD ("
+        "idEmployee INTEGER NOT NULL, targetWeekStart TEXT NOT NULL, "
+        "createdAt TEXT NOT NULL, "
+        "PRIMARY KEY (idEmployee, targetWeekStart))",
+        "CREATE INDEX IF NOT EXISTS idx_notification_recipient "
+        "ON NOTIFICATION(recipientEmployeeId, priority, status, createdAt)",
+        "CREATE INDEX IF NOT EXISTS idx_notification_dedupe "
+        "ON NOTIFICATION(recipientEmployeeId, dedupeKey)",
+        "CREATE INDEX IF NOT EXISTS idx_leave_request_employee "
+        "ON LEAVE_REQUEST(idEmployee, status, leaveDate)"};
+
+    for (const QString &statement : statements)
+    {
+        if (!query.exec(statement))
+            qWarning() << "Schema migration failed:" << query.lastError().text();
+    }
+
+    bool hasRelatedShiftColumn = false;
+    if (query.exec("PRAGMA table_info(LEAVE_REQUEST)"))
+    {
+        while (query.next())
+        {
+            if (query.value(1).toString() == "relatedShiftId")
+            {
+                hasRelatedShiftColumn = true;
+                break;
+            }
+        }
+    }
+    if (!hasRelatedShiftColumn &&
+        !query.exec("ALTER TABLE LEAVE_REQUEST ADD COLUMN relatedShiftId INTEGER"))
+    {
+        qWarning() << "Leave request migration failed:" << query.lastError().text();
+    }
+
+    bool hasNotificationPriority = false;
+    bool hasNotificationDedupeKey = false;
+    if (query.exec("PRAGMA table_info(NOTIFICATION)"))
+    {
+        while (query.next())
+        {
+            const QString column = query.value(1).toString();
+            hasNotificationPriority |= column == "priority";
+            hasNotificationDedupeKey |= column == "dedupeKey";
+        }
+    }
+    if (!hasNotificationPriority &&
+        !query.exec("ALTER TABLE NOTIFICATION ADD COLUMN priority INTEGER NOT NULL DEFAULT 0"))
+    {
+        qWarning() << "Notification priority migration failed:" << query.lastError().text();
+    }
+    if (!hasNotificationDedupeKey &&
+        !query.exec("ALTER TABLE NOTIFICATION ADD COLUMN dedupeKey TEXT"))
+    {
+        qWarning() << "Notification dedupe migration failed:" << query.lastError().text();
+    }
+
+    // Existing databases may have skipped these indexes before the columns
+    // were migrated, so retry them after the compatibility ALTER TABLE calls.
+    query.exec("CREATE INDEX IF NOT EXISTS idx_notification_recipient "
+               "ON NOTIFICATION(recipientEmployeeId, priority, status, createdAt)");
+    query.exec("CREATE INDEX IF NOT EXISTS idx_notification_dedupe "
+               "ON NOTIFICATION(recipientEmployeeId, dedupeKey)");
+}
+
+Database *Database::getInstance()
+{
     return Database::instance != nullptr ? Database::instance : Database::instance = new Database();
-    //return Database::instance != nullptr ? Database::instance : new Database();
+    // return Database::instance != nullptr ? Database::instance : new Database();
 }
 
-QSqlDatabase Database::getDbConnect() {
-	return this->dbConnect;
+QSqlDatabase Database::getDbConnect()
+{
+    return this->dbConnect;
 }
 
-void Database::closeConnect() {
-	if (this->dbConnect.isOpen()) {
-		this->dbConnect.close();
-		qDebug() << "CLOSE DATABASE SUCCESS\n";
-	}
+void Database::closeConnect()
+{
+    if (this->dbConnect.isOpen())
+    {
+        this->dbConnect.close();
+        qDebug() << "CLOSE DATABASE SUCCESS\n";
+    }
 }
 
-QSqlQuery Database::execQuery(const QString& query) {
-	QSqlQuery ansForQuery(this->dbConnect);
-    //if (ansForQuery.exec(query))
-    if (!ansForQuery.exec(query)) {
-		ansForQuery.exec(query);
-		qDebug() << "ERROR EXEC QUERY " << ansForQuery.lastError().text() << '\n';
-	}
-	return ansForQuery;
+QSqlQuery Database::execQuery(const QString &query)
+{
+    QSqlQuery ansForQuery(this->dbConnect);
+    // if (ansForQuery.exec(query))
+    if (!ansForQuery.exec(query))
+    {
+        ansForQuery.exec(query);
+        qDebug() << "ERROR EXEC QUERY " << ansForQuery.lastError().text() << '\n';
+    }
+    return ansForQuery;
 }
-

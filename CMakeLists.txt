@@ -46,6 +46,7 @@ set(PROJECT_SOURCES
         src/utils/Security.h
         src/utils/Config.h
         src/utils/ScheduleDTOs.h
+        src/utils/NotificationDTOs.h
         # CPP
         src/utils/Database.cpp
         src/utils/SessionManage.cpp
@@ -60,6 +61,8 @@ set(PROJECT_SOURCES
         src/model/validator.h
         src/model/Salary_Model.h
         src/model/Dashboard_Model.h
+        src/model/Notification_Model.h
+        src/model/LeaveRequest_Model.h
         # CPP
         src/model/Login_Model.cpp
         src/model/Change_password.cpp
@@ -68,6 +71,8 @@ set(PROJECT_SOURCES
         src/model/validator.cpp
         src/model/Salary_Model.cpp
         src/model/Dashboard_Model.cpp
+        src/model/Notification_Model.cpp
+        src/model/LeaveRequest_Model.cpp
 
     # file in Control
         # HEADER
@@ -77,6 +82,7 @@ set(PROJECT_SOURCES
         src/control/Dashboard_Control.h
         src/control/Employee_Control.h
         src/control/Salary_Control.h
+        src/control/Notification_Control.h
         # CPP
         src/control/Login_Control.cpp
         src/control/Profile_Control.cpp
@@ -84,6 +90,7 @@ set(PROJECT_SOURCES
         src/control/Dashboard_Control.cpp
         src/control/Employee_Control.cpp
         src/control/Salary_Control.cpp
+        src/control/Notification_Control.cpp
 
     # file in View
         # HEADER
@@ -98,9 +105,11 @@ set(PROJECT_SOURCES
         src/view/AddEmployee_Dialog.h
         src/view/EditEmployee_Dialog.h
         src/view/EmployeeDetails_Dialog.h
+        src/view/ManagerEmployeeChooser_Dialog.h
         src/view/Schedule_View.h
         src/view/sidebar_widget.h
         src/view/Salary_View.h
+        src/view/Notification_View.h
         # CPP
         src/view/Login_View.cpp
         src/view/Dashboard_View.cpp
@@ -113,11 +122,14 @@ set(PROJECT_SOURCES
         src/view/AddEmployee_Dialog.cpp
         src/view/EditEmployee_Dialog.cpp
         src/view/EmployeeDetails_Dialog.cpp
+        src/view/ManagerEmployeeChooser_Dialog.cpp
         src/view/Schedule_View.cpp
         src/view/Schedule_View_Manager.cpp
+        src/view/Schedule_View_Manager_ShiftDetail.cpp
         src/view/Schedule_View_Staff.cpp
         src/view/sidebar_widget.cpp
         src/view/Salary_View.cpp
+        src/view/Notification_View.cpp
         # UI
         src/view/Login_View.ui
         src/view/Dashboard_View.ui
@@ -165,6 +177,11 @@ qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
     src/view/Setting_View.h src/view/Setting_View.cpp src/view/Setting_View.ui
     src/model/Setting_Model.h src/model/Setting_Model.cpp
     src/control/Setting_Control.h src/control/Setting_Control.cpp
+    src/utils/NotificationDTOs.h
+    src/model/Notification_Model.h src/model/Notification_Model.cpp
+    src/model/LeaveRequest_Model.h src/model/LeaveRequest_Model.cpp
+    src/control/Notification_Control.h src/control/Notification_Control.cpp
+    src/view/Notification_View.h src/view/Notification_View.cpp
     )
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core Qt6::Widgets Qt6::Sql Qt6::Charts)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -179,9 +196,13 @@ if(BUILD_TESTING)
     find_package(Qt6 REQUIRED COMPONENTS Test)
     qt_add_executable(schedule_model_tests
         tests/SchedulePersistenceTests.cpp
+        src/view/ManagerEmployeeChooser_Dialog.h
+        src/view/ManagerEmployeeChooser_Dialog.cpp
         src/model/Login_Model.cpp
         src/model/Schedule_Model.cpp
         src/model/Salary_Model.cpp
+        src/model/Notification_Model.cpp
+        src/model/LeaveRequest_Model.cpp
         src/utils/Database.cpp
         src/utils/Security.cpp
         src/core/Shift.cpp
