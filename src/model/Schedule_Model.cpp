@@ -122,7 +122,7 @@ Shift *Schedule_Model::handleAddShiftSubmission(short int id, QDate date, QTime 
     newShift->setShiftId(-1); // note for draftshift
     draftShifts.append(newShift);
 
-    QDate monday = Config::getStartOfCurrentWeek(date);
+    QDate monday = Config::getStartOfWorkingWeekContaining(date);
     int dayInWeek = monday.daysTo(date);
     if (dayInWeek >= 0 && dayInWeek < 7)
     {
@@ -555,7 +555,7 @@ AutoSchedulePreview Schedule_Model::previewGeneratedSchedule(QDate weekStart)
 {
     AutoSchedulePreview preview;
     if (!weekStart.isValid())
-        weekStart = Config::getStartOfCurrentWeek(QDate::currentDate()).addDays(7);
+        weekStart = Config::getStartOfActiveWorkingWeek(QDate::currentDate());
     QDate weekEnd = weekStart.addDays(6);
 
     QVector<Shift *> pendingShifts = fetchPendingShifts(weekStart, weekEnd);
@@ -612,7 +612,7 @@ AutoSchedulePreview Schedule_Model::previewGeneratedSchedule(QDate weekStart)
 QStringList Schedule_Model::generateSchedule()
 {
     AutoSchedulePreview preview = previewGeneratedSchedule(
-        Config::getStartOfCurrentWeek(QDate::currentDate()).addDays(7));
+        Config::getStartOfActiveWorkingWeek(QDate::currentDate()));
     QStringList errors;
     if (!preview.changes.isEmpty() &&
         !applyManagerScheduleChanges(preview.changes, &errors))
@@ -652,6 +652,157 @@ bool Schedule_Model::saveDraftShiftsToDatabase()
     }
     openData.commit();
     draftShifts.clear();
+    return true;
+}
+
+bool Schedule_Model::ensurePendingCarryForwardForWeek(
+    QDate weekStart, QStringList *errors)
+{
+    if (!weekStart.isValid())
+    {
+        if (errors) errors->append("Invalid target week.");
+        return false;
+    }
+
+    QSqlDatabase database = Database::getInstance()->getDbConnect();
+    if (!database.transaction())
+    {
+        if (errors) errors->append(database.lastError().text());
+        return false;
+    }
+
+    auto fail = [&](const QString &message) {
+        database.rollback();
+        if (errors) errors->append(message);
+        return false;
+    };
+
+    QSqlQuery ensureMarkerTable(database);
+    if (!ensureMarkerTable.exec(
+            "CREATE TABLE IF NOT EXISTS SHIFT_CARRY_FORWARD ("
+            "idEmployee INTEGER NOT NULL, targetWeekStart TEXT NOT NULL, "
+            "createdAt TEXT NOT NULL, "
+            "PRIMARY KEY (idEmployee, targetWeekStart))"))
+        return fail(ensureMarkerTable.lastError().text());
+
+    QSqlQuery employees(database);
+    if (!employees.exec(
+            "SELECT idEmployee FROM PROFILES "
+            "WHERE role NOT IN ('Manager', 'Manage', 'Admin') "
+            "AND (status IS NULL OR status = 'active') "
+            "ORDER BY idEmployee"))
+        return fail(employees.lastError().text());
+
+    QList<int> employeeIds;
+    while (employees.next())
+        employeeIds.append(employees.value(0).toInt());
+
+    const QDate previousWeekStart = weekStart.addDays(-7);
+    const QDate previousWeekEnd = weekStart.addDays(-1);
+    const QList<QString> holidays = {"01/01", "30/04", "01/05", "02/09"};
+
+    for (int employeeId : employeeIds)
+    {
+        QSqlQuery marker(database);
+        marker.prepare(
+            "SELECT 1 FROM SHIFT_CARRY_FORWARD "
+            "WHERE idEmployee = :id AND targetWeekStart = :week LIMIT 1");
+        marker.bindValue(":id", employeeId);
+        marker.bindValue(":week", weekStart);
+        if (!marker.exec())
+            return fail(marker.lastError().text());
+        if (marker.next())
+            continue;
+
+        QSqlQuery previousShifts(database);
+        previousShifts.prepare(
+            "SELECT workDate, startTime, endTime FROM SHIFT "
+            "WHERE idEmployee = :id AND status = 1 "
+            "AND workDate BETWEEN :start AND :end "
+            "ORDER BY workDate, startTime");
+        previousShifts.bindValue(":id", employeeId);
+        previousShifts.bindValue(":start", previousWeekStart);
+        previousShifts.bindValue(":end", previousWeekEnd);
+        if (!previousShifts.exec())
+            return fail(previousShifts.lastError().text());
+
+        struct PreviousShift
+        {
+            QDate date;
+            QTime start;
+            QTime end;
+        };
+        QList<PreviousShift> approvedShifts;
+        while (previousShifts.next())
+        {
+            const QDate date = previousShifts.value(0).toDate();
+            const QTime start = databaseTime(previousShifts.value(1));
+            const QTime end = databaseTime(previousShifts.value(2));
+            if (date.isValid() && start.isValid() && end.isValid() && start < end)
+                approvedShifts.append({date, start, end});
+        }
+
+        for (const PreviousShift &source : approvedShifts)
+        {
+            const QDate targetDate = source.date.addDays(7);
+
+            QSqlQuery approvedLeave(database);
+            approvedLeave.prepare(
+                "SELECT 1 FROM LEAVE_REQUEST WHERE idEmployee = :id "
+                "AND leaveDate = :date AND status = 'Approved' LIMIT 1");
+            approvedLeave.bindValue(":id", employeeId);
+            approvedLeave.bindValue(":date", targetDate);
+            if (!approvedLeave.exec())
+                return fail(approvedLeave.lastError().text());
+            if (approvedLeave.next())
+                continue;
+
+            QSqlQuery overlap(database);
+            overlap.prepare(
+                "SELECT 1 FROM SHIFT WHERE idEmployee = :id "
+                "AND workDate = :date AND status IN (0,1) "
+                "AND startTime < :end AND endTime > :start LIMIT 1");
+            overlap.bindValue(":id", employeeId);
+            overlap.bindValue(":date", targetDate);
+            overlap.bindValue(":start", source.start);
+            overlap.bindValue(":end", source.end);
+            if (!overlap.exec())
+                return fail(overlap.lastError().text());
+            if (overlap.next())
+                continue;
+
+            QSqlQuery insert(database);
+            insert.prepare(
+                "INSERT INTO SHIFT "
+                "(idEmployee, workDate, startTime, endTime, status, isHoliday) "
+                "VALUES (:id, :date, :start, :end, 0, :isHoliday)");
+            insert.bindValue(":id", employeeId);
+            insert.bindValue(":date", targetDate);
+            insert.bindValue(":start", source.start);
+            insert.bindValue(":end", source.end);
+            insert.bindValue(":isHoliday",
+                             holidays.contains(targetDate.toString("dd/MM")));
+            if (!insert.exec())
+                return fail(insert.lastError().text());
+        }
+
+        QSqlQuery markComplete(database);
+        markComplete.prepare(
+            "INSERT INTO SHIFT_CARRY_FORWARD "
+            "(idEmployee, targetWeekStart, createdAt) VALUES (:id, :week, :at)");
+        markComplete.bindValue(":id", employeeId);
+        markComplete.bindValue(":week", weekStart);
+        markComplete.bindValue(
+            ":at", QDateTime::currentDateTimeUtc().toString(Qt::ISODate));
+        if (!markComplete.exec())
+            return fail(markComplete.lastError().text());
+    }
+
+    if (!database.commit())
+    {
+        if (errors) errors->append(database.lastError().text());
+        return false;
+    }
     return true;
 }
 
@@ -916,8 +1067,8 @@ QList<EligibleEmployeeInfo> Schedule_Model::getEligibleEmployees(
     QSqlDatabase db = Database::getInstance()->getDbConnect();
     QSqlQuery profiles(db);
     profiles.prepare(
-        "SELECT idEmployee, name, role, isFixed FROM PROFILES "
-        "WHERE role NOT IN ('Admin') ORDER BY name");
+        "SELECT idEmployee, name, role, isFixed, status FROM PROFILES "
+        "WHERE role NOT IN ('Admin', 'Manager', 'Manage') ORDER BY name");
     if (!profiles.exec())
         return result;
 
@@ -929,6 +1080,13 @@ QList<EligibleEmployeeInfo> Schedule_Model::getEligibleEmployees(
         info.role = profiles.value(2).toString();
         info.isFixedSalary = profiles.value(3).toBool();
         info.eligible = true;
+        const QString profileStatus = profiles.value(4).toString().trimmed();
+        if (!profileStatus.isEmpty() &&
+            profileStatus.compare("active", Qt::CaseInsensitive) != 0)
+        {
+            info.eligible = false;
+            info.reason = QString::fromUtf8("Nhân viên hiện không hoạt động.");
+        }
 
         QSqlQuery leave(db);
         leave.prepare("SELECT 1 FROM LEAVE_REQUEST WHERE idEmployee = :id "

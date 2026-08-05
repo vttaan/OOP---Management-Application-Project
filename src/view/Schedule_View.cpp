@@ -254,6 +254,8 @@ Schedule_View::Schedule_View(QWidget *parent)
           &Schedule_View::requestConfirm);
   connect(ui->buttonLuu, &QPushButton::clicked, this,
           &Schedule_View::buttonSaveClicked);
+  connect(ui->buttonClearPending, &QPushButton::clicked, this,
+          &Schedule_View::clearPendingSelections);
   requestLeaveButton = new QPushButton(QString::fromUtf8("Xin nghỉ phép"), this);
   requestLeaveButton->setCursor(Qt::PointingHandCursor);
   requestLeaveButton->setStyleSheet(
@@ -417,6 +419,13 @@ void Schedule_View::setUpUI()
       "QPushButton:hover { background-color: #1E824C; }"
       "QPushButton:pressed { background-color: #166534; }"
       "QPushButton:disabled { background-color: #D1D5DB; color: #6B7280; }");
+
+  ui->buttonClearPending->setStyleSheet(
+      "QPushButton { background-color:#FFFFFF;color:#B91C1C;border:1px solid #FCA5A5;"
+      "border-radius:8px;padding:10px 22px;font-weight:bold;font-size:14px; }"
+      "QPushButton:hover { background-color:#FEF2F2; }"
+      "QPushButton:pressed { background-color:#FEE2E2; }"
+      "QPushButton:disabled { background-color:#F8FAFC;color:#CBD5E1;border-color:#E2E8F0; }");
 
   ui->btnGenSchedule->setStyleSheet(
       "QPushButton { background-color: #A855F7; color: white; border-radius: "

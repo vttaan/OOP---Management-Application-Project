@@ -68,6 +68,18 @@ struct EligibleEmployeeInfo {
     QString reason;
 };
 
+// Manager-reviewed employee selection produced by the multi-select chooser.
+// The view keeps these selections scoped to one shift block; the controller
+// converts them into ManagerScheduleChange entries for the weekly draft.
+struct ManagerEmployeeSelection {
+    int employeeId = 0;
+    QString employeeName;
+    QString role;
+    bool isFixedSalary = false;
+    QTime startTime;
+    QTime endTime;
+};
+
 // Controller-produced time range used to synchronize an employee's editable
 // pending registrations without exposing table row coordinates to the model.
 struct StaffShiftRegistration {

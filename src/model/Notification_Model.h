@@ -13,6 +13,7 @@ public:
                                   bool approved) const;
     bool markLeaveRequestReviewedByRequest(int leaveRequestId, bool approved) const;
     bool markAllAsRead(int employeeId) const;
+    bool deleteAllRead(int employeeId) const;
 
     static bool create(QSqlDatabase &database, int recipientEmployeeId,
                        const QString &type, const QString &title,

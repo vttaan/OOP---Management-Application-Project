@@ -28,7 +28,8 @@ QList<NotificationInfo> Notification_Model::getNotifications(
         sql += " AND N.type LIKE 'SHIFT_%'";
     else if (filter == "Leave")
         sql += " AND N.type LIKE 'LEAVE_%'";
-    sql += " ORDER BY N.createdAt DESC, N.id DESC";
+    sql += " ORDER BY CASE WHEN N.status = 'Unread' THEN 0 ELSE 1 END, "
+           "N.createdAt DESC, N.id DESC";
 
     query.prepare(sql);
     query.bindValue(":employee", employeeId);
@@ -123,6 +124,16 @@ bool Notification_Model::markAllAsRead(int employeeId) const {
     query.prepare("UPDATE NOTIFICATION SET status = 'Read', readAt = :at "
                   "WHERE recipientEmployeeId = :employee AND status = 'Unread'");
     query.bindValue(":at", QDateTime::currentDateTimeUtc().toString(Qt::ISODate));
+    query.bindValue(":employee", employeeId);
+    return query.exec();
+}
+
+bool Notification_Model::deleteAllRead(int employeeId) const {
+    if (employeeId <= 0)
+        return false;
+    QSqlQuery query(Database::getInstance()->getDbConnect());
+    query.prepare("DELETE FROM NOTIFICATION "
+                  "WHERE recipientEmployeeId = :employee AND status = 'Read'");
     query.bindValue(":employee", employeeId);
     return query.exec();
 }
