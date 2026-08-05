@@ -1,28 +1,35 @@
 #include "global.h"
 #include "Dashboard_Model.h"
+#include "utils/Config.h"
 
 Dashboard_Model::Dashboard_Model() {}
 
-// ---------------------------------------------------------------------------
-// Return a set of employee IDs currently scheduled for today's active shift.
-// The store operates from 07:00 to 22:00, divided into 3 fixed shift blocks:
-// Morning (7-12), Afternoon (12-17), and Evening (17-22).
-// This function retrieves ALL employees whose scheduled hours overlap with the current block.
-// ---------------------------------------------------------------------------
+// Gets the employee IDs working in the current shift.
+// Shift 1: openHour to 12:00
+// Shift 2: 12:00 to 17:00
+// Shift 3: 17:00 to closeHour
+// Called by: Dashboard_Control::loadEmployeeCards()
+// Calls: Config::getOpenHour(), Config::getCloseHour(), QTime::currentTime(), QDate::currentDate(), Database::getInstance(), QSqlQuery::exec()
 QSet<int> Dashboard_Model::getWorkingEmployeeIds()
 {
+    int openHour = Config::getOpenHour();
+    int closeHour = Config::getCloseHour();
+
     QSet<int> ids;
     QTime now = QTime::currentTime();
     
     QString blockStart, blockEnd;
-    if (now >= QTime(7, 0) && now < QTime(12, 0)) {
-        blockStart = "07:00:00"; blockEnd = "12:00:00"; // Morning block
+    if (now >= QTime(openHour, 0) && now < QTime(12, 0)) {
+        blockStart = QString("%1:00:00").arg(openHour, 2, 10, QChar('0'));
+        blockEnd = "12:00:00";
     } else if (now >= QTime(12, 0) && now < QTime(17, 0)) {
-        blockStart = "12:00:00"; blockEnd = "17:00:00"; // Afternoon block
-    } else if (now >= QTime(17, 0) && now < QTime(22, 0)) {
-        blockStart = "17:00:00"; blockEnd = "22:00:00"; // Evening block
+        blockStart = "12:00:00";
+        blockEnd = "17:00:00";
+    } else if (now >= QTime(17, 0) && now < QTime(closeHour, 0)) {
+        blockStart = "17:00:00";
+        blockEnd = QString("%1:00:00").arg(closeHour, 2, 10, QChar('0'));
     } else {
-        // Outside of operating hours (00:00-07:00 or 22:00-24:00) -> store is closed
+        // Outside of operating hours
         return ids; 
     }
 
@@ -45,30 +52,36 @@ QSet<int> Dashboard_Model::getWorkingEmployeeIds()
 }
 
 
-// ---------------------------------------------------------------------------
-// Return employees scheduled for the next shift block, including their avatar path.
-// The store has 3 fixed shifts: 07:00-12:00, 12:00-17:00, 17:00-22:00.
-// The next shift is strictly defined chronologically in sequence following the current time.
-// ---------------------------------------------------------------------------
+// Gets the employee information for the next logical shift.
+// Determines the next shift block based on the current time and returns employees scheduled for it.
+// Called by: Dashboard_Control::loadShiftPanel()
+// Calls: Config::getOpenHour(), Config::getCloseHour(), QTime::currentTime(), QDate::currentDate(), Database::getInstance(), QSqlQuery::exec()
 QList<ShiftEmployeeInfo> Dashboard_Model::getNextShiftEmployees()
 {
     QList<ShiftEmployeeInfo> result;
     QSqlDatabase db = Database::getInstance()->getDbConnect();
     
+    int openHour = Config::getOpenHour();
+    int closeHour = Config::getCloseHour();
+
     QTime now = QTime::currentTime();
     QDate today = QDate::currentDate();
     QString nextDate = today.toString(Qt::ISODate);
     QString nextBlockStart, nextBlockEnd;
 
-    // Calculate the exact start time and date of the next logical shift block: Morning -> Afternoon -> Evening -> Morning
-    if (now < QTime(7, 0)) {
-        nextBlockStart = "07:00:00"; nextBlockEnd = "12:00:00"; // Currently early morning -> next shift is today's morning shift
+    // Calculate the exact start time and date of the next logical shift block
+    if (now < QTime(openHour, 0)) {
+        nextBlockStart = QString("%1:00:00").arg(openHour, 2, 10, QChar('0'));
+        nextBlockEnd = "12:00:00";
     } else if (now < QTime(12, 0)) {
-        nextBlockStart = "12:00:00"; nextBlockEnd = "17:00:00"; // Currently in morning shift -> next shift is afternoon
+        nextBlockStart = "12:00:00";
+        nextBlockEnd = "17:00:00";
     } else if (now < QTime(17, 0)) {
-        nextBlockStart = "17:00:00"; nextBlockEnd = "22:00:00"; // Currently in afternoon shift -> next shift is evening
+        nextBlockStart = "17:00:00";
+        nextBlockEnd = QString("%1:00:00").arg(closeHour, 2, 10, QChar('0'));
     } else {
-        nextBlockStart = "07:00:00"; nextBlockEnd = "12:00:00"; // After 17:00 (evening shift or closed) -> next shift is tomorrow morning
+        nextBlockStart = QString("%1:00:00").arg(openHour, 2, 10, QChar('0'));
+        nextBlockEnd = "12:00:00";
         nextDate = today.addDays(1).toString(Qt::ISODate);
     }
 
@@ -101,9 +114,10 @@ QList<ShiftEmployeeInfo> Dashboard_Model::getNextShiftEmployees()
 }
 
 
-// ---------------------------------------------------------------------------
-// Return salary statistics comparing (year-1) vs (year), grouped by month.
-// ---------------------------------------------------------------------------
+// Calculates salary statistics for the given year and the previous year.
+// Aggregates total salary per month, accounting for fixed salaries and hourly wages with holiday multipliers.
+// Called by: Dashboard_Control::loadSalaryChart()
+// Calls: Database::getInstance(), QSqlQuery::exec(), QDate::daysInMonth()
 SalaryChartData Dashboard_Model::getSalaryStats(int year)
 {
     SalaryChartData data;

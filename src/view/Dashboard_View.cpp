@@ -3,9 +3,7 @@
 #include "control/Dashboard_Control.h"
 #include "employeecard.h"
 
-// ---------------------------------------------------------------------------
-// Helper: create a white rounded card with a title header and inner layout
-// ---------------------------------------------------------------------------
+// Creates a styled card widget with an optional title header and inner layout.
 QFrame* Dashboard_View::makeCard(const QString& title, QLayout* innerLayout, bool isDark)
 {
     QFrame* card = new QFrame();
@@ -57,9 +55,7 @@ QFrame* Dashboard_View::makeCard(const QString& title, QLayout* innerLayout, boo
     return card;
 }
 
-// ---------------------------------------------------------------------------
-// Constructor: build the 2x2 grid programmatically
-// ---------------------------------------------------------------------------
+// Initializes the dashboard view and programmatically builds the 2x2 grid layout.
 Dashboard_View::Dashboard_View(Dashboard_Control *controller, QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::Dashboard_View)
@@ -69,7 +65,7 @@ Dashboard_View::Dashboard_View(Dashboard_Control *controller, QWidget *parent)
 
     // Legacy widgets were removed from the .ui file, so no need to hide them anymore.
 
-    // -- Panel 1 (Top-Left): Employees in current shift ---------------------
+    // Initialize Panel 1 (Top-Left): Current shift employees
     ui->scrollAreaEmployees->setStyleSheet(
         "QScrollArea { background: transparent; border: none; }"
         "QScrollArea > QWidget > QWidget { background: transparent; }"
@@ -88,7 +84,7 @@ Dashboard_View::Dashboard_View(Dashboard_Control *controller, QWidget *parent)
     empLayout->addWidget(ui->scrollAreaEmployees);
     QFrame* frame1 = makeCard("Nhân Viên Trong Ca Hiện Tại", empLayout);
 
-    // -- Panel 2 (Top-Right): Next shift employees ---------------------------
+    // Initialize Panel 2 (Top-Right): Next shift employees
     m_nextShiftLayout = new QVBoxLayout();
     m_nextShiftLayout->setContentsMargins(0, 0, 0, 0);
     m_nextShiftLayout->setSpacing(6);
@@ -107,7 +103,7 @@ Dashboard_View::Dashboard_View(Dashboard_Control *controller, QWidget *parent)
     nextOuter->addWidget(scrollNext);
     QFrame* frame2 = makeCard(QString::fromUtf8("Ca Làm Tiếp Theo"), nextOuter, true);
 
-    // -- Panel 4 (Bottom-Right): Absent employees ----------------------------
+    // Initialize Panel 4 (Bottom-Right): Absent employees
     m_absentLayout = new QVBoxLayout();
     m_absentLayout->setContentsMargins(0, 0, 0, 0);
     m_absentLayout->setSpacing(6);
@@ -126,7 +122,7 @@ Dashboard_View::Dashboard_View(Dashboard_Control *controller, QWidget *parent)
     absentOuter->addWidget(scrollAbsent);
     QFrame* frame3 = makeCard(QString::fromUtf8("Nhân Viên Nghỉ"), absentOuter, true);
 
-    // -- Panel 3 (Bottom-Left): Salary bar chart with year tabs --------------
+    // Initialize Panel 3 (Bottom-Left): Salary bar chart with year selection tabs
     m_yearTabBar = new QTabBar();
     m_yearTabBar->setStyleSheet(
         "QTabBar::tab {"
@@ -192,7 +188,7 @@ Dashboard_View::Dashboard_View(Dashboard_Control *controller, QWidget *parent)
     m_salaryCard->setStyleSheet(
         "QFrame { background-color: #ffffff; border-radius: 16px; border: 1px solid #eef0f4; }");
 
-    // -- Clear old layout from pageOverview and install 2-column grid --------
+    // Clear existing layout and install the 2x2 grid for panels
     QLayout* oldLayout = ui->pageOverview->layout();
     if (oldLayout) {
         QLayoutItem* item;
@@ -220,9 +216,7 @@ Dashboard_View::Dashboard_View(Dashboard_Control *controller, QWidget *parent)
 
 Dashboard_View::~Dashboard_View() { delete ui; }
 
-// ---------------------------------------------------------------------------
-// Year tab clicked -> emit signal to Controller
-// ---------------------------------------------------------------------------
+// Emits a signal to the controller when a year tab is clicked.
 void Dashboard_View::onYearTabClicked(int index)
 {
     if (index >= 0 && index < m_availableYears.size())
@@ -238,9 +232,7 @@ void Dashboard_View::setSalaryChartVisible(bool visible)
     }
 }
 
-// ---------------------------------------------------------------------------
-// Bar hovered -> show tooltip with month total in VND
-// ---------------------------------------------------------------------------
+// Shows a tooltip with formatted currency when hovering over a chart bar.
 void Dashboard_View::onBarHovered(bool status, int index, QBarSet* barSet)
 {
     if (!status || !barSet) {
@@ -264,9 +256,7 @@ void Dashboard_View::onBarHovered(bool status, int index, QBarSet* barSet)
     m_tooltipLabel->show();
 }
 
-// ---------------------------------------------------------------------------
-// Panel 1: clear all employee cards
-// ---------------------------------------------------------------------------
+// Clears all employee cards from Panel 1.
 void Dashboard_View::clearEmployeeGrid()
 {
     QLayout* old = m_empGridWidget->layout();
@@ -279,9 +269,7 @@ void Dashboard_View::clearEmployeeGrid()
     delete old;
 }
 
-// ---------------------------------------------------------------------------
-// Panel 1: add a single employee card in a 4-column grid (auto-wraps down)
-// ---------------------------------------------------------------------------
+// Adds a single employee card to Panel 1 using a responsive 4-column grid layout.
 void Dashboard_View::addEmployeeCard(EmployeeCard* card)
 {
     QGridLayout* grid = qobject_cast<QGridLayout*>(m_empGridWidget->layout());
@@ -303,9 +291,8 @@ void Dashboard_View::addEmployeeCard(EmployeeCard* card)
     grid->addWidget(card, count / COLS, count % COLS);
 }
 
-// ---------------------------------------------------------------------------
-// Panel 2: render next-shift employee rows with avatar initial + info
-// ---------------------------------------------------------------------------
+// Renders the next-shift employee list in Panel 2.
+// Displays an avatar (image or initial), name, phone, and role badge for each entry.
 void Dashboard_View::updateNextShiftPanel(const QList<ShiftEmployeeInfo>& entries)
 {
     // Remove all except trailing stretch
@@ -411,9 +398,8 @@ void Dashboard_View::updateNextShiftPanel(const QList<ShiftEmployeeInfo>& entrie
     }
 }
 
-// ---------------------------------------------------------------------------
-// Panel 4: render absent employee rows
-// ---------------------------------------------------------------------------
+// Renders the absent employee list in Panel 4.
+// Similar to Panel 2, but applies a distinct red background for missing avatars.
 void Dashboard_View::updateAbsentPanel(const QList<ShiftEmployeeInfo>& entries)
 {
     // Remove all except trailing stretch
@@ -518,9 +504,8 @@ void Dashboard_View::updateAbsentPanel(const QList<ShiftEmployeeInfo>& entries)
     }
 }
 
-// ---------------------------------------------------------------------------
-// Panel 3: update chart bars and year tabs
-// ---------------------------------------------------------------------------
+// Updates the salary bar chart data and year tabs in Panel 3.
+// Recreates the chart series and adjusts axes based on the provided statistics.
 void Dashboard_View::updateSalaryChart(const QVector<double>& lastYear, const QVector<double>& thisYear, int lastYearEmpCount, int thisYearEmpCount, int selectedYear)
 {
     // Disconnect temporarily to avoid triggering onYearChanged
