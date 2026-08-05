@@ -114,19 +114,25 @@ void Notification_View::setNotifications(const QList<NotificationInfo> &notifica
         auto *action = new QPushButton(notificationTable);
         action->setMinimumHeight(32);
         action->setMinimumWidth(112);
+        const bool isPendingLeaveRequest =
+            notification.relatedLeaveRequestStatus.isEmpty() ||
+            notification.relatedLeaveRequestStatus == "Pending";
         if (managerMode && notification.type == "LEAVE_SUBMITTED" &&
-            notification.status == "Unread" &&
-            notification.relatedLeaveRequestId > 0) {
+            notification.relatedLeaveRequestId > 0 && isPendingLeaveRequest) {
             action->setText(QString::fromUtf8("Duyệt yêu cầu"));
             connect(action, &QPushButton::clicked, this,
                     [this, notification] {
                         emit reviewLeaveRequested(notification.id,
                                                   notification.relatedLeaveRequestId);
                     });
-        } else if (managerMode && notification.type == "LEAVE_APPROVED") {
+        } else if (managerMode && notification.relatedLeaveRequestId > 0 &&
+                   (notification.type == "LEAVE_APPROVED" ||
+                    notification.relatedLeaveRequestStatus == "Approved")) {
             action->setText(QString::fromUtf8("Đã duyệt"));
             action->setEnabled(false);
-        } else if (managerMode && notification.type == "LEAVE_DECLINED") {
+        } else if (managerMode && notification.relatedLeaveRequestId > 0 &&
+                   (notification.type == "LEAVE_DECLINED" ||
+                    notification.relatedLeaveRequestStatus == "Declined")) {
             action->setText(QString::fromUtf8("Đã từ chối"));
             action->setEnabled(false);
         } else if (managerMode && notification.type == "SHIFT_SUBMITTED") {

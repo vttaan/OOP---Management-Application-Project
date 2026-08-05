@@ -90,6 +90,8 @@ void Schedule_View::setManagerMode(bool isManager)
     ui->buttonLuu->setVisible(false);
     if (requestLeaveButton)
       requestLeaveButton->setVisible(false);
+    if (leaveHistoryButton)
+      leaveHistoryButton->setVisible(false);
 
     ui->btnGenSchedule->setVisible(true);
     ui->btnGenSchedule->setEnabled(true);
@@ -157,6 +159,8 @@ void Schedule_View::setManagerMode(bool isManager)
     ui->buttonLuu->setVisible(true);
     if (requestLeaveButton)
       requestLeaveButton->setVisible(true);
+    if (leaveHistoryButton)
+      leaveHistoryButton->setVisible(true);
 
     ui->btnGenSchedule->setVisible(false);
     ui->btnGenSchedule->setEnabled(false);

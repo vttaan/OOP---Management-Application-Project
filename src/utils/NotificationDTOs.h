@@ -12,6 +12,7 @@ struct NotificationInfo {
     QString status = "Unread";
     int relatedShiftId = 0;
     int relatedLeaveRequestId = 0;
+    QString relatedLeaveRequestStatus;
     QDateTime createdAt;
     QDateTime readAt;
 };

@@ -17,16 +17,18 @@ QList<NotificationInfo> Notification_Model::getNotifications(
         return result;
 
     QSqlQuery query(Database::getInstance()->getDbConnect());
-    QString sql = "SELECT id, recipientEmployeeId, type, title, message, status, "
-                  "relatedShiftId, relatedLeaveRequestId, createdAt, readAt "
-                  "FROM NOTIFICATION WHERE recipientEmployeeId = :employee";
+    QString sql = "SELECT N.id, N.recipientEmployeeId, N.type, N.title, N.message, N.status, "
+                  "N.relatedShiftId, N.relatedLeaveRequestId, L.status, N.createdAt, N.readAt "
+                  "FROM NOTIFICATION N LEFT JOIN LEAVE_REQUEST L "
+                  "ON L.id = N.relatedLeaveRequestId "
+                  "WHERE N.recipientEmployeeId = :employee";
     if (filter == "Unread")
-        sql += " AND status = 'Unread'";
+        sql += " AND N.status = 'Unread'";
     else if (filter == "Shift")
-        sql += " AND type LIKE 'SHIFT_%'";
+        sql += " AND N.type LIKE 'SHIFT_%'";
     else if (filter == "Leave")
-        sql += " AND type LIKE 'LEAVE_%'";
-    sql += " ORDER BY createdAt DESC, id DESC";
+        sql += " AND N.type LIKE 'LEAVE_%'";
+    sql += " ORDER BY N.createdAt DESC, N.id DESC";
 
     query.prepare(sql);
     query.bindValue(":employee", employeeId);
@@ -43,8 +45,9 @@ QList<NotificationInfo> Notification_Model::getNotifications(
         info.status = query.value(5).toString();
         info.relatedShiftId = query.value(6).toInt();
         info.relatedLeaveRequestId = query.value(7).toInt();
-        info.createdAt = readDateTime(query.value(8));
-        info.readAt = readDateTime(query.value(9));
+        info.relatedLeaveRequestStatus = query.value(8).toString();
+        info.createdAt = readDateTime(query.value(9));
+        info.readAt = readDateTime(query.value(10));
         result.append(info);
     }
     return result;
@@ -91,6 +94,25 @@ bool Notification_Model::markLeaveRequestReviewed(int notificationId,
     query.bindValue(":at", QDateTime::currentDateTimeUtc().toString(Qt::ISODate));
     query.bindValue(":id", notificationId);
     query.bindValue(":employee", employeeId);
+    return query.exec();
+}
+
+bool Notification_Model::markLeaveRequestReviewedByRequest(int leaveRequestId,
+                                                            bool approved) const {
+    if (leaveRequestId <= 0)
+        return false;
+
+    QSqlQuery query(Database::getInstance()->getDbConnect());
+    query.prepare("UPDATE NOTIFICATION SET type = :type, title = :title, "
+                  "status = 'Read', readAt = :at "
+                  "WHERE relatedLeaveRequestId = :leave "
+                  "AND type = 'LEAVE_SUBMITTED'");
+    query.bindValue(":type", approved ? "LEAVE_APPROVED" : "LEAVE_DECLINED");
+    query.bindValue(":title", approved
+                    ? QString::fromUtf8("Yêu cầu nghỉ phép đã được duyệt")
+                    : QString::fromUtf8("Yêu cầu nghỉ phép đã bị từ chối"));
+    query.bindValue(":at", QDateTime::currentDateTimeUtc().toString(Qt::ISODate));
+    query.bindValue(":leave", leaveRequestId);
     return query.exec();
 }
 

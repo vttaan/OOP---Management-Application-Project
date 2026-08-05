@@ -62,6 +62,13 @@ Control_Navigator::Control_Navigator()
     QObject::connect(this->notificationController,
                      &Notification_Control::openManagerScheduleRequested,
                      this, [this]() { switchTab(6); });
+    QObject::connect(this->notificationController,
+                     &Notification_Control::leaveRequestDecisionCompleted,
+                     this, [this]() { this->dashboardController->init(); });
+    QObject::connect(this->dashboardController,
+                     &Dashboard_Control::leaveRequestDecisionCompleted,
+                     this->notificationController,
+                     &Notification_Control::refreshUnreadCount);
 
     QObject::connect(this->loginController, &Login_Control::loginSuccessful,
                      this->viewWindow, [this]()

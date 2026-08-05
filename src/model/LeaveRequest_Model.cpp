@@ -197,6 +197,36 @@ QList<LeaveRequestInfo> LeaveRequest_Model::getLeaveRequestsForEmployee(int empl
     return result;
 }
 
+QList<LeaveRequestInfo> LeaveRequest_Model::getPendingLeaveRequests() const
+{
+    QList<LeaveRequestInfo> result;
+    QSqlQuery query(Database::getInstance()->getDbConnect());
+    if (!query.exec(
+            "SELECT L.id, L.idEmployee, P.name, L.leaveDate, L.relatedShiftId, "
+            "L.reason, L.status, L.requestedAt, L.decidedAt, L.decidedBy, "
+            "L.decisionReason FROM LEAVE_REQUEST L "
+            "JOIN PROFILES P ON P.idEmployee = L.idEmployee "
+            "WHERE L.status = 'Pending' ORDER BY L.requestedAt ASC, L.id ASC"))
+        return result;
+
+    while (query.next()) {
+        LeaveRequestInfo info;
+        info.id = query.value(0).toInt();
+        info.employeeId = query.value(1).toInt();
+        info.employeeName = query.value(2).toString();
+        info.leaveDate = databaseDate(query.value(3));
+        info.relatedShiftId = query.value(4).toInt();
+        info.reason = query.value(5).toString();
+        info.status = query.value(6).toString();
+        info.requestedAt = readDateTime(query.value(7));
+        info.decidedAt = readDateTime(query.value(8));
+        info.decidedBy = query.value(9).toInt();
+        info.decisionReason = query.value(10).toString();
+        result.append(info);
+    }
+    return result;
+}
+
 bool LeaveRequest_Model::decideLeaveRequest(int requestId, int managerId, bool approved,
                                             const QString &decisionReason,
                                             QString *error) const
@@ -216,6 +246,16 @@ bool LeaveRequest_Model::decideLeaveRequest(int requestId, int managerId, bool a
         return false;
     };
 
+    QSqlQuery managerProfile(database);
+    managerProfile.prepare("SELECT role FROM PROFILES WHERE idEmployee = :manager");
+    managerProfile.bindValue(":manager", managerId);
+    if (!managerProfile.exec())
+        return fail(managerProfile.lastError().text());
+    if (!managerProfile.next() ||
+        (managerProfile.value(0).toString() != "Manager" &&
+         managerProfile.value(0).toString() != "Admin"))
+        return fail(QString::fromUtf8("Chỉ quản lý hoặc quản trị viên mới có thể duyệt yêu cầu."));
+
     QSqlQuery requestQuery(database);
     requestQuery.prepare("SELECT idEmployee, leaveDate FROM LEAVE_REQUEST "
                          "WHERE id = :id AND status = 'Pending'");
@@ -230,7 +270,8 @@ bool LeaveRequest_Model::decideLeaveRequest(int requestId, int managerId, bool a
     const QString newStatus = approved ? "Approved" : "Declined";
     QSqlQuery updateRequest(database);
     updateRequest.prepare("UPDATE LEAVE_REQUEST SET status = :status, decidedAt = :at, "
-                          "decidedBy = :manager, decisionReason = :reason WHERE id = :id");
+                          "decidedBy = :manager, decisionReason = :reason "
+                          "WHERE id = :id AND status = 'Pending'");
     updateRequest.bindValue(":status", newStatus);
     updateRequest.bindValue(":at", QDateTime::currentDateTimeUtc().toString(Qt::ISODate));
     updateRequest.bindValue(":manager", managerId);

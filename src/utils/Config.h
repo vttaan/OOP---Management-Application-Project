@@ -105,6 +105,9 @@ public:
 
     static short getMinimumDaysWorkPerWeek_FT() { return minimumDaysWorkPerWeek_FT; }
     static short getMaximumAbsentPerWeek_FT() { return maximumAbsentPerWeek_FT; }
+    // SYSTEM_CONFIG stores the full-time monthly leave limit under the
+    // historical maximumAbsentPerWeek_FT field used by the settings screen.
+    static short getMaximumLeavePerMonth_FT() { return maximumAbsentPerWeek_FT; }
 
     static short getMinimumDaysWorkPerWeek_PT() { return minimumDaysWorkPerWeek_PT; }
     static short getMinimumHourWorkPerDay_PT() { return minimumHourWorkPerDay_PT; }

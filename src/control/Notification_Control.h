@@ -17,6 +17,7 @@ public:
 signals:
     void unreadCountChanged(int count);
     void openManagerScheduleRequested();
+    void leaveRequestDecisionCompleted();
 
 private slots:
     void markRead(int notificationId);

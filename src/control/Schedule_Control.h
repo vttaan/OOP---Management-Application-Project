@@ -85,6 +85,7 @@ private slots:
     void onUndoManagerDraft();
     void onClearManagerDraft();
     void onLeaveRequested();
+    void onLeaveHistoryRequested();
 
 
 signals:
