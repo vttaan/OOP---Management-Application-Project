@@ -10,6 +10,7 @@ public:
     bool submitLeaveRequest(int employeeId, int shiftId, const QString &reason,
                             QString *error = nullptr) const;
     QList<LeaveRequestInfo> getLeaveRequestsForEmployee(int employeeId) const;
+    QList<LeaveRequestInfo> getPendingLeaveRequests() const;
     bool decideLeaveRequest(int requestId, int managerId, bool approved,
                             const QString &decisionReason,
                             QString *error = nullptr) const;

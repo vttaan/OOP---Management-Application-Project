@@ -263,6 +263,15 @@ Schedule_View::Schedule_View(QWidget *parent)
   ui->headerLayout->insertWidget(1, requestLeaveButton);
   connect(requestLeaveButton, &QPushButton::clicked, this,
           &Schedule_View::requestLeave);
+  leaveHistoryButton = new QPushButton(QString::fromUtf8("Lịch sử nghỉ phép"), this);
+  leaveHistoryButton->setCursor(Qt::PointingHandCursor);
+  leaveHistoryButton->setStyleSheet(
+      "QPushButton{background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;"
+      "border-radius:7px;padding:7px 12px;font-weight:700;}"
+      "QPushButton:hover{background:#DBEAFE;}");
+  ui->headerLayout->insertWidget(2, leaveHistoryButton);
+  connect(leaveHistoryButton, &QPushButton::clicked, this,
+          &Schedule_View::requestLeaveHistory);
 }
 
 Schedule_View::~Schedule_View() { delete ui; }

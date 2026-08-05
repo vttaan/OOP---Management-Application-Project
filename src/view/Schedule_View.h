@@ -116,6 +116,7 @@ private:
     QPushButton*    managerUndoDraftButton = nullptr;
     QPushButton*    managerClearDraftButton = nullptr;
     QPushButton*    requestLeaveButton = nullptr;
+    QPushButton*    leaveHistoryButton = nullptr;
     QFrame*         shiftDetailDrawer = nullptr;
     QVBoxLayout*    shiftDetailDrawerLayout = nullptr;
     QPushButton*    activeManagerAddButton = nullptr;
@@ -186,6 +187,7 @@ signals:
     void requestUndoManagerDraft();
     void requestClearManagerDraft();
     void requestLeave();
+    void requestLeaveHistory();
 
 private slots:
     void buttonSaveClicked();

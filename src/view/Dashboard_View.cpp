@@ -188,7 +188,29 @@ Dashboard_View::Dashboard_View(Dashboard_Control *controller, QWidget *parent)
     m_salaryCard->setStyleSheet(
         "QFrame { background-color: #ffffff; border-radius: 16px; border: 1px solid #eef0f4; }");
 
-    // Clear existing layout and install the 2x2 grid for panels
+    // -- Manager-only panel: pending leave requests -------------------------
+    m_leaveRequestLayout = new QVBoxLayout();
+    m_leaveRequestLayout->setContentsMargins(0, 0, 0, 0);
+    m_leaveRequestLayout->setSpacing(6);
+    m_leaveRequestLayout->addStretch();
+    QScrollArea* leaveRequestScroll = new QScrollArea();
+    leaveRequestScroll->setWidgetResizable(true);
+    leaveRequestScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    leaveRequestScroll->setStyleSheet(
+        "QScrollArea { background: transparent; border: none; }");
+    QWidget* leaveRequestWrapper = new QWidget();
+    leaveRequestWrapper->setStyleSheet("background: transparent;");
+    leaveRequestWrapper->setLayout(m_leaveRequestLayout);
+    leaveRequestScroll->setWidget(leaveRequestWrapper);
+    QVBoxLayout* leaveRequestOuter = new QVBoxLayout();
+    leaveRequestOuter->setContentsMargins(0, 0, 0, 0);
+    leaveRequestOuter->addWidget(leaveRequestScroll);
+    m_leaveRequestCard = makeCard(QString::fromUtf8("Yêu Cầu Nghỉ Phép"),
+                                  leaveRequestOuter, true);
+    m_leaveRequestCard->setMinimumHeight(220);
+    m_leaveRequestCard->setVisible(false);
+
+    // -- Clear old layout from pageOverview and install 2-column grid --------
     QLayout* oldLayout = ui->pageOverview->layout();
     if (oldLayout) {
         QLayoutItem* item;
@@ -207,11 +229,13 @@ Dashboard_View::Dashboard_View(Dashboard_Control *controller, QWidget *parent)
     grid->setColumnStretch(1, 25);
     grid->setRowStretch(0, 4);
     grid->setRowStretch(1, 6);
+    grid->setRowStretch(2, 4);
 
     grid->addWidget(frame1, 0, 0);
     grid->addWidget(frame2, 0, 1);
     grid->addWidget(m_salaryCard, 1, 0);
     grid->addWidget(frame3, 1, 1);
+    grid->addWidget(m_leaveRequestCard, 2, 0, 1, 2);
 }
 
 Dashboard_View::~Dashboard_View() { delete ui; }
@@ -398,8 +422,79 @@ void Dashboard_View::updateNextShiftPanel(const QList<ShiftEmployeeInfo>& entrie
     }
 }
 
-// Renders the absent employee list in Panel 4.
-// Similar to Panel 2, but applies a distinct red background for missing avatars.
+void Dashboard_View::setLeaveRequestPanelVisible(bool visible)
+{
+    if (m_leaveRequestCard)
+        m_leaveRequestCard->setVisible(visible);
+}
+
+void Dashboard_View::updateLeaveRequestPanel(const QList<LeaveRequestInfo>& requests)
+{
+    if (!m_leaveRequestLayout)
+        return;
+
+    while (m_leaveRequestLayout->count() > 1) {
+        QLayoutItem* item = m_leaveRequestLayout->takeAt(0);
+        if (item->widget()) item->widget()->deleteLater();
+        delete item;
+    }
+
+    auto *summary = new QLabel(
+        QString::fromUtf8("%1 yêu cầu đang chờ duyệt").arg(requests.size()));
+    summary->setStyleSheet(
+        "color:#B45309;font-size:12px;font-weight:700;padding:0 2px;"
+        "background:transparent;border:none;");
+    m_leaveRequestLayout->insertWidget(0, summary);
+
+    if (requests.isEmpty()) {
+        auto *empty = new QLabel(QString::fromUtf8("Không có yêu cầu nghỉ phép đang chờ."));
+        empty->setStyleSheet(
+            "color:#64748B;font-style:italic;padding:8px 2px;"
+            "background:transparent;border:none;");
+        m_leaveRequestLayout->insertWidget(1, empty);
+        return;
+    }
+
+    int index = 1;
+    for (const LeaveRequestInfo& request : requests) {
+        auto *row = new QFrame();
+        row->setStyleSheet(
+            "QFrame{background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;}"
+            "QLabel{background:transparent;border:none;}");
+        auto *layout = new QHBoxLayout(row);
+        layout->setContentsMargins(10, 8, 10, 8);
+        layout->setSpacing(8);
+
+        auto *details = new QLabel(
+            QString("%1  •  %2\n%3")
+                .arg(request.employeeName,
+                     request.leaveDate.toString("dd/MM/yyyy"),
+                     request.reason));
+        details->setWordWrap(true);
+        details->setStyleSheet("color:#334155;font-size:12px;");
+        layout->addWidget(details, 1);
+
+        auto *approve = new QPushButton(QString::fromUtf8("Duyệt"), row);
+        approve->setStyleSheet(
+            "QPushButton{background:#16A34A;color:white;border:none;border-radius:6px;"
+            "padding:6px 10px;font-weight:700;} QPushButton:hover{background:#15803D;}");
+        auto *decline = new QPushButton(QString::fromUtf8("Từ chối"), row);
+        decline->setStyleSheet(
+            "QPushButton{background:#FFFFFF;color:#B91C1C;border:1px solid #FCA5A5;border-radius:6px;"
+            "padding:6px 10px;font-weight:700;} QPushButton:hover{background:#FEF2F2;}");
+        connect(approve, &QPushButton::clicked, this,
+                [this, request] { emit leaveRequestReviewRequested(request.id, true); });
+        connect(decline, &QPushButton::clicked, this,
+                [this, request] { emit leaveRequestReviewRequested(request.id, false); });
+        layout->addWidget(approve);
+        layout->addWidget(decline);
+        m_leaveRequestLayout->insertWidget(index++, row);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Panel 4: render absent employee rows
+// ---------------------------------------------------------------------------
 void Dashboard_View::updateAbsentPanel(const QList<ShiftEmployeeInfo>& entries)
 {
     // Remove all except trailing stretch

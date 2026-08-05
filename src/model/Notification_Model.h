@@ -11,6 +11,7 @@ public:
     bool markAsRead(int notificationId, int employeeId) const;
     bool markLeaveRequestReviewed(int notificationId, int employeeId,
                                   bool approved) const;
+    bool markLeaveRequestReviewedByRequest(int leaveRequestId, bool approved) const;
     bool markAllAsRead(int employeeId) const;
 
     static bool create(QSqlDatabase &database, int recipientEmployeeId,

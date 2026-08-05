@@ -4,6 +4,8 @@
 #include "utils/SessionManage.h"
 #include "model/Employee_Model.h"
 #include "model/Dashboard_Model.h"
+#include "model/LeaveRequest_Model.h"
+#include "model/Notification_Model.h"
 
 class Dashboard_View;
 
@@ -15,6 +17,8 @@ private:
     Dashboard_View  *view;
     Employee_Model  *empModel;
     Dashboard_Model *dashModel;     // Owns all DB logic for the dashboard
+    LeaveRequest_Model leaveRequestModel;
+    Notification_Model notificationModel;
     class QTimer *m_refreshTimer;
 
     int m_selectedYear = 0;         // Year currently shown in the chart
@@ -22,6 +26,7 @@ private:
     void loadEmployeeCards(const QList<User*>& list);
     void loadShiftPanel();
     void loadSalaryChart();
+    void loadLeaveRequestPanel();
     void scheduleNextHourRefresh();
 
 public:
@@ -34,8 +39,10 @@ public:
 
 signals:
     void profilePageClicked();
+    void leaveRequestDecisionCompleted();
 
 public slots:
     void onYearChanged(int year);   // Triggered by View when user picks a different year tab
     void autoRefresh();             // Triggered by timer every minute
+    void reviewLeaveRequest(int requestId, bool approved);
 };

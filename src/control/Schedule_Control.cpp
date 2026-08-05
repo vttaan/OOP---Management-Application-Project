@@ -90,6 +90,8 @@ void Schedule_Control::setView(Schedule_View *v)
             this, &Schedule_Control::onClearManagerDraft);
     connect(view, &Schedule_View::requestLeave,
             this, &Schedule_Control::onLeaveRequested);
+    connect(view, &Schedule_View::requestLeaveHistory,
+            this, &Schedule_Control::onLeaveHistoryRequested);
 }
 
 void Schedule_Control::onLeaveRequested()
@@ -118,9 +120,10 @@ void Schedule_Control::onLeaveRequested()
         "QLabel{color:#334155;font-weight:600;}"
         "QListWidget,QPlainTextEdit{background:#FFFFFF;color:#1E293B;"
         "border:1px solid #CBD5E1;border-radius:6px;padding:6px;}"
-        "QListWidget::item{padding:9px;border-bottom:none;}"
+        "QListWidget::item{padding:9px;border:1px solid transparent;border-bottom:none;}"
         "QListWidget::item:selected,QListWidget::item:selected:active,"
-        "QListWidget::item:selected:!active{background:transparent;color:#1E293B;}"
+        "QListWidget::item:selected:!active{background:transparent;color:#1E293B;"
+        "border:1px solid #2563EB;border-left:4px solid #2563EB;border-radius:6px;}"
         "QPushButton{background:#FFFFFF;color:#334155;border:1px solid #CBD5E1;"
         "border-radius:6px;padding:7px 14px;font-weight:700;}"
         "QPushButton:hover{background:#F1F5F9;}");
@@ -182,6 +185,69 @@ void Schedule_Control::onLeaveRequested()
 
     if (dialog.exec() == QDialog::Accepted)
         view->showSuccess(QString::fromUtf8("Đã gửi yêu cầu nghỉ phép. Vui lòng chờ quản lý duyệt."));
+}
+
+void Schedule_Control::onLeaveHistoryRequested()
+{
+    if (!view || currentEmployeeId < 0)
+        return;
+
+    const QList<LeaveRequestInfo> requests =
+        leaveRequestModel.getLeaveRequestsForEmployee(currentEmployeeId);
+    QDialog dialog(view);
+    dialog.setWindowTitle(QString::fromUtf8("Lịch sử yêu cầu nghỉ phép"));
+    dialog.resize(760, 400);
+    dialog.setStyleSheet(
+        "QDialog{background:#F8FAFC;color:#1E293B;}"
+        "QTableWidget{background:#FFFFFF;color:#1E293B;border:1px solid #CBD5E1;border-radius:7px;}"
+        "QTableWidget::item{background:#FFFFFF;color:#1E293B;border-bottom:1px solid #E2E8F0;padding:7px;}"
+        "QTableWidget::item:selected{background:#EFF6FF;color:#1E293B;}"
+        "QHeaderView::section{background:#EFF6FF;color:#1E3A8A;border:none;padding:8px;font-weight:700;}"
+        "QPushButton{background:#FFFFFF;color:#334155;border:1px solid #CBD5E1;"
+        "border-radius:6px;padding:7px 14px;font-weight:700;}"
+        "QPushButton:hover{background:#F1F5F9;color:#1E293B;}");
+    auto *layout = new QVBoxLayout(&dialog);
+    auto *table = new QTableWidget(&dialog);
+    table->setColumnCount(5);
+    table->setHorizontalHeaderLabels({QString::fromUtf8("Ngày nghỉ"),
+                                      QString::fromUtf8("Lý do"),
+                                      QString::fromUtf8("Trạng thái"),
+                                      QString::fromUtf8("Quyết định lúc"),
+                                      QString::fromUtf8("Ghi chú quản lý")});
+    table->setRowCount(requests.size());
+    table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    table->setSelectionMode(QAbstractItemView::NoSelection);
+    table->verticalHeader()->setVisible(false);
+    table->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+    table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    table->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+    table->horizontalHeader()->setSectionResizeMode(3, QHeaderView::ResizeToContents);
+    table->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Stretch);
+
+    for (int row = 0; row < requests.size(); ++row) {
+        const LeaveRequestInfo &request = requests[row];
+        table->setItem(row, 0, new QTableWidgetItem(request.leaveDate.toString("dd/MM/yyyy")));
+        table->setItem(row, 1, new QTableWidgetItem(request.reason));
+        auto *status = new QTableWidgetItem(
+            request.status == "Approved" ? QString::fromUtf8("Đã duyệt")
+            : request.status == "Declined" ? QString::fromUtf8("Đã từ chối")
+                                           : QString::fromUtf8("Chờ duyệt"));
+        status->setForeground(request.status == "Approved" ? QColor("#15803D")
+                              : request.status == "Declined" ? QColor("#B91C1C")
+                                                             : QColor("#B45309"));
+        table->setItem(row, 2, status);
+        table->setItem(row, 3, new QTableWidgetItem(
+            request.decidedAt.isValid()
+                ? request.decidedAt.toLocalTime().toString("dd/MM/yyyy HH:mm") : "-"));
+        table->setItem(row, 4, new QTableWidgetItem(
+            request.decisionReason.isEmpty() ? "-" : request.decisionReason));
+        table->setRowHeight(row, 48);
+    }
+    layout->addWidget(table);
+    auto *buttons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
+    connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+    layout->addWidget(buttons);
+    dialog.exec();
 }
 
 Schedule_View *Schedule_Control::getView() const

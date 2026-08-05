@@ -72,9 +72,10 @@ void Notification_Control::reviewLeaveRequest(int notificationId, int leaveReque
         QMessageBox::warning(view, QString::fromUtf8("Không thể xử lý"), error);
         return;
     }
-    notificationModel.markLeaveRequestReviewed(
-        notificationId, user->getIdEmployee(), choice == QMessageBox::Yes);
+    notificationModel.markLeaveRequestReviewedByRequest(
+        leaveRequestId, choice == QMessageBox::Yes);
     load();
+    emit leaveRequestDecisionCompleted();
 }
 
 void Notification_Control::openManagerSchedule(int notificationId) {
