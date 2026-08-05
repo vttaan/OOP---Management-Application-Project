@@ -122,7 +122,8 @@ bool LeaveRequest_Model::submitLeaveRequest(int employeeId, int shiftId,
     if (!profile.next())
         return fail(QString::fromUtf8("Không tìm thấy thông tin nhân viên."));
     if (profile.value(0).toBool()) {
-        const int leaveLimit = Config::getMaximumLeavePerMonth_FT();
+        const int leaveLimit = Config::getMaximumAbsentPerWeek_FT();
+
         QSqlQuery count(database);
         count.prepare("SELECT COUNT(*) FROM LEAVE_REQUEST WHERE idEmployee = :employee "
                       "AND status IN ('Pending', 'Approved') "

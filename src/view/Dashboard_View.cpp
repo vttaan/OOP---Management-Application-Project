@@ -285,20 +285,20 @@ void Dashboard_View::clearEmployeeGrid()
 void Dashboard_View::addEmployeeCard(EmployeeCard* card)
 {
     QGridLayout* grid = qobject_cast<QGridLayout*>(m_empGridWidget->layout());
+    const int COLS = 4;
     if (!grid) {
         grid = new QGridLayout(m_empGridWidget);
         grid->setContentsMargins(12, 12, 12, 12);
         grid->setSpacing(16);
-        grid->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+        grid->setAlignment(Qt::AlignTop);
+        for (int i = 0; i < COLS; ++i) {
+            grid->setColumnStretch(i, 1);
+        }
     }
-    // 4 columns
-    const int COLS = 4;
     int count = grid->count();
     
-    // Constrain dimensions to prevent the card from stretching indefinitely across empty columns when there are only 1-2 cards
-    card->setMinimumWidth(220);
-    card->setMaximumWidth(280);
-    card->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    card->setMinimumWidth(150);
+    card->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     
     grid->addWidget(card, count / COLS, count % COLS);
 }
@@ -378,7 +378,13 @@ void Dashboard_View::updateNextShiftPanel(const QList<ShiftEmployeeInfo>& entrie
         nameCol->addWidget(lPhone);
 
         // Role badge
-        QLabel* lRole = new QLabel(e.role);
+        QString displayRole = e.role;
+        if (displayRole.compare("Cashier", Qt::CaseInsensitive) == 0) displayRole = QString::fromUtf8("Thu ngân");
+        else if (displayRole.compare("HallStaff", Qt::CaseInsensitive) == 0) displayRole = QString::fromUtf8("Nhân viên sảnh");
+        else if (displayRole.compare("KitchenAssistant", Qt::CaseInsensitive) == 0) displayRole = QString::fromUtf8("Phụ bếp");
+        else if (displayRole.compare("Manager", Qt::CaseInsensitive) == 0) displayRole = QString::fromUtf8("Quản lý");
+        
+        QLabel* lRole = new QLabel(displayRole);
         lRole->setStyleSheet(
             "font-size:10px; color:#637381; background:transparent; border:none;");
         lRole->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
@@ -479,7 +485,13 @@ void Dashboard_View::updateAbsentPanel(const QList<ShiftEmployeeInfo>& entries)
         nameCol->addWidget(lPhone);
 
         // Role badge
-        QLabel* lRole = new QLabel(e.role);
+        QString displayRole = e.role;
+        if (displayRole.compare("Cashier", Qt::CaseInsensitive) == 0) displayRole = QString::fromUtf8("Thu ngân");
+        else if (displayRole.compare("HallStaff", Qt::CaseInsensitive) == 0) displayRole = QString::fromUtf8("Nhân viên sảnh");
+        else if (displayRole.compare("KitchenAssistant", Qt::CaseInsensitive) == 0) displayRole = QString::fromUtf8("Phụ bếp");
+        else if (displayRole.compare("Manager", Qt::CaseInsensitive) == 0) displayRole = QString::fromUtf8("Quản lý");
+        
+        QLabel* lRole = new QLabel(displayRole);
         lRole->setStyleSheet(
             "font-size:10px; color:#637381; background:transparent; border:none;");
         lRole->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
@@ -571,9 +583,37 @@ void Dashboard_View::updateSalaryChart(const QVector<double>& lastYear, const QV
     m_chart->addAxis(axX, Qt::AlignBottom);
     series->attachAxis(axX);
 
-    QValueAxis* axY = new QValueAxis();
+    // Tính toán max value để set Y axis
+    double maxVal = 0;
+    for (int i = 0; i < 12; ++i) {
+        if (lastYear[i] > maxVal) maxVal = lastYear[i];
+        if (thisYear[i] > maxVal) maxVal = thisYear[i];
+    }
+    
+    if (maxVal == 0) {
+        maxVal = 400000000;
+    }
+    
+    long long step = 100000000;
+    long long maxBound = ((static_cast<long long>(maxVal) / step) + 1) * step;
+    
+    // Nếu maxBound < 400tr thì tối thiểu là 400tr như người dùng ví dụ
+    if (maxBound < 400000000) maxBound = 400000000;
+
+    QCategoryAxis* axY = new QCategoryAxis();
     axY->setTitleText("VNĐ");
-    axY->setLabelFormat("%.0f");
+    
+    for (long long v = 0; v <= maxBound; v += step) {
+        QString label = QString::number(v);
+        for (int j = label.length() - 3; j > 0; j -= 3) {
+            label.insert(j, ".");
+        }
+        axY->append(label, v);
+    }
+    
+    axY->setRange(0, maxBound);
+    axY->setLabelsPosition(QCategoryAxis::AxisLabelsPositionOnValue);
+    
     m_chart->addAxis(axY, Qt::AlignLeft);
     series->attachAxis(axY);
 }

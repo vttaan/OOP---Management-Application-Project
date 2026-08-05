@@ -77,6 +77,7 @@
 #include <QtCharts/QBarSeries>
 #include <QtCharts/QBarSet>
 #include <QtCharts/QBarCategoryAxis>
+#include <QtCharts/QCategoryAxis>
 #include <QtCharts/QValueAxis>
 #include "core/KitchenAssistant.h"
 #include "core/HallStaff.h"
