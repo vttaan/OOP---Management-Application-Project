@@ -18,17 +18,19 @@ QList<NotificationInfo> Notification_Model::getNotifications(
 
     QSqlQuery query(Database::getInstance()->getDbConnect());
     QString sql = "SELECT N.id, N.recipientEmployeeId, N.type, N.title, N.message, N.status, "
-                  "N.relatedShiftId, N.relatedLeaveRequestId, L.status, N.createdAt, N.readAt "
+                  "N.priority, N.dedupeKey, N.relatedShiftId, N.relatedLeaveRequestId, L.status, "
+                  "N.createdAt, N.readAt "
                   "FROM NOTIFICATION N LEFT JOIN LEAVE_REQUEST L "
                   "ON L.id = N.relatedLeaveRequestId "
                   "WHERE N.recipientEmployeeId = :employee";
     if (filter == "Unread")
         sql += " AND N.status = 'Unread'";
     else if (filter == "Shift")
-        sql += " AND N.type LIKE 'SHIFT_%'";
+        sql += " AND (N.type LIKE 'SHIFT_%' OR N.type = 'STAFFING_SHORTAGE')";
     else if (filter == "Leave")
         sql += " AND N.type LIKE 'LEAVE_%'";
-    sql += " ORDER BY CASE WHEN N.status = 'Unread' THEN 0 ELSE 1 END, "
+    sql += " ORDER BY N.priority DESC, "
+           "CASE WHEN N.status = 'Unread' THEN 0 ELSE 1 END, "
            "N.createdAt DESC, N.id DESC";
 
     query.prepare(sql);
@@ -44,11 +46,13 @@ QList<NotificationInfo> Notification_Model::getNotifications(
         info.title = query.value(3).toString();
         info.message = query.value(4).toString();
         info.status = query.value(5).toString();
-        info.relatedShiftId = query.value(6).toInt();
-        info.relatedLeaveRequestId = query.value(7).toInt();
-        info.relatedLeaveRequestStatus = query.value(8).toString();
-        info.createdAt = readDateTime(query.value(9));
-        info.readAt = readDateTime(query.value(10));
+        info.priority = query.value(6).toInt();
+        info.dedupeKey = query.value(7).toString();
+        info.relatedShiftId = query.value(8).toInt();
+        info.relatedLeaveRequestId = query.value(9).toInt();
+        info.relatedLeaveRequestStatus = query.value(10).toString();
+        info.createdAt = readDateTime(query.value(11));
+        info.readAt = readDateTime(query.value(12));
         result.append(info);
     }
     return result;
@@ -141,22 +145,49 @@ bool Notification_Model::deleteAllRead(int employeeId) const {
 bool Notification_Model::create(QSqlDatabase &database, int recipientEmployeeId,
                                 const QString &type, const QString &title,
                                 const QString &message, int relatedShiftId,
-                                int relatedLeaveRequestId) {
+                                int relatedLeaveRequestId, int priority,
+                                const QString &dedupeKey) {
     if (recipientEmployeeId <= 0 || type.isEmpty() || title.isEmpty())
         return false;
     QSqlQuery query(database);
     query.prepare("INSERT INTO NOTIFICATION "
-                  "(recipientEmployeeId, type, title, message, status, relatedShiftId, "
-                  "relatedLeaveRequestId, createdAt) "
-                  "VALUES (:recipient, :type, :title, :message, 'Unread', :shift, :leave, :at)");
+                  "(recipientEmployeeId, type, title, message, status, priority, dedupeKey, "
+                  "relatedShiftId, relatedLeaveRequestId, createdAt) "
+                  "VALUES (:recipient, :type, :title, :message, 'Unread', :priority, :dedupe, "
+                  ":shift, :leave, :at)");
     query.bindValue(":recipient", recipientEmployeeId);
     query.bindValue(":type", type);
     query.bindValue(":title", title);
     query.bindValue(":message", message);
+    query.bindValue(":priority", priority);
+    query.bindValue(":dedupe", dedupeKey.isEmpty() ? QVariant() : QVariant(dedupeKey));
     query.bindValue(":shift", relatedShiftId > 0 ? QVariant(relatedShiftId) : QVariant());
     query.bindValue(":leave", relatedLeaveRequestId > 0 ? QVariant(relatedLeaveRequestId) : QVariant());
     query.bindValue(":at", QDateTime::currentDateTimeUtc().toString(Qt::ISODate));
     return query.exec();
+}
+
+bool Notification_Model::createIfAbsent(QSqlDatabase &database, int recipientEmployeeId,
+                                        const QString &type, const QString &title,
+                                        const QString &message, int priority,
+                                        const QString &dedupeKey, int relatedShiftId,
+                                        int relatedLeaveRequestId) {
+    if (dedupeKey.isEmpty())
+        return create(database, recipientEmployeeId, type, title, message,
+                      relatedShiftId, relatedLeaveRequestId, priority);
+
+    QSqlQuery existing(database);
+    existing.prepare("SELECT 1 FROM NOTIFICATION WHERE recipientEmployeeId = :recipient "
+                     "AND dedupeKey = :dedupe LIMIT 1");
+    existing.bindValue(":recipient", recipientEmployeeId);
+    existing.bindValue(":dedupe", dedupeKey);
+    if (!existing.exec())
+        return false;
+    if (existing.next())
+        return true;
+
+    return create(database, recipientEmployeeId, type, title, message,
+                  relatedShiftId, relatedLeaveRequestId, priority, dedupeKey);
 }
 
 QList<int> Notification_Model::getManagerRecipientIds(QSqlDatabase &database) {

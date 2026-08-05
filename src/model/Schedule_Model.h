@@ -41,6 +41,11 @@ public:
     // grid: col (0-6 Mon-Sun) -> row (0-2 shift) -> { pendingCount, acceptedCount, declinedCount }
     QMap<int, QMap<int, BlockCounts>> getAssignBlockCounts(QDate monday);
 
+    // Publishes deduplicated staffing warnings for managers. The warning
+    // severity uses the same shortage thresholds as the manager schedule view.
+    void publishStaffingWarningNotifications(QDate monday);
+    void publishScheduledStaffingWarningNotifications(QDate today, QTime now);
+
     // Returns all shift requests that touch a given shift block (col=day 0-6, row=shift 0-2)
     QList<PendingShiftInfo> getShiftsForBlock(QDate monday, int col, int row);
 

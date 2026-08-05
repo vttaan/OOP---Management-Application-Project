@@ -18,6 +18,12 @@ public:
     static bool create(QSqlDatabase &database, int recipientEmployeeId,
                        const QString &type, const QString &title,
                        const QString &message, int relatedShiftId = 0,
-                       int relatedLeaveRequestId = 0);
+                       int relatedLeaveRequestId = 0, int priority = 0,
+                       const QString &dedupeKey = {});
+    static bool createIfAbsent(QSqlDatabase &database, int recipientEmployeeId,
+                               const QString &type, const QString &title,
+                               const QString &message, int priority,
+                               const QString &dedupeKey, int relatedShiftId = 0,
+                               int relatedLeaveRequestId = 0);
     static QList<int> getManagerRecipientIds(QSqlDatabase &database);
 };

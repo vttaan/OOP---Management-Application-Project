@@ -158,6 +158,33 @@ void Schedule_View::setManagerMode(bool isManager)
       missingStaffWidget->setVisible(false);
   }
 }
+
+void Schedule_View::setManagerAssignmentState(bool isOpen, QDate nextOpenDate)
+{
+  m_managerAssignmentOpen = isOpen;
+  const QString tooltip = isOpen
+      ? QString()
+      : QString::fromUtf8("Xếp lịch chỉ mở vào ngày đã cấu hình%1.")
+            .arg(nextOpenDate.isValid()
+                     ? QString::fromUtf8(" (%1)")
+                           .arg(nextOpenDate.toString("dd/MM/yyyy"))
+                     : QString());
+
+  ui->tableSum->setEnabled(isOpen);
+  ui->tableSum->setToolTip(tooltip);
+  ui->btnGenSchedule->setEnabled(isOpen);
+  ui->btnGenSchedule->setToolTip(tooltip);
+  ui->btnConfirm->setEnabled(isOpen);
+  ui->btnConfirm->setToolTip(tooltip);
+  if (missingStaffWidget)
+  {
+    missingStaffWidget->setEnabled(isOpen);
+    missingStaffWidget->setToolTip(tooltip);
+  }
+  if (activeManagerAddButton)
+    activeManagerAddButton->setEnabled(isOpen &&
+                                       !m_managerEmployeeSelections.isEmpty());
+}
 // ─── Xem Lich Lam grid (accepted shifts) ─────────────────────────────────────
 void Schedule_View::updateManagerPendingGrid(
     const QMap<int, QMap<int, ShiftBlock *>> &grid)
@@ -411,8 +438,10 @@ void Schedule_View::updateAssignGrid(
 void Schedule_View::setManagerDraftStatus(int changeCount)
 {
   if (lblManagerDraft) lblManagerDraft->setText(QString::number(changeCount));
-  if (managerUndoDraftButton) managerUndoDraftButton->setEnabled(changeCount > 0);
-  if (managerClearDraftButton) managerClearDraftButton->setEnabled(changeCount > 0);
+  if (managerUndoDraftButton)
+    managerUndoDraftButton->setEnabled(m_managerAssignmentOpen && changeCount > 0);
+  if (managerClearDraftButton)
+    managerClearDraftButton->setEnabled(m_managerAssignmentOpen && changeCount > 0);
   if (!lblManagerDraftStatus) return;
   if (changeCount > 0)
   {
@@ -432,7 +461,7 @@ void Schedule_View::resetManagerAddButton()
   if (!activeManagerAddButton)
     return;
   activeManagerAddButton->setText("+ Thêm nhân viên vào ca");
-  activeManagerAddButton->setEnabled(true);
+  activeManagerAddButton->setEnabled(m_managerAssignmentOpen);
 }
 
 void Schedule_View::updateManagerSummary(int totalShifts, int shortageShifts,

@@ -101,7 +101,7 @@ void Schedule_Control::onLeaveRequested()
 
     const QDate weekStart = currentEmployeeRegistrationWeekStart.isValid()
         ? currentEmployeeRegistrationWeekStart
-        : Config::getStartOfActiveWorkingWeek(QDate::currentDate());
+        : Config::getStartOfNextWeek(QDate::currentDate());
     const QList<LeaveShiftOption> shiftOptions =
         leaveRequestModel.getActiveShiftsForWeek(currentEmployeeId, weekStart);
     if (shiftOptions.isEmpty())
@@ -276,7 +276,7 @@ void Schedule_Control::load()
 
     const QDate registrationToday = QDate::currentDate();
     const QDate registrationWeekStart =
-        Config::getStartOfActiveWorkingWeek(registrationToday);
+        Config::getStartOfNextWeek(registrationToday);
     if (registrationToday.dayOfWeek() == Config::getDayOpenRegisShift())
     {
         QStringList carryErrors;
@@ -288,10 +288,13 @@ void Schedule_Control::load()
     if (isManager)
     {
         QDate today = QDate::currentDate();
-        // Manager sees and assigns the active configured working week.
+        // Managers can review and change staff schedules on any day.  The
+        // configured registration day only limits staff self-registration.
+        view->setManagerAssignmentState(true, QDate());
+        // Manager assigns the next calendar week, always Monday through Sunday.
         if (!managerWeekInitialized || !currentAssignMonday.isValid())
         {
-            currentAssignMonday = Config::getStartOfActiveWorkingWeek(today);
+            currentAssignMonday = Config::getStartOfNextWeek(today);
             managerWeekInitialized = true;
         }
 
@@ -362,7 +365,7 @@ void Schedule_Control::load()
             return;
 
         QDate today = QDate::currentDate();
-        QDate weekStart = Config::getStartOfActiveWorkingWeek(today);
+        QDate weekStart = Config::getStartOfNextWeek(today);
         currentEmployeeRegistrationWeekStart = weekStart;
 
         bool registrationOpen = (today.dayOfWeek() == Config::getDayOpenRegisShift());
@@ -429,7 +432,7 @@ void Schedule_Control::onSaveFullTimeScheduleRequested(
 
     QDate weekStart = currentEmployeeRegistrationWeekStart.isValid()
                           ? currentEmployeeRegistrationWeekStart
-                          : Config::getStartOfActiveWorkingWeek(QDate::currentDate());
+                          : Config::getStartOfNextWeek(QDate::currentDate());
     QList<StaffShiftRegistration> registrations;
     for (int day = 0; day < selectedShiftsByDay.size() && day < 7; ++day)
     {
@@ -477,7 +480,7 @@ void Schedule_Control::onSaveGridRequested(const QList<QList<int>> &selectedHour
 
         QDate weekStart = currentEmployeeRegistrationWeekStart.isValid()
                               ? currentEmployeeRegistrationWeekStart
-                              : Config::getStartOfActiveWorkingWeek(QDate::currentDate());
+                              : Config::getStartOfNextWeek(QDate::currentDate());
         int openHour = Config::getOpenHour();
         int rowCount = Config::getCloseHour() - openHour;
         QList<StaffShiftRegistration> registrations;
@@ -714,7 +717,7 @@ void Schedule_Control::onCurrentManagerWeek()
         view->showError("Hãy công bố hoặc xóa bản nháp trước khi đổi tuần.");
         return;
     }
-    currentAssignMonday = Config::getStartOfActiveWorkingWeek(QDate::currentDate());
+    currentAssignMonday = Config::getStartOfNextWeek(QDate::currentDate());
     managerWeekInitialized = true;
     load();
 }
@@ -1186,6 +1189,8 @@ void Schedule_Control::onAddEmployeesToShift(
 void Schedule_Control::onRemoveAssignedShift(int shiftId, int employeeId,
                                              const QString &reason)
 {
+    if (!model || !view)
+        return;
     ManagerScheduleChange change;
     change.type = ManagerScheduleChangeType::Cancel;
     change.shiftId = shiftId;
@@ -1235,7 +1240,7 @@ QDate Schedule_Control::dayStringToDate(const QString &day) const
     if (idx < 0)
         return QDate(); // invalid
 
-    // Employee registration uses the active configured working week.
-    QDate monday = Config::getStartOfActiveWorkingWeek(QDate::currentDate());
+    // Employee registration is always for next Monday through Sunday.
+    QDate monday = Config::getStartOfNextWeek(QDate::currentDate());
     return monday.addDays(idx);
 }

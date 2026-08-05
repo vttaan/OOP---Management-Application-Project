@@ -40,14 +40,17 @@ void Database::ensureSchema()
         "CREATE TABLE IF NOT EXISTS NOTIFICATION ("
         "id INTEGER PRIMARY KEY AUTOINCREMENT, recipientEmployeeId INTEGER NOT NULL, "
         "type TEXT NOT NULL, title TEXT NOT NULL, message TEXT NOT NULL, "
-        "status TEXT NOT NULL DEFAULT 'Unread', relatedShiftId INTEGER, "
+        "status TEXT NOT NULL DEFAULT 'Unread', priority INTEGER NOT NULL DEFAULT 0, "
+        "dedupeKey TEXT, relatedShiftId INTEGER, "
         "relatedLeaveRequestId INTEGER, createdAt TEXT NOT NULL, readAt TEXT)",
         "CREATE TABLE IF NOT EXISTS SHIFT_CARRY_FORWARD ("
         "idEmployee INTEGER NOT NULL, targetWeekStart TEXT NOT NULL, "
         "createdAt TEXT NOT NULL, "
         "PRIMARY KEY (idEmployee, targetWeekStart))",
         "CREATE INDEX IF NOT EXISTS idx_notification_recipient "
-        "ON NOTIFICATION(recipientEmployeeId, status, createdAt)",
+        "ON NOTIFICATION(recipientEmployeeId, priority, status, createdAt)",
+        "CREATE INDEX IF NOT EXISTS idx_notification_dedupe "
+        "ON NOTIFICATION(recipientEmployeeId, dedupeKey)",
         "CREATE INDEX IF NOT EXISTS idx_leave_request_employee "
         "ON LEAVE_REQUEST(idEmployee, status, leaveDate)"};
 
@@ -74,6 +77,35 @@ void Database::ensureSchema()
     {
         qWarning() << "Leave request migration failed:" << query.lastError().text();
     }
+
+    bool hasNotificationPriority = false;
+    bool hasNotificationDedupeKey = false;
+    if (query.exec("PRAGMA table_info(NOTIFICATION)"))
+    {
+        while (query.next())
+        {
+            const QString column = query.value(1).toString();
+            hasNotificationPriority |= column == "priority";
+            hasNotificationDedupeKey |= column == "dedupeKey";
+        }
+    }
+    if (!hasNotificationPriority &&
+        !query.exec("ALTER TABLE NOTIFICATION ADD COLUMN priority INTEGER NOT NULL DEFAULT 0"))
+    {
+        qWarning() << "Notification priority migration failed:" << query.lastError().text();
+    }
+    if (!hasNotificationDedupeKey &&
+        !query.exec("ALTER TABLE NOTIFICATION ADD COLUMN dedupeKey TEXT"))
+    {
+        qWarning() << "Notification dedupe migration failed:" << query.lastError().text();
+    }
+
+    // Existing databases may have skipped these indexes before the columns
+    // were migrated, so retry them after the compatibility ALTER TABLE calls.
+    query.exec("CREATE INDEX IF NOT EXISTS idx_notification_recipient "
+               "ON NOTIFICATION(recipientEmployeeId, priority, status, createdAt)");
+    query.exec("CREATE INDEX IF NOT EXISTS idx_notification_dedupe "
+               "ON NOTIFICATION(recipientEmployeeId, dedupeKey)");
 }
 
 Database *Database::getInstance()

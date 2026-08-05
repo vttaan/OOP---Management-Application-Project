@@ -294,7 +294,7 @@ void Schedule_View::setUpUI()
   toolbarLayout->setSpacing(8);
   QPushButton *prevWeek = new QPushButton("<", managerToolbar);
   QPushButton *nextWeek = new QPushButton(">", managerToolbar);
-  QPushButton *currentWeek = new QPushButton("Tuần hiện tại", managerToolbar);
+  QPushButton *currentWeek = new QPushButton("Tuần cần xếp", managerToolbar);
   lblManagerWeek = new QLabel("Tuần xác nhận", managerToolbar);
   lblManagerWeek->setAlignment(Qt::AlignCenter);
   lblManagerWeek->setStyleSheet("font-weight:700;color:#1E3A8A;padding:8px 14px;");

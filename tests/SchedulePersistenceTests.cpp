@@ -183,17 +183,20 @@ private slots:
         QCOMPARE(scalar("SELECT COUNT(*) FROM SHIFT WHERE status = 1"), 1);
     }
 
-    void configuredChangeDayIsOutsideNewWorkingRange()
+    void scheduleWeeksAlwaysUseMondayRegardlessOfOpenDay()
     {
-        const QDate changeTuesday(2026, 8, 11);
-        QCOMPARE(Config::getStartOfActiveWorkingWeek(changeTuesday),
-                 QDate(2026, 8, 12));
-        QCOMPARE(Config::getStartOfActiveWorkingWeek(QDate(2026, 8, 12)),
-                 QDate(2026, 8, 12));
-        QCOMPARE(Config::getStartOfActiveWorkingWeek(QDate(2026, 8, 17)),
-                 QDate(2026, 8, 12));
-        QCOMPARE(Config::getStartOfWorkingWeekContaining(QDate(2026, 8, 18)),
-                 QDate(2026, 8, 12));
+        const QDate openTuesday(2026, 8, 11);
+        QCOMPARE(Config::getStartOfCurrentWeek(openTuesday),
+                 QDate(2026, 8, 10));
+        QCOMPARE(Config::getStartOfNextWeek(openTuesday),
+                 QDate(2026, 8, 17));
+
+        Config::setDayOpenRegisShift(Qt::Wednesday);
+        QCOMPARE(Config::getStartOfCurrentWeek(QDate(2026, 8, 12)),
+                 QDate(2026, 8, 10));
+        QCOMPARE(Config::getStartOfNextWeek(QDate(2026, 8, 12)),
+                 QDate(2026, 8, 17));
+        Config::setDayOpenRegisShift(Qt::Tuesday);
     }
 
     void carryForwardCopiesOnlyApprovedShiftsWithExactTimes()
@@ -480,6 +483,19 @@ private slots:
         QCOMPARE(scalar("SELECT COUNT(*) FROM SHIFT"), 1);
     }
 
+    void managerOverrideRejectsManagerTargets()
+    {
+        Schedule_Model model;
+        QList<ManagerScheduleChange> changes = {
+            {ManagerScheduleChangeType::Add, 0, 2001, "Manager", "Manager", weekStart,
+             QTime(7, 0), QTime(12, 0), "Invalid manager assignment"}};
+        QStringList errors;
+
+        QVERIFY(!model.applyManagerScheduleChanges(changes, &errors));
+        QVERIFY(!errors.isEmpty());
+        QCOMPARE(scalar("SELECT COUNT(*) FROM SHIFT"), 0);
+    }
+
     void eligibleEmployeesExplainConflict()
     {
         QVERIFY(execute(
@@ -676,6 +692,61 @@ private slots:
         const QList<NotificationInfo> remaining = notifications.getNotifications(1002);
         QCOMPARE(remaining.size(), 1);
         QCOMPARE(remaining.first().status, QString("Unread"));
+    }
+
+    void staffingWarningsArePrioritizedAndDeduplicated()
+    {
+        Config::setRoles({{"Cashier", {4, 6}}});
+        const QDate currentWeek = Config::getStartOfCurrentWeek(QDate::currentDate());
+        const QDate warningWeek = currentWeek.addDays(7);
+        const QDate futureDate = warningWeek;
+        QVERIFY(execute(QString(
+            "INSERT INTO SHIFT (idEmployee, workDate, startTime, endTime, status) "
+            "VALUES (1001, '%1', '07:00', '12:00', 1)")
+            .arg(futureDate.toString(Qt::ISODate))));
+
+        Schedule_Model schedule;
+        schedule.publishStaffingWarningNotifications(warningWeek);
+        Notification_Model notifications;
+        const QList<NotificationInfo> firstLoad = notifications.getNotifications(2001);
+        QVERIFY(!firstLoad.isEmpty());
+        QCOMPARE(firstLoad.first().type, QString("STAFFING_SHORTAGE"));
+        QCOMPARE(firstLoad.first().priority, 100);
+        const int countAfterFirstPublish = firstLoad.size();
+
+        schedule.publishStaffingWarningNotifications(warningWeek);
+        QCOMPARE(notifications.getNotifications(2001).size(), countAfterFirstPublish);
+    }
+
+    void staffingWarningsUseDayBeforeAndNextShiftTiming()
+    {
+        Config::setRoles({{"Cashier", {4, 6}}});
+        const QDate testDate(2026, 8, 5);
+        const QDate tomorrow = testDate.addDays(1);
+        QVERIFY(execute(QString(
+            "INSERT INTO SHIFT (idEmployee, workDate, startTime, endTime, status) "
+            "VALUES (1001, '%1', '07:00', '12:00', 1)")
+            .arg(tomorrow.toString(Qt::ISODate))));
+
+        Schedule_Model schedule;
+        schedule.publishScheduledStaffingWarningNotifications(testDate, QTime(8, 0));
+        Notification_Model notifications;
+        const QList<NotificationInfo> dayBefore = notifications.getNotifications(2001);
+        QVERIFY(std::any_of(dayBefore.cbegin(), dayBefore.cend(),
+                            [](const NotificationInfo &notification) {
+                                return notification.dedupeKey.contains("|DAY_BEFORE|");
+                            }));
+        const int dayBeforeCount = dayBefore.size();
+
+        schedule.publishScheduledStaffingWarningNotifications(testDate, QTime(9, 15));
+        const QList<NotificationInfo> withinThreeHours =
+            notifications.getNotifications(2001);
+        QVERIFY(withinThreeHours.size() > dayBeforeCount);
+        QVERIFY(std::any_of(withinThreeHours.cbegin(), withinThreeHours.cend(),
+                            [](const NotificationInfo &notification) {
+                                return notification.dedupeKey.contains("|SHIFT_3H|");
+                            }));
+        QCOMPARE(withinThreeHours.first().priority, 200);
     }
 
     void leaveApprovalCancelsAffectedShiftAndNotifiesStaff()
