@@ -1,4 +1,6 @@
 #include <QtTest>
+#include <QAbstractSpinBox>
+#include <QTimeEdit>
 #include <memory>
 
 #include "model/Login_Model.h"
@@ -6,6 +8,7 @@
 #include "model/Schedule_Model.h"
 #include "model/Notification_Model.h"
 #include "model/LeaveRequest_Model.h"
+#include "view/ManagerEmployeeChooser_Dialog.h"
 #include "utils/Config.h"
 #include "utils/Security.h"
 #include "utils/Database.h"
@@ -43,6 +46,7 @@ private:
 private slots:
     void initTestCase()
     {
+        Config::setDayOpenRegisShift(Qt::Tuesday);
         QVERIFY(temporaryDirectory.isValid());
         QDir root(temporaryDirectory.path());
         QVERIFY(root.mkdir("database"));
@@ -82,6 +86,8 @@ private slots:
         QVERIFY(execute("DELETE FROM NOTIFICATION"));
         QVERIFY(execute("DELETE FROM LEAVE_REQUEST"));
         QVERIFY(execute("DELETE FROM SHIFT_AUDIT"));
+        QVERIFY(execute("DELETE FROM SHIFT_CARRY_FORWARD"));
+        QVERIFY(execute("UPDATE PROFILES SET status = 'active'"));
     }
 
     void employeePayTypeIsStored()
@@ -177,6 +183,231 @@ private slots:
         QCOMPARE(scalar("SELECT COUNT(*) FROM SHIFT WHERE status = 1"), 1);
     }
 
+    void configuredChangeDayIsOutsideNewWorkingRange()
+    {
+        const QDate changeTuesday(2026, 8, 11);
+        QCOMPARE(Config::getStartOfActiveWorkingWeek(changeTuesday),
+                 QDate(2026, 8, 12));
+        QCOMPARE(Config::getStartOfActiveWorkingWeek(QDate(2026, 8, 12)),
+                 QDate(2026, 8, 12));
+        QCOMPARE(Config::getStartOfActiveWorkingWeek(QDate(2026, 8, 17)),
+                 QDate(2026, 8, 12));
+        QCOMPARE(Config::getStartOfWorkingWeekContaining(QDate(2026, 8, 18)),
+                 QDate(2026, 8, 12));
+    }
+
+    void carryForwardCopiesOnlyApprovedShiftsWithExactTimes()
+    {
+        QVERIFY(execute(
+            "INSERT INTO SHIFT (idEmployee, workDate, startTime, endTime, status) VALUES "
+            "(1001, '2026-07-27', '07:30', '11:45', 1), "
+            "(1001, '2026-07-28', '12:00', '17:00', 0), "
+            "(1001, '2026-07-29', '17:00', '22:00', -1), "
+            "(1001, '2026-07-30', '07:00', '12:00', -2)"));
+
+        Schedule_Model model;
+        QStringList errors;
+        QVERIFY2(model.ensurePendingCarryForwardForWeek(weekStart, &errors),
+                 qPrintable(errors.join(" | ")));
+
+        QCOMPARE(scalar(
+            "SELECT COUNT(*) FROM SHIFT WHERE idEmployee = 1001 "
+            "AND workDate BETWEEN '2026-08-03' AND '2026-08-09' AND status = 0"), 1);
+        QSqlQuery copied(database());
+        QVERIFY(copied.exec(
+            "SELECT workDate, startTime, endTime FROM SHIFT "
+            "WHERE idEmployee = 1001 AND workDate = '2026-08-03' AND status = 0"));
+        QVERIFY(copied.next());
+        QCOMPARE(copied.value(0).toDate(), weekStart);
+        QCOMPARE(copied.value(1).toTime(), QTime(7, 30));
+        QCOMPARE(copied.value(2).toTime(), QTime(11, 45));
+        QCOMPARE(scalar("SELECT COUNT(*) FROM NOTIFICATION"), 0);
+        QCOMPARE(scalar(
+            "SELECT COUNT(*) FROM SHIFT_CARRY_FORWARD "
+            "WHERE idEmployee = 1001 AND targetWeekStart = '2026-08-03'"), 1);
+    }
+
+    void carryForwardSkipsExistingConflictsAndApprovedLeave()
+    {
+        QVERIFY(execute(
+            "INSERT INTO SHIFT (idEmployee, workDate, startTime, endTime, status) VALUES "
+            "(1001, '2026-07-27', '07:00', '12:00', 1), "
+            "(1002, '2026-07-28', '12:00', '17:00', 1), "
+            "(1003, '2026-07-29', '17:00', '22:00', 1), "
+            "(1001, '2026-08-03', '10:00', '14:00', 0)"));
+        QVERIFY(execute(
+            "INSERT INTO LEAVE_REQUEST "
+            "(idEmployee, leaveDate, reason, status, requestedAt) VALUES "
+            "(1002, '2026-08-04', 'Approved leave', 'Approved', '2026-07-25T00:00:00Z')"));
+
+        Schedule_Model model;
+        QStringList errors;
+        QVERIFY2(model.ensurePendingCarryForwardForWeek(weekStart, &errors),
+                 qPrintable(errors.join(" | ")));
+
+        QCOMPARE(scalar(
+            "SELECT COUNT(*) FROM SHIFT WHERE idEmployee = 1001 "
+            "AND workDate = '2026-08-03' AND status = 0"), 1);
+        QCOMPARE(scalar(
+            "SELECT COUNT(*) FROM SHIFT WHERE idEmployee = 1002 "
+            "AND workDate = '2026-08-04' AND status = 0"), 0);
+        QCOMPARE(scalar(
+            "SELECT COUNT(*) FROM SHIFT WHERE idEmployee = 1003 "
+            "AND workDate = '2026-08-05' AND startTime = '17:00:00.000' "
+            "AND endTime = '22:00:00.000' AND status = 0"), 1);
+    }
+
+    void carryForwardMarkerPreventsDeletedRowsFromReturning()
+    {
+        QVERIFY(execute(
+            "INSERT INTO SHIFT (idEmployee, workDate, startTime, endTime, status) "
+            "VALUES (1001, '2026-07-27', '07:00', '12:00', 1)"));
+
+        Schedule_Model model;
+        QVERIFY(model.ensurePendingCarryForwardForWeek(weekStart));
+        QVERIFY(execute(
+            "DELETE FROM SHIFT WHERE idEmployee = 1001 "
+            "AND workDate = '2026-08-03' AND status = 0"));
+        QVERIFY(model.ensurePendingCarryForwardForWeek(weekStart));
+
+        QCOMPARE(scalar(
+            "SELECT COUNT(*) FROM SHIFT WHERE idEmployee = 1001 "
+            "AND workDate = '2026-08-03' AND status = 0"), 0);
+        QCOMPARE(scalar(
+            "SELECT COUNT(*) FROM SHIFT_CARRY_FORWARD "
+            "WHERE idEmployee = 1001 AND targetWeekStart = '2026-08-03'"), 1);
+    }
+
+    void carryForwardFailureRollsBackRowsAndMarker()
+    {
+        QVERIFY(execute(
+            "INSERT INTO SHIFT (idEmployee, workDate, startTime, endTime, status) "
+            "VALUES (1001, '2026-07-27', '17:00', '22:00', 1)"));
+        QVERIFY(execute(
+            "CREATE TRIGGER reject_evening BEFORE INSERT ON SHIFT "
+            "WHEN time(NEW.startTime) = '17:00:00' "
+            "BEGIN SELECT RAISE(ABORT, 'carry insert failure'); END"));
+
+        Schedule_Model model;
+        QStringList errors;
+        QVERIFY(!model.ensurePendingCarryForwardForWeek(weekStart, &errors));
+        QVERIFY(!errors.isEmpty());
+        QCOMPARE(scalar(
+            "SELECT COUNT(*) FROM SHIFT WHERE workDate BETWEEN '2026-08-03' AND '2026-08-09'"), 0);
+        QCOMPARE(scalar("SELECT COUNT(*) FROM SHIFT_CARRY_FORWARD"), 0);
+    }
+
+    void employeeChooserFiltersSortsAndDisablesConflicts()
+    {
+        QList<EligibleEmployeeInfo> employees = {
+            {1002, "Binh", "HallStaff", false, true, {}},
+            {1001, "An", "Cashier", true, true, {}},
+            {1003, "Cuong", "HallStaff", false, false, "Shift conflict"}};
+        ManagerEmployeeChooser_Dialog chooser(
+            employees, QTime(7, 0), QTime(12, 0));
+
+        QLineEdit *search = chooser.findChild<QLineEdit *>("employeeSearch");
+        QComboBox *roleFilter = chooser.findChild<QComboBox *>("employeeRoleFilter");
+        QComboBox *sort = chooser.findChild<QComboBox *>("employeeSort");
+        QTableWidget *table = chooser.findChild<QTableWidget *>("employeeChooserTable");
+        QVERIFY(search);
+        QVERIFY(roleFilter);
+        QVERIFY(sort);
+        QVERIFY(table);
+        QCOMPARE(table->rowCount(), 3);
+        QCOMPARE(table->item(0, 0)->text(), QString("NV-1001"));
+
+        search->setText("1002");
+        QCOMPARE(table->rowCount(), 1);
+        QCOMPARE(table->item(0, 1)->text(), QString("Binh"));
+        search->clear();
+
+        roleFilter->setCurrentIndex(roleFilter->findData("HallStaff"));
+        QCOMPARE(table->rowCount(), 2);
+        roleFilter->setCurrentIndex(0);
+
+        sort->setCurrentIndex(sort->findData("id_desc"));
+        QCOMPARE(table->item(0, 0)->text(), QString("NV-1003"));
+        QVERIFY(!(table->item(0, 0)->flags() & Qt::ItemIsUserCheckable));
+        QCOMPARE(table->item(0, 0)->toolTip(), QString("Shift conflict"));
+    }
+
+    void employeeChooserExcludesManagersAndLocksFixedTimes()
+    {
+        QList<EligibleEmployeeInfo> employees = {
+            {1001, "An", "Cashier", true, true, {}},
+            {1002, "Binh", "HallStaff", false, true, {}},
+            {1003, "Minh", "Manager", false, true, {}}};
+        ManagerEmployeeChooser_Dialog chooser(
+            employees, QTime(12, 0), QTime(17, 0));
+        QTableWidget *table = chooser.findChild<QTableWidget *>("employeeChooserTable");
+        QVERIFY(table);
+
+        auto rowForId = [table](int employeeId) {
+            const QString expected = QString("NV-%1").arg(employeeId);
+            for (int row = 0; row < table->rowCount(); ++row)
+                if (table->item(row, 0) && table->item(row, 0)->text() == expected)
+                    return row;
+            return -1;
+        };
+        const int fixedRow = rowForId(1001);
+        const int flexibleRow = rowForId(1002);
+        const int managerRow = rowForId(1003);
+        QVERIFY(fixedRow >= 0);
+        QVERIFY(flexibleRow >= 0);
+        QCOMPARE(managerRow, -1);
+        QCOMPARE(table->rowCount(), 2);
+        QComboBox *roleFilter =
+            chooser.findChild<QComboBox *>("employeeRoleFilter");
+        QVERIFY(roleFilter);
+        QCOMPARE(roleFilter->findData("Manager"), -1);
+
+        QTimeEdit *fixedStart = qobject_cast<QTimeEdit *>(table->cellWidget(fixedRow, 3));
+        QTimeEdit *fixedEnd = qobject_cast<QTimeEdit *>(table->cellWidget(fixedRow, 4));
+        QTimeEdit *flexibleStart = qobject_cast<QTimeEdit *>(table->cellWidget(flexibleRow, 3));
+        QTimeEdit *flexibleEnd = qobject_cast<QTimeEdit *>(table->cellWidget(flexibleRow, 4));
+        QVERIFY(fixedStart && fixedEnd && flexibleStart && flexibleEnd);
+        QCOMPARE(fixedStart->buttonSymbols(), QAbstractSpinBox::NoButtons);
+        QCOMPARE(fixedEnd->buttonSymbols(), QAbstractSpinBox::NoButtons);
+        QCOMPARE(flexibleStart->buttonSymbols(), QAbstractSpinBox::NoButtons);
+        QCOMPARE(flexibleEnd->buttonSymbols(), QAbstractSpinBox::NoButtons);
+        QVERIFY(!fixedStart->isEnabled());
+        QVERIFY(!fixedEnd->isEnabled());
+        QCOMPARE(fixedStart->time(), QTime(12, 0));
+        QCOMPARE(fixedEnd->time(), QTime(17, 0));
+        QVERIFY(flexibleStart->isEnabled());
+        QVERIFY(flexibleEnd->isEnabled());
+
+        flexibleStart->setTime(QTime(13, 0));
+        flexibleEnd->setTime(QTime(16, 30));
+        table->item(fixedRow, 0)->setCheckState(Qt::Checked);
+        table->item(flexibleRow, 0)->setCheckState(Qt::Checked);
+        const QList<ManagerEmployeeSelection> selected = chooser.selections();
+        QCOMPARE(selected.size(), 2);
+        auto flexible = std::find_if(
+            selected.cbegin(), selected.cend(),
+            [](const ManagerEmployeeSelection &selection) {
+                return selection.employeeId == 1002;
+            });
+        QVERIFY(flexible != selected.cend());
+        QCOMPARE(flexible->startTime, QTime(13, 0));
+        QCOMPARE(flexible->endTime, QTime(16, 30));
+    }
+
+    void eligibleEmployeesExcludeManagers()
+    {
+        Schedule_Model model;
+        const QList<EligibleEmployeeInfo> employees =
+            model.getEligibleEmployees(weekStart, QTime(7, 0), QTime(12, 0));
+        const bool containsManager = std::any_of(
+            employees.cbegin(), employees.cend(),
+            [](const EligibleEmployeeInfo &employee) {
+                return employee.role.compare("Manager", Qt::CaseInsensitive) == 0 ||
+                       employee.role.compare("Manage", Qt::CaseInsensitive) == 0;
+            });
+        QVERIFY(!containsManager);
+    }
+
     void approvedOverlapIsRejected()
     {
         QVERIFY(execute(
@@ -265,6 +496,25 @@ private slots:
         QVERIFY(it != employees.end());
         QVERIFY(!it->eligible);
         QVERIFY(!it->reason.isEmpty());
+    }
+
+    void eligibleEmployeesDisableInactiveProfiles()
+    {
+        QVERIFY(execute(
+            "UPDATE PROFILES SET status = 'suspended' WHERE idEmployee = 1002"));
+        Schedule_Model model;
+        const QList<EligibleEmployeeInfo> employees =
+            model.getEligibleEmployees(weekStart, QTime(7, 0), QTime(12, 0));
+        auto it = std::find_if(
+            employees.cbegin(), employees.cend(),
+            [](const EligibleEmployeeInfo &info) {
+                return info.employeeId == 1002;
+            });
+        QVERIFY(it != employees.cend());
+        QVERIFY(!it->eligible);
+        QVERIFY(!it->reason.isEmpty());
+        QVERIFY(execute(
+            "UPDATE PROFILES SET status = 'active' WHERE idEmployee = 1002"));
     }
 
     void automaticSchedulePreviewDoesNotWriteDatabase()
@@ -403,6 +653,29 @@ private slots:
             notifications.getNotifications(2001);
         QCOMPARE(managerNotifications.size(), 1);
         QCOMPARE(managerNotifications.first().type, QString("SHIFT_SUBMITTED"));
+    }
+
+    void readNotificationsCanBeDeletedAndUnreadStayFirst()
+    {
+        QSqlDatabase db = database();
+        QVERIFY(Notification_Model::create(db, 1002, "SHIFT_APPROVED",
+                                           "Older", "Read this first"));
+        QVERIFY(Notification_Model::create(db, 1002, "SHIFT_DECLINED",
+                                           "Newer", "Keep this unread"));
+
+        Notification_Model notifications;
+        const QList<NotificationInfo> created = notifications.getNotifications(1002);
+        QCOMPARE(created.size(), 2);
+        QVERIFY(notifications.markAsRead(created.first().id, 1002));
+
+        const QList<NotificationInfo> ordered = notifications.getNotifications(1002);
+        QCOMPARE(ordered.size(), 2);
+        QCOMPARE(ordered.first().status, QString("Unread"));
+        QVERIFY(notifications.deleteAllRead(1002));
+
+        const QList<NotificationInfo> remaining = notifications.getNotifications(1002);
+        QCOMPARE(remaining.size(), 1);
+        QCOMPARE(remaining.first().status, QString("Unread"));
     }
 
     void leaveApprovalCancelsAffectedShiftAndNotifiesStaff()

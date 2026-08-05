@@ -693,6 +693,7 @@ void Schedule_View::setPartTimeRegistrationState(bool isOpen,
   m_partTimeNextOpenDate = nextOpenDate;
   ui->tableInteractiveGrid->setEnabled(isOpen);
   ui->buttonLuu->setEnabled(isOpen);
+  ui->buttonClearPending->setEnabled(isOpen);
   if (m_isFullTimeMode)
   {
     ui->DangKyLich->setText("ĐĂNG KÝ CA TOÀN THỜI GIAN");
@@ -729,6 +730,7 @@ void Schedule_View::enableRegistration(bool isEnable)
 {
   ui->tableInteractiveGrid->setEnabled(isEnable);
   ui->buttonLuu->setEnabled(isEnable);
+  ui->buttonClearPending->setEnabled(isEnable);
 }
 
 // updateStaffRegisteredGrid removed, handled by ViewSchedule_View
@@ -749,6 +751,26 @@ void Schedule_View::showError(const QString &mess)
 }
 
 // ─── Luu / Xac Nhan button ───────────────────────────────────────────────────
+void Schedule_View::clearPendingSelections()
+{
+  if (m_isFullTimeMode)
+  {
+    m_fullTimeSelections.clear();
+    for (int day = 0; day < 7; ++day)
+      for (int shift = 0; shift < 3; ++shift)
+        renderFullTimeCell(shift, day);
+    resetFullTimeFooterHint();
+    ui->tableInteractiveGrid->viewport()->update();
+    return;
+  }
+
+  ui->tableInteractiveGrid->clearSelection();
+  for (int row = 0; row < ui->tableInteractiveGrid->rowCount(); ++row)
+    for (int col = 0; col < ui->tableInteractiveGrid->columnCount(); ++col)
+      setPartTimeItemSelected(ui->tableInteractiveGrid->item(row, col), false);
+  ui->tableInteractiveGrid->viewport()->update();
+}
+
 void Schedule_View::buttonSaveClicked()
 {
   if (m_isFullTimeMode)

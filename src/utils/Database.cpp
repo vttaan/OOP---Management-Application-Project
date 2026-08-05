@@ -42,6 +42,10 @@ void Database::ensureSchema()
         "type TEXT NOT NULL, title TEXT NOT NULL, message TEXT NOT NULL, "
         "status TEXT NOT NULL DEFAULT 'Unread', relatedShiftId INTEGER, "
         "relatedLeaveRequestId INTEGER, createdAt TEXT NOT NULL, readAt TEXT)",
+        "CREATE TABLE IF NOT EXISTS SHIFT_CARRY_FORWARD ("
+        "idEmployee INTEGER NOT NULL, targetWeekStart TEXT NOT NULL, "
+        "createdAt TEXT NOT NULL, "
+        "PRIMARY KEY (idEmployee, targetWeekStart))",
         "CREATE INDEX IF NOT EXISTS idx_notification_recipient "
         "ON NOTIFICATION(recipientEmployeeId, status, createdAt)",
         "CREATE INDEX IF NOT EXISTS idx_leave_request_employee "

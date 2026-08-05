@@ -15,13 +15,17 @@ signals:
     void filterChanged(const QString &filter);
     void markReadRequested(int notificationId);
     void markAllReadRequested();
+    void deleteReadRequested();
     void reviewLeaveRequested(int notificationId, int leaveRequestId);
     void openManagerScheduleRequested(int notificationId);
 
 private:
     QComboBox *filterBox = nullptr;
     QPushButton *markAllReadButton = nullptr;
+    QPushButton *deleteReadButton = nullptr;
     QLabel *emptyState = nullptr;
-    QTableWidget *notificationTable = nullptr;
+    QScrollArea *notificationScroll = nullptr;
+    QWidget *notificationList = nullptr;
+    QVBoxLayout *notificationListLayout = nullptr;
     bool managerMode = false;
 };

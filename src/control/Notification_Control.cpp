@@ -14,6 +14,8 @@ void Notification_Control::setView(Notification_View *newView) {
             this, &Notification_Control::markRead);
     connect(view, &Notification_View::markAllReadRequested,
             this, &Notification_Control::markAllRead);
+    connect(view, &Notification_View::deleteReadRequested,
+            this, &Notification_Control::deleteRead);
     connect(view, &Notification_View::reviewLeaveRequested,
             this, &Notification_Control::reviewLeaveRequest);
     connect(view, &Notification_View::openManagerScheduleRequested,
@@ -46,6 +48,18 @@ void Notification_Control::markAllRead() {
     User *user = SessionManager::getInstance()->getCurrentUser();
     if (!user) return;
     notificationModel.markAllAsRead(user->getIdEmployee());
+    load();
+}
+
+void Notification_Control::deleteRead() {
+    User *user = SessionManager::getInstance()->getCurrentUser();
+    if (!user) return;
+    if (QMessageBox::question(
+            view, QString::fromUtf8("Xóa thông báo đã đọc"),
+            QString::fromUtf8("Bạn có muốn xóa tất cả thông báo đã đọc?"),
+            QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
+        return;
+    notificationModel.deleteAllRead(user->getIdEmployee());
     load();
 }
 

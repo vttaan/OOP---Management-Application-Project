@@ -22,6 +22,7 @@ signals:
 private slots:
     void markRead(int notificationId);
     void markAllRead();
+    void deleteRead();
     void reviewLeaveRequest(int notificationId, int leaveRequestId);
     void openManagerSchedule(int notificationId);
 

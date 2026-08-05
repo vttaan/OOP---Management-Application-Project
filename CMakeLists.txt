@@ -105,6 +105,7 @@ set(PROJECT_SOURCES
         src/view/AddEmployee_Dialog.h
         src/view/EditEmployee_Dialog.h
         src/view/EmployeeDetails_Dialog.h
+        src/view/ManagerEmployeeChooser_Dialog.h
         src/view/Schedule_View.h
         src/view/sidebar_widget.h
         src/view/Salary_View.h
@@ -121,8 +122,10 @@ set(PROJECT_SOURCES
         src/view/AddEmployee_Dialog.cpp
         src/view/EditEmployee_Dialog.cpp
         src/view/EmployeeDetails_Dialog.cpp
+        src/view/ManagerEmployeeChooser_Dialog.cpp
         src/view/Schedule_View.cpp
         src/view/Schedule_View_Manager.cpp
+        src/view/Schedule_View_Manager_ShiftDetail.cpp
         src/view/Schedule_View_Staff.cpp
         src/view/sidebar_widget.cpp
         src/view/Salary_View.cpp
@@ -193,6 +196,8 @@ if(BUILD_TESTING)
     find_package(Qt6 REQUIRED COMPONENTS Test)
     qt_add_executable(schedule_model_tests
         tests/SchedulePersistenceTests.cpp
+        src/view/ManagerEmployeeChooser_Dialog.h
+        src/view/ManagerEmployeeChooser_Dialog.cpp
         src/model/Login_Model.cpp
         src/model/Schedule_Model.cpp
         src/model/Salary_Model.cpp
