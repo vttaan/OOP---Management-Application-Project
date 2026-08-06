@@ -41,6 +41,11 @@ Employee_View::~Employee_View()
 
 void Employee_View::setupTableHeader()
 {
+  // Insert column 5 for hours worked
+  ui->employeesTable->insertColumn(5);
+  QTableWidgetItem* hoursHeader = new QTableWidgetItem("GIỜ LÀM (THÁNG NÀY)");
+  ui->employeesTable->setHorizontalHeaderItem(5, hoursHeader);
+
   QHeaderView *hdr = ui->employeesTable->horizontalHeader();
 
   // Default: all columns resize to content
@@ -216,16 +221,11 @@ void Employee_View::setupConnections()
 // loadEmployees — called by Controller to update the table
 // ============================================================
 
-void Employee_View::loadEmployees(const QList<User *> &employees)
+void Employee_View::loadEmployees(const QList<User *> &employees, const QMap<int, double> &hoursMap)
 {
   // The controller already applied filter→search→sort before calling us;
   // just render what we received.
   m_allEmployees = employees;
-  renderTable(employees);
-}
-
-void Employee_View::renderTable(const QList<User *> &employees)
-{
   ui->employeesTable->clearContents();
   ui->employeesTable->setRowCount(employees.size());
 
@@ -322,14 +322,22 @@ void Employee_View::renderTable(const QList<User *> &employees)
     rateItem->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     ui->employeesTable->setItem(row, 4, rateItem);
 
-    // Col 5 — Phone number
+    // Col 5 — Hours worked this month
+    double hours = hoursMap.value(emp->getIdEmployee(), 0.0);
+    QTableWidgetItem *hoursItem = new QTableWidgetItem(QString("%1 giờ").arg(hours, 0, 'f', 1));
+    hoursItem->setForeground(QColor(0x334155));
+    hoursItem->setFont(QFont("Segoe UI", 9));
+    hoursItem->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    ui->employeesTable->setItem(row, 5, hoursItem);
+
+    // Col 6 — Phone number
     QTableWidgetItem *phoneItem = new QTableWidgetItem(emp->getPhoneNum());
     phoneItem->setForeground(QColor(0x334155));
     phoneItem->setFont(QFont("Segoe UI", 9));
     phoneItem->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-    ui->employeesTable->setItem(row, 5, phoneItem);
+    ui->employeesTable->setItem(row, 6, phoneItem);
 
-    // Col 6 — Status badge
+    // Col 7 — Status badge
     QString statusText;
     QString badgeStyle;
     if (emp->getStatus() == "suspended") {
@@ -352,9 +360,9 @@ void Employee_View::renderTable(const QList<User *> &employees)
     statusBadge->setMinimumWidth(80);
     statusBadge->setStyleSheet(badgeStyle);
     statusLayout->addWidget(statusBadge, 0, Qt::AlignLeft | Qt::AlignVCenter);
-    ui->employeesTable->setCellWidget(row, 6, statusWidget);
+    ui->employeesTable->setCellWidget(row, 7, statusWidget);
 
-    // Col 7 — Actions
+    // Col 8 — Actions
     int empId = emp->getIdEmployee();
     QWidget *actionsWidget = new QWidget();
     QHBoxLayout *actionsLayout = new QHBoxLayout(actionsWidget);
@@ -390,7 +398,7 @@ void Employee_View::renderTable(const QList<User *> &employees)
         delBtn->setVisible(false);
     }
     actionsLayout->addStretch();
-    ui->employeesTable->setCellWidget(row, 7, actionsWidget);
+    ui->employeesTable->setCellWidget(row, 8, actionsWidget);
   }
 }
 

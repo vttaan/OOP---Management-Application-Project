@@ -23,7 +23,10 @@ private:
     QList<User *> filterInEmployee(QList<User *> inputList, QList<QString> contentFilter);
     QList<User *> sortInEmployee(QList<User *> inputList, short typeOrder, QList<QString> contentSort);
 
+    QMap<int, double> m_hoursCache;
+
 public:
+    QMap<int, double> getHoursWorkedThisMonth();
     Employee_Model();
     ~Employee_Model()
     {

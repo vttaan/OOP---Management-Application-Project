@@ -114,12 +114,16 @@ QList<ShiftEmployeeInfo> Dashboard_Model::getNextShiftEmployees()
 }
 
 
-// Calculates salary statistics for the given year and the previous year.
-// Aggregates total salary per month, accounting for fixed salaries and hourly wages with holiday multipliers.
-// Called by: Dashboard_Control::loadSalaryChart()
-// Calls: Database::getInstance(), QSqlQuery::exec(), QDate::daysInMonth()
+void Dashboard_Model::clearCache() {
+    m_statsCache.clear();
+}
+
 SalaryChartData Dashboard_Model::getSalaryStats(int year)
 {
+    if (m_statsCache.contains(year)) {
+        return m_statsCache[year];
+    }
+
     SalaryChartData data;
     data.lastYearMonthly.fill(0.0, 12);
     data.thisYearMonthly.fill(0.0, 12);
@@ -127,75 +131,66 @@ SalaryChartData Dashboard_Model::getSalaryStats(int year)
     data.thisYearEmpCount = 0;
 
     for (int y : {year - 1, year}) {
-        QSqlQuery q(Database::getInstance()->getDbConnect());
-        q.prepare(
-            "SELECT S.idEmployee, P.role, P.Salary, P.isFixed, "
-            "       CAST(strftime('%m', S.workDate) AS INTEGER), "
-            "       S.startTime, S.endTime, S.isHoliday "
+        QString yearStr = QString::number(y);
+        QSqlDatabase db = Database::getInstance()->getDbConnect();
+        
+        // 1. Get total part-time salary per month using SQL Aggregation
+        QSqlQuery ptQuery(db);
+        ptQuery.prepare(
+            "SELECT "
+            "    CAST(strftime('%m', S.workDate) AS INTEGER) AS month, "
+            "    SUM((julianday(S.endTime) - julianday(S.startTime)) * 24.0 * P.Salary * (CASE WHEN S.isHoliday THEN 2 ELSE 1 END)) AS ptSalary "
             "FROM SHIFT S JOIN PROFILES P ON S.idEmployee = P.idEmployee "
-            "WHERE S.status = 1 AND strftime('%Y', S.workDate) = :yr"
+            "WHERE S.status = 1 AND strftime('%Y', S.workDate) = :yr AND P.isFixed = 0 "
+            "GROUP BY month"
         );
-        if (!q.lastError().text().isEmpty())
-            qDebug() << "[Dashboard] prepare() error year=" << y << q.lastError().text();
-        q.bindValue(":yr", QString::number(y));
-        
-        QSet<int> yearEmployees;
-        
-        struct EmpData {
-            QString role;
-            double base;
-            bool isFixed;
-            double hours = 0;
-        };
-        
-        // Map from month (0-11) -> map from idEmployee -> EmpData
-        QMap<int, QMap<int, EmpData>> monthData;
-        
-        if (q.exec()) {
-            int rowCount = 0;
-            while (q.next()) {
-                rowCount++;
-                int id       = q.value(0).toInt();
-                QString role = q.value(1).toString();
-                double base  = q.value(2).toDouble();
-                bool isFixed = q.value(3).toBool();
-                int m        = q.value(4).toInt() - 1;
-                if (m < 0 || m > 11) continue;
-                
-                double hrs        = q.value(5).toTime().secsTo(q.value(6).toTime()) / 3600.0;
-                double multiplier = q.value(7).toBool() ? 2.0 : 1.0;
-
-                yearEmployees.insert(id);
-                
-                if (!monthData[m].contains(id)) {
-                    monthData[m][id] = {role, base, isFixed, 0.0};
+        ptQuery.bindValue(":yr", yearStr);
+        if (ptQuery.exec()) {
+            while (ptQuery.next()) {
+                int month = ptQuery.value(0).toInt() - 1; // 0-11
+                if (month >= 0 && month < 12) {
+                    if (y == year) data.thisYearMonthly[month] += ptQuery.value(1).toDouble();
+                    else           data.lastYearMonthly[month] += ptQuery.value(1).toDouble();
                 }
-                monthData[m][id].hours += (hrs * multiplier);
             }
-            qDebug() << "[Dashboard] getSalaryStats year=" << y << "rows=" << rowCount << "employees=" << yearEmployees.size();
-        } else {
-            qDebug() << "[Dashboard] getSalaryStats QUERY FAILED year=" << y << q.lastError().text();
         }
-        
-        if (y == year) data.thisYearEmpCount = yearEmployees.size();
-        else           data.lastYearEmpCount = yearEmployees.size();
-        
-        for (int m = 0; m < 12; ++m) {
-            double totalMonthSalary = 0;
-            int daysInMonth = QDate(y, m + 1, 1).daysInMonth();
-            
-            for (auto it = monthData[m].begin(); it != monthData[m].end(); ++it) {
-                const EmpData& emp = it.value();
-                if (emp.isFixed) {
-                    totalMonthSalary += emp.base;
-                } else {
-                    totalMonthSalary += emp.hours * emp.base;
+
+        // 2. Get total full-time salary per month
+        QSqlQuery ftQuery(db);
+        ftQuery.prepare(
+            "SELECT month, SUM(Salary) AS ftSalary "
+            "FROM ( "
+            "    SELECT DISTINCT S.idEmployee, P.Salary, CAST(strftime('%m', S.workDate) AS INTEGER) AS month "
+            "    FROM SHIFT S JOIN PROFILES P ON S.idEmployee = P.idEmployee "
+            "    WHERE S.status = 1 AND strftime('%Y', S.workDate) = :yr AND P.isFixed = 1 "
+            ") "
+            "GROUP BY month"
+        );
+        ftQuery.bindValue(":yr", yearStr);
+        if (ftQuery.exec()) {
+            while (ftQuery.next()) {
+                int month = ftQuery.value(0).toInt() - 1; // 0-11
+                if (month >= 0 && month < 12) {
+                    if (y == year) data.thisYearMonthly[month] += ftQuery.value(1).toDouble();
+                    else           data.lastYearMonthly[month] += ftQuery.value(1).toDouble();
                 }
             }
-            
-            if (y == year) data.thisYearMonthly[m] = totalMonthSalary;
-            else           data.lastYearMonthly[m] = totalMonthSalary;
+        }
+
+        // 3. Get total distinct employees for the year
+        QSqlQuery empQuery(db);
+        empQuery.prepare(
+            "SELECT COUNT(DISTINCT idEmployee) "
+            "FROM SHIFT "
+            "WHERE status = 1 AND strftime('%Y', workDate) = :yr"
+        );
+        empQuery.bindValue(":yr", yearStr);
+        if (empQuery.exec() && empQuery.next()) {
+            if (y == year) data.thisYearEmpCount = empQuery.value(0).toInt();
+            else           data.lastYearEmpCount = empQuery.value(0).toInt();
         }
     }
+
+    m_statsCache[year] = data;
     return data;
 }

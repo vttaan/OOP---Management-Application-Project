@@ -55,7 +55,8 @@ void Employee_Control::handleLoadEmployees()
     m_model->loadData();
 
     if (m_view) {
-          m_view->loadEmployees(m_model->getListEmployee());
+        QMap<int, double> hoursMap = m_model->getHoursWorkedThisMonth();
+        m_view->loadEmployees(m_model->getListEmployee(), hoursMap);
     }
 }
 
@@ -244,6 +245,7 @@ void Employee_Control::handleUpdate(const QString &searchText,
     QList<User*> result = m_model->SearchSortFilter(searchText, sortDir, contentSort, contentFilter);
 
     if (m_view) {
-        m_view->loadEmployees(result);
+        QMap<int, double> hoursMap = m_model->getHoursWorkedThisMonth();
+        m_view->loadEmployees(result, hoursMap);
     }
 }
