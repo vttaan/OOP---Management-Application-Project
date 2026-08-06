@@ -56,10 +56,9 @@ QFrame* Dashboard_View::makeCard(const QString& title, QLayout* innerLayout, boo
 }
 
 // Initializes the dashboard view and programmatically builds the 2x2 grid layout.
-Dashboard_View::Dashboard_View(Dashboard_Control *controller, QWidget *parent)
+Dashboard_View::Dashboard_View(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::Dashboard_View)
-    , controller(controller)
 {
     ui->setupUi(this);
 

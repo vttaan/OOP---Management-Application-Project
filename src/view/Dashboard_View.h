@@ -17,7 +17,7 @@ class Dashboard_View : public QWidget
     Q_OBJECT
 
 public:
-    explicit Dashboard_View(Dashboard_Control *controller = nullptr, QWidget *parent = nullptr);
+    explicit Dashboard_View(QWidget *parent = nullptr);
     ~Dashboard_View();
 
     void clearEmployeeGrid();
@@ -46,7 +46,6 @@ private slots:
 
 private:
     Ui::Dashboard_View *ui;
-    Dashboard_Control  *controller;
 
     QVBoxLayout* m_nextShiftLayout  = nullptr;
     QVBoxLayout* m_leaveRequestLayout = nullptr;
