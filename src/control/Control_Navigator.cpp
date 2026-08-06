@@ -31,8 +31,19 @@ Control_Navigator::Control_Navigator()
     this->settingController = new Setting_Control(this);
     this->notificationController = new Notification_Control(this);
 
-    this->viewWindow = new View_Navigator(this); // Initialize viewWindow AFTER controllers
-    // switch tab side bar do all
+    this->viewWindow = new View_Navigator(nullptr); // Initialize viewWindow BEFORE controllers set views
+
+    // Set the views on the controllers
+    loginController->setView(viewWindow->loginPage);
+    profileController->setView(viewWindow->profilePage);
+    dashboardController->setView(viewWindow->dashboardPage);
+    employeeController->setView(viewWindow->employeePage);
+    scheduleController->setView(viewWindow->schedulePage);
+    viewScheduleController->setView(viewWindow->viewSchedulePage);
+    salaryController->setView(viewWindow->salaryPage);
+    settingController->setView(viewWindow->settingPage);
+    notificationController->setView(viewWindow->notificationPage);
+       // switch tab side bar do all
     if (this->viewWindow->getSideBar())
     {
         // switch tab

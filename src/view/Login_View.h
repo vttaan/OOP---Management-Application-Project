@@ -3,7 +3,7 @@
 #define LOGINVIEW_H
 
 //#include "ui_Login_View.h"
-#include "control/Login_Control.h"
+
 
 class Login_Control;
 
@@ -16,19 +16,19 @@ class Login_View : public QWidget
 	Q_OBJECT
 private:
     Ui::Login_View *ui;
+
     QAction *hidePassword;
     QPixmap bgPixmap;
     void setupUI(); // setup icon/button/textbox/title
     void togglePassword();
     void initSignals(); // set up code connect include Signals and Slots
     void paintEvent(QPaintEvent *event) override;
-    Login_Control* controller;
+
 public:
-    Login_View(Login_Control* controller = nullptr, QWidget *parent = nullptr);
+    Login_View(QWidget *parent = nullptr);
     void clearInputs();
     void clearPassword();
-    Login_Control* getController() const;
-    void setController(Login_Control* controller);
+
     ~Login_View();
 signals:
     void loginSubmitted(const QString& username, const QString& password);

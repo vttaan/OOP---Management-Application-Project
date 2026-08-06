@@ -2,10 +2,9 @@
 #include "Profile_View.h"
 #include "ui_Profile_View.h"
 
-Profile_View::Profile_View(Profile_Control* controller, QWidget *parent)
+Profile_View::Profile_View(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::Profile_View)
-    , controller(controller)
 {
     ui->setupUi(this);
     ui->backButton->setIcon(QIcon(":/images/homeIcon.png"));
@@ -14,15 +13,11 @@ Profile_View::Profile_View(Profile_Control* controller, QWidget *parent)
     editProfileWidget = new EditProfile_Widget(this);
     editProfileWidget->setGeometry(this->rect());
     
-    connect(editProfileWidget, &EditProfile_Widget::saveRequested, this, [this](const QString& name, const QString& dob, const QString& address, const QString& phone, const QString& citizenId, const QString& avatarPath, const QString& gender) {
-        if (this->controller) {
-            bool success = this->controller->handleProfileUpdate(name, dob, address, phone, citizenId, avatarPath, gender);
-            if (success) {
-                editProfileWidget->slideOut();
-            } else {
-                QMessageBox::warning(this, "Lỗi", "Không thể cập nhật thông tin!");
-            }
-        }
+    connect(editProfileWidget, &EditProfile_Widget::saveRequested, this, [this](const QString& name, const QString& dob,
+                                                                                const QString& address, const QString& phone,
+                                                                                const QString& citizenId, const QString& avatarPath,
+                                                                                const QString& gender) {
+        emit requestProfileUpdate(name, dob, address, phone, citizenId, avatarPath, gender);
     });
 
     // Create edit password sliding widget
@@ -30,25 +25,12 @@ Profile_View::Profile_View(Profile_Control* controller, QWidget *parent)
     editPasswordWidget->setGeometry(this->rect());
 
     connect(editPasswordWidget, &EditPassword_Widget::saveRequested, this, [this](const QString& oldPassword, const QString& newPassword) {
-        if (this->controller) {
-            if (this->editPasswordWidget->txtNewPassword->text() != this->editPasswordWidget->txtConfirmPassword->text()) {
-                QMessageBox::warning(this, "Lỗi", "Mật khẩu mới không trùng khớp!");
-                return;
-            }
-            
-            PasswordChangeResult result = this->controller->handlePasswordUpdate(oldPassword, newPassword);
-            
-            if (result == PasswordChangeResult::SUCCESS) {
-                editPasswordWidget->slideOut();
-                QMessageBox::information(this, "Thành công", "Đổi mật khẩu thành công!");
-            } else if (result == PasswordChangeResult::WRONG_OLD_PASSWORD) {
-                QMessageBox::warning(this, "Lỗi", "Mật khẩu cũ không đúng!");
-            } else if (result == PasswordChangeResult::NEW_PASSWORD_TOO_WEAK) {
-                QMessageBox::warning(this, "Lỗi", "Mật khẩu mới quá yếu (ít nhất 6 ký tự)!");
-            } else {
-                QMessageBox::warning(this, "Lỗi", "Lỗi cơ sở dữ liệu!");
-            }
+        if (this->editPasswordWidget->txtNewPassword->text() != this->editPasswordWidget->txtConfirmPassword->text()) {
+            QMessageBox::warning(this, "Lỗi", "Mật khẩu mới không trùng khớp!");
+            return;
         }
+        
+        emit requestPasswordUpdate(oldPassword, newPassword);
     });
 }
 
@@ -57,10 +39,9 @@ Profile_View::~Profile_View()
     delete ui;
 }
 
-void Profile_View::loadUserData(SessionManager* currentSession) {
-    if (!this->getController() || !this->getController()->getUser()) return;
+void Profile_View::loadUserData() {
 
-    User* user = this->getController()->getUser();
+    User* user = SessionManager::getInstance()->getCurrentUser();
     ui->lblProfileName->setText(user->getName());
 
     QString roleStr = user->getRole();
@@ -146,33 +127,45 @@ void Profile_View::loadUserData(const QString& name, const QString& studentId, c
 
     // Populate detailed details
     ui->lblVal_Phone->setText(phone);
-    ui->lblVal_Email->setText(email);
-    ui->lblVal_Email->setHidden(true);
-    ui->lblTitle_Email->setHidden(true);
+
+
 }
 
-Profile_Control* Profile_View::getController() {
-    return controller;
-}
 
-void Profile_View::setController(Profile_Control* controller) {
-    this->controller = controller;
-}
 
 void Profile_View::on_backButton_clicked()
 {
-    emit this->getController()->backToPrevious();
+    emit backToPrevious();
+}
+
+void Profile_View::showProfileUpdateResult(bool success, const QString& errorMsg) {
+    if (success) {
+        editProfileWidget->slideOut();
+        QMessageBox::information(this, "Thành công", "Cập nhật thông tin thành công!");
+    } else {
+        QMessageBox::warning(this, "Lỗi", errorMsg.isEmpty() ? "Không thể cập nhật thông tin!" : errorMsg);
+    }
+}
+
+void Profile_View::showPasswordUpdateResult(bool success, const QString& errorMsg) {
+    if (success) {
+        editPasswordWidget->slideOut();
+        QMessageBox::information(this, "Thành công", "Đổi mật khẩu thành công!");
+    } else {
+        QMessageBox::warning(this, "Lỗi", errorMsg.isEmpty() ? "Đổi mật khẩu thất bại!" : errorMsg);
+    }
 }
 
 void Profile_View::on_btnEditInfo_clicked()
 {
     // Populate the edit panel with the current user's data and show it
-    if (this->getController()->getUser()) {
-        qDebug() << this->getController()->getUser()->getAvatarPath();
-        editProfileWidget->setInitialData(this->getController()->getUser()->getName(), this->getController()->getUser()->getDOB(),
-                                          this->getController()->getUser()->getAddress(), this->getController()->getUser()->getPhoneNum(),
-                                          this->getController()->getUser()->getIdentityID(), this->getController()->getUser()->getAvatarPath(),
-                                          this->getController()->getUser()->getGender());
+    User* u =SessionManager::getInstance()->getCurrentUser();
+    if (u) {
+        qDebug() << u->getAvatarPath();
+        editProfileWidget->setInitialData(u->getName(), u->getDOB(),
+                                          u->getAddress(), u->getPhoneNum(),
+                                          u->getIdentityID(), u->getAvatarPath(),
+                                          u->getGender());
     }
     editProfileWidget->slideIn();
 }
@@ -186,7 +179,8 @@ void Profile_View::resizeEvent(QResizeEvent *event) {
 
 void Profile_View::on_btnEditPassword_clicked()
 {
-    if (this->getController()->getUser()) {
+    User* u =SessionManager::getInstance()->getCurrentUser();
+    if (u) {
         editPasswordWidget->setInitialData();
     }
     editPasswordWidget->slideIn();
