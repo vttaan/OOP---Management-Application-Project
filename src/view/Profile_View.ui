@@ -297,29 +297,6 @@
                 </property>
                </widget>
               </item>
-              <item row="4" column="1">
-               <widget class="QLabel" name="lblTitle_Email">
-                <property name="text">
-                 <string>Email cá nhân</string>
-                </property>
-                <property name="class" stdset="0">
-                 <string>lblFieldTitle</string>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="1">
-               <widget class="QLabel" name="lblVal_Email">
-                <property name="text">
-                 <string>placeholder@gmail.com</string>
-                </property>
-                <property name="wordWrap">
-                 <bool>true</bool>
-                </property>
-                <property name="class" stdset="0">
-                 <string>lblFieldValue</string>
-                </property>
-               </widget>
-              </item>
               <item row="6" column="1">
                <widget class="QPushButton" name="btnEditInfo">
                 <property name="text">

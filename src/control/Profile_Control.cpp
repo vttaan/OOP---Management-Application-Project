@@ -19,14 +19,19 @@ Profile_View* Profile_Control::getView()  {
 void Profile_Control::setView(Profile_View* view) {
     this->view = view;
     if (this->view) {
-        this->view->setController(this);
+        connect(this->view, &Profile_View::requestProfileUpdate, this, &Profile_Control::handleProfileUpdate);
+        connect(this->view, &Profile_View::requestPasswordUpdate, this, &Profile_Control::handlePasswordUpdate);
+        connect(this->view, &Profile_View::backToPrevious, this, &Profile_Control::backToPrevious);
     }
 }
 
 User* Profile_Control::getUser() { return this->currentSession->getCurrentUser(); }
 
-bool Profile_Control::handleProfileUpdate(const QString& name, const QString& dob, const QString& address, const QString& phoneNum, const QString& citizenId, const QString& avatarPath, const QString& gender) {
-    if (!currentSession->getCurrentUser()) return false;
+void Profile_Control::handleProfileUpdate(const QString& name, const QString& dob, const QString& address, const QString& phoneNum, const QString& citizenId, const QString& avatarPath, const QString& gender) {
+    if (!currentSession->getCurrentUser()) {
+        if(view) view->showProfileUpdateResult(false, "Phiên đăng nhập không hợp lệ.");
+        return;
+    }
     // Save avatar to avatars folder
     QString localAvatarName = saveAvatarLocally(this->currentSession->getCurrentUser()->getIdEmployee(), avatarPath);
 
@@ -43,25 +48,40 @@ bool Profile_Control::handleProfileUpdate(const QString& name, const QString& do
         currentSession->getCurrentUser()->setGender(gender);
         
         // Refresh the profile view with the new data
-        view->loadUserData(currentSession);
+        view->loadUserData();
         emit profileUpdated();
-        return true;
+        if(view) view->showProfileUpdateResult(true);
+    } else {
+        if(view) view->showProfileUpdateResult(false, "Không thể cập nhật CSDL.");
     }
-    return false;
 }
 
-PasswordChangeResult Profile_Control::handlePasswordUpdate(const QString& oldPassword, const QString& newPassword) {
-    if (!currentSession->getCurrentUser()) return PasswordChangeResult::DATABASE_ERROR;
+void Profile_Control::handlePasswordUpdate(const QString& oldPassword, const QString& newPassword) {
+    if (!currentSession->getCurrentUser()) {
+        if(view) view->showPasswordUpdateResult(false, "Phiên đăng nhập không hợp lệ.");
+        return;
+    }
 
     // Attempt database update via the model
-    return model.updatePassword(currentSession->getCurrentUser()->getIdEmployee(), oldPassword, newPassword);
+    PasswordChangeResult result = model.updatePassword(currentSession->getCurrentUser()->getIdEmployee(), oldPassword, newPassword);
+    if (view) {
+        if (result == PasswordChangeResult::SUCCESS) {
+            view->showPasswordUpdateResult(true);
+        } else if (result == PasswordChangeResult::WRONG_OLD_PASSWORD) {
+            view->showPasswordUpdateResult(false, "Mật khẩu cũ không đúng!");
+        } else if (result == PasswordChangeResult::NEW_PASSWORD_TOO_WEAK) {
+            view->showPasswordUpdateResult(false, "Mật khẩu mới quá yếu (ít nhất 6 ký tự)!");
+        } else {
+            view->showPasswordUpdateResult(false, "Lỗi cơ sở dữ liệu!");
+        }
+    }
 }
 
 bool Profile_Control::checkIfMatchOldPassword(const QString& password) {
     return this->model.checkIfUserExist(this->currentSession->getCurrentUser()->getIdEmployee(), password);
 }
 
-void Profile_Control::loadUserData() { this->getView()->loadUserData(this->currentSession); }
+void Profile_Control::loadUserData() { this->getView()->loadUserData(); }
 
 QString Profile_Control::saveAvatarLocally(int empId,
                                           const QString &sourcePath) {

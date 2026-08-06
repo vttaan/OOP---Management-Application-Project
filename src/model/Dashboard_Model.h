@@ -33,6 +33,8 @@ public:
 
     // Return salary chart data comparing (year-1) vs (year)
     SalaryChartData getSalaryStats(int year);
+    void clearCache();
 
 private:
+    QMap<int, SalaryChartData> m_statsCache;
 };

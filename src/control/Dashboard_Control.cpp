@@ -44,6 +44,7 @@ void Dashboard_Control::init()
 {
     if (!view) return;
 
+    dashModel->clearCache(); // Clear stats cache when reloading the dashboard
     empModel->loadData();
     QList<User*> all = empModel->getListEmployee();
 

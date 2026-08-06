@@ -67,7 +67,7 @@ void Login_Control::handleLoginSubmission(const QString &username, const QString
     completeLogin(newUser);
 }
 
-void Login_Control::handleInitialPasswordChange(const QString& newPassword)
+void Login_Control::handleInitialPasswordChange(const QString &newPassword)
 {
     if (!pendingInitialPasswordUser)
     {
@@ -94,7 +94,7 @@ void Login_Control::handleInitialPasswordChange(const QString& newPassword)
 
     if (result == PasswordChangeResult::SUCCESS)
     {
-        User* user = pendingInitialPasswordUser;
+        User *user = pendingInitialPasswordUser;
         pendingInitialPasswordUser = nullptr;
         pendingInitialPassword.clear();
         if (view)
@@ -124,7 +124,7 @@ void Login_Control::handleInitialPasswordChange(const QString& newPassword)
         view->showInitialPasswordChangeError(errorMessage);
 }
 
-void Login_Control::completeLogin(User* user)
+void Login_Control::completeLogin(User *user)
 {
     currentSession->saveCurrentInfo(user);
     emit loginSuccessful(currentSession->getCurrentUser());

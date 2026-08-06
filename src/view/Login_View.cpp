@@ -2,10 +2,9 @@
 #include "Login_View.h"
 #include "ui_Login_View.h"
 
-Login_View::Login_View(Login_Control* controller, QWidget *parent)
+Login_View::Login_View(QWidget *parent)
 	: QWidget(parent)
     , ui(new Ui::Login_View())
-    , controller(controller)
 {
 	ui->setupUi(this);
     ui->btnLogin->setCheckable(true);
@@ -14,21 +13,11 @@ Login_View::Login_View(Login_Control* controller, QWidget *parent)
     setupUI();
     initSignals();
 
-    if (controller) {
-        connect(controller, &Login_Control::loginSuccessful, this, &Login_View::loginSuccessful);
-    }
+
 }
 
-Login_Control* Login_View::getController() const {
-    return this->controller;
-}
 
-void Login_View::setController(Login_Control* controller) {
-    this->controller = controller;
-    if (this->controller) {
-        connect(this->controller, &Login_Control::loginSuccessful, this, &Login_View::loginSuccessful);
-    }
-}
+
 
 Login_View::~Login_View()
 {

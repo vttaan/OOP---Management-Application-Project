@@ -30,7 +30,7 @@ signals:
 
 public slots:
     // Called by the Controller to push data to the view
-    void loadEmployees(const QList<User *> &employees);
+    void loadEmployees(const QList<User *> &employees, const QMap<int, double> &hoursMap);
 
     void showError(const QString &msg);
     void showSuccess(const QString &msg);
@@ -53,8 +53,7 @@ private:
     void buildFilterDropdown();
     void buildSortDropdown();
 
-    // Renders table rows from a given employee list
-    void renderTable(const QList<User *> &employees);
+
 
     // --- Widget Factories ---
     QLabel      *createAvatar(const QString &avatarPath);

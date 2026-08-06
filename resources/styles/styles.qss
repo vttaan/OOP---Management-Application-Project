@@ -743,13 +743,13 @@ QTableWidget[role="manager"] {
     selection-color: white;
 }
 QTableWidget[role="manager"] QHeaderView::section {
-    background-color: #A855F7; /* Đổi màu nền tím ở đây */
+    background-color: #A855F7;
     border: none;
     border-bottom: 2px solid #9333EA;
     border-right: 1px solid #9333EA;
     padding: 8px;
     font-weight: bold;
-    color: white; /* Màu chữ trắng ở đây */
+    color: white;
     text-transform: uppercase;
 }
 QTableWidget[role="manager"] QHeaderView {
@@ -759,6 +759,8 @@ QTableWidget[role="manager"] QHeaderView {
 QTableWidget[role="manager"] QTableCornerButton::section {
     background-color: #A855F7;
     border: none;
+    border-bottom: 2px solid #9333EA;
+    border-right: 2px solid #9333EA;
 }
 
 

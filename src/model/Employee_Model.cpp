@@ -513,3 +513,31 @@ QString Employee_Model::generateAutoPassword(QString &name, QString &dob){
     return res + '#' + dd + mm;
     // TQT#0609
 }
+
+QMap<int, double> Employee_Model::getHoursWorkedThisMonth() {
+    if (!m_hoursCache.isEmpty()) {
+        return m_hoursCache;
+    }
+
+    QSqlDatabase db = Database::getInstance()->getDbConnect();
+    QSqlQuery query(db);
+    query.prepare(
+        "SELECT idEmployee, SUM((julianday(endTime) - julianday(startTime)) * 24.0) "
+        "FROM SHIFT "
+        "WHERE status = 1 AND strftime('%Y-%m', workDate) = strftime('%Y-%m', 'now') "
+        "GROUP BY idEmployee"
+    );
+
+    if (query.exec()) {
+        while (query.next()) {
+            int empId = query.value(0).toInt();
+            double hours = query.value(1).toDouble();
+            m_hoursCache[empId] = hours;
+        }
+    } else {
+        qDebug() << "Failed to load hours worked this month:" << query.lastError().text();
+    }
+
+    return m_hoursCache;
+}
+

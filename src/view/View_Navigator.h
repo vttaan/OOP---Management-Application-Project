@@ -23,10 +23,8 @@ class View_Navigator : public QMainWindow
 private:
     QWidget *currentWindow;
 
-    Control_Navigator *controller;
-
 public:
-    View_Navigator(Control_Navigator *controller, QWidget *parent = nullptr);
+    View_Navigator(QWidget *parent = nullptr);
     Sidebar_Widget *getSideBar();
     Login_View *loginPage = nullptr;
     Dashboard_View *dashboardPage = nullptr;
@@ -38,7 +36,6 @@ public:
     ViewSchedule_View *viewSchedulePage = nullptr;
     Setting_View* settingPage = nullptr;
     Notification_View* notificationPage = nullptr;
-    Control_Navigator *getController();
     QWidget *getWindow();
     Ui::View_Navigator *getUI();
     void setPageIndex(int index);
