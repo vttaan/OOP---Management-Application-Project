@@ -1,6 +1,6 @@
 #include "global.h"
 #include "EditPassword_Widget.h"
-#include <QScrollArea>
+#include "model/Change_password.h"
 
 EditPassword_Widget::EditPassword_Widget(QWidget *parent) : QWidget(parent), isPanelOpen(false) {
     // This widget acts as the semi-transparent backdrop.
@@ -55,7 +55,20 @@ EditPassword_Widget::EditPassword_Widget(QWidget *parent) : QWidget(parent), isP
     formLayout->addRow("Xác nhận mật khẩu mới:", txtConfirmPassword);
 
     scrollLayout->addLayout(formLayout);
+
+    // Error notification line (single small red line)
+    lblError = new QLabel(scrollContent);
+    lblError->setStyleSheet("color: #ef4444; font-size: 13px; font-weight: 500; background: transparent; border: none;");
+    lblError->setWordWrap(true);
+    lblError->hide();
+    scrollLayout->addWidget(lblError);
+
     scrollLayout->addStretch();
+
+    // Clear error message when user starts typing again
+    connect(txtOldPassword, &QLineEdit::textEdited, this, &EditPassword_Widget::clearErrorMessage);
+    connect(txtNewPassword, &QLineEdit::textEdited, this, &EditPassword_Widget::clearErrorMessage);
+    connect(txtConfirmPassword, &QLineEdit::textEdited, this, &EditPassword_Widget::clearErrorMessage);
 
     scrollContent->setLayout(scrollLayout);
     scrollArea->setWidget(scrollContent);
@@ -93,9 +106,11 @@ void EditPassword_Widget::setInitialData() {
     txtOldPassword->setup();
     txtNewPassword->setup();
     txtConfirmPassword->setup();
+    clearErrorMessage();
 }
 
 void EditPassword_Widget::slideIn() {
+    clearErrorMessage();
     if (!parentWidget()) return;
 
     this->resize(parentWidget()->size());
@@ -121,6 +136,20 @@ void EditPassword_Widget::slideOut() {
     animation->start();
 
     isPanelOpen = false;
+}
+
+void EditPassword_Widget::showErrorMessage(const QString& message) {
+    if (lblError) {
+        lblError->setText(message);
+        lblError->show();
+    }
+}
+
+void EditPassword_Widget::clearErrorMessage() {
+    if (lblError) {
+        lblError->clear();
+        lblError->hide();
+    }
 }
 
 void EditPassword_Widget::onAnimationFinished() {
@@ -156,7 +185,40 @@ void EditPassword_Widget::resizeEvent(QResizeEvent *event) {
 }
 
 void EditPassword_Widget::onSaveClicked() {
-    emit saveRequested(txtOldPassword->text(), txtNewPassword->text());
+    const QString oldPass = txtOldPassword->text();
+    const QString newPass = txtNewPassword->text();
+    const QString confirmPass = txtConfirmPassword->text();
+
+    if (oldPass.isEmpty()) {
+        showErrorMessage("Vui lòng nhập mật khẩu cũ.");
+        txtOldPassword->setFocus();
+        return;
+    }
+    if (newPass.isEmpty()) {
+        showErrorMessage("Vui lòng nhập mật khẩu mới.");
+        txtNewPassword->setFocus();
+        return;
+    }
+    if (confirmPass.isEmpty()) {
+        showErrorMessage("Vui lòng xác nhận mật khẩu mới.");
+        txtConfirmPassword->setFocus();
+        return;
+    }
+    if (newPass != confirmPass) {
+        showErrorMessage("Mật khẩu mới không trùng khớp!");
+        txtConfirmPassword->setFocus();
+        return;
+    }
+
+    const QString strengthError = Change_password::getPasswordStrengthError(newPass);
+    if (!strengthError.isEmpty()) {
+        showErrorMessage(strengthError);
+        txtNewPassword->setFocus();
+        return;
+    }
+
+    clearErrorMessage();
+    emit saveRequested(oldPass, newPass);
 }
 
 void EditPassword_Widget::onCancelClicked() {

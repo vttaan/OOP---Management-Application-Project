@@ -48,9 +48,11 @@ void Login_Control::handleLoginSubmission(const QString &username, const QString
     User *newUser = model.verifyLogin(username, password, &mustChangeInitialPassword);
     if (!newUser)
     {
-        QMessageBox::critical(view, "Login Failed", "Sai tài khoản hoặc mật khẩu!");
         if (view)
+        {
+            view->showError("Sai tài khoản hoặc mật khẩu!");
             view->clearPassword();
+        }
         return;
     }
 
@@ -106,7 +108,10 @@ void Login_Control::handleInitialPasswordChange(const QString &newPassword)
     switch (result)
     {
     case PasswordChangeResult::NEW_PASSWORD_TOO_WEAK:
-        errorMessage = "Mật khẩu mới phải có ít nhất 6 ký tự.";
+        errorMessage = Change_password::getPasswordStrengthError(newPassword);
+        if (errorMessage.isEmpty()) {
+            errorMessage = "Mật khẩu mới không đủ mạnh.";
+        }
         break;
     case PasswordChangeResult::WRONG_OLD_PASSWORD:
         errorMessage = "Mật khẩu ban đầu không còn hợp lệ. Vui lòng đăng nhập lại.";

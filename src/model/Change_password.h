@@ -15,9 +15,10 @@ public:
     PasswordChangeResult updatePassword(short int employeeId, 
                                         const QString& oldPassword, 
                                         const QString& newPassword);
+    static QString getPasswordStrengthError(const QString& newPassword);
+    static bool validatePasswordStrength(const QString& newPassword);
 
 private:
     bool verifyOldPassword(short int employeeId, const QString& oldPassword);
-    bool validatePasswordStrength(const QString& newPassword);
     bool executePasswordUpdate(short int employeeId, const QString& newHashedPassword);
 };

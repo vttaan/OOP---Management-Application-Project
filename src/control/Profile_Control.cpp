@@ -70,7 +70,8 @@ void Profile_Control::handlePasswordUpdate(const QString& oldPassword, const QSt
         } else if (result == PasswordChangeResult::WRONG_OLD_PASSWORD) {
             view->showPasswordUpdateResult(false, "Mật khẩu cũ không đúng!");
         } else if (result == PasswordChangeResult::NEW_PASSWORD_TOO_WEAK) {
-            view->showPasswordUpdateResult(false, "Mật khẩu mới quá yếu (ít nhất 6 ký tự)!");
+            QString weakMsg = Change_password::getPasswordStrengthError(newPassword);
+            view->showPasswordUpdateResult(false, weakMsg.isEmpty() ? "Mật khẩu mới không đủ mạnh!" : weakMsg);
         } else {
             view->showPasswordUpdateResult(false, "Lỗi cơ sở dữ liệu!");
         }

@@ -43,13 +43,54 @@ bool Change_password::verifyOldPassword(short int employeeId, const QString& old
     return Security::unwrapPasswordHash(storedPassword) == Security::hashPassword(oldPassword);
 }
 
+QString Change_password::getPasswordStrengthError(const QString& newPassword)
+{
+    if (newPassword.isEmpty()) {
+        return "Mật khẩu không được để trống.";
+    }
+    if (newPassword.length() < 6) {
+        return "Mật khẩu phải có ít nhất 6 ký tự.";
+    }
+    if (newPassword.contains('$')) {
+        return "Mật khẩu không được chứa ký tự '$'.";
+    }
+
+    bool hasUpper = false;
+    bool hasLower = false;
+    bool hasDigit = false;
+    bool hasSpecial = false;
+
+    for (const QChar& ch : newPassword) {
+        if (ch.isUpper()) {
+            hasUpper = true;
+        } else if (ch.isLower()) {
+            hasLower = true;
+        } else if (ch.isDigit()) {
+            hasDigit = true;
+        } else if (!ch.isSpace()) {
+            hasSpecial = true;
+        }
+    }
+
+    if (!hasUpper) {
+        return "Mật khẩu cần ít nhất 1 chữ hoa (A-Z).";
+    }
+    if (!hasLower) {
+        return "Mật khẩu cần ít nhất 1 chữ thường (a-z).";
+    }
+    if (!hasDigit) {
+        return "Mật khẩu cần ít nhất 1 chữ số (0-9).";
+    }
+    if (!hasSpecial) {
+        return "Mật khẩu cần ít nhất 1 ký tự đặc biệt.";
+    }
+
+    return QString();
+}
+
 bool Change_password::validatePasswordStrength(const QString& newPassword)
 {
-    // Basic validation: at least 6 characters
-    if (newPassword.length() < 6) {
-        return false;
-    }
-    return true;
+    return getPasswordStrengthError(newPassword).isEmpty();
 }
 
 bool Change_password::executePasswordUpdate(short int employeeId, const QString& newHashedPassword)

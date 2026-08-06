@@ -43,6 +43,7 @@
 #include <QResizeEvent>
 #include <QSize>
 #include <QSizePolicy>
+#include <QScrollArea>
 #include <QSpinBox>
 #include <QSplitter>
 #include <QSqlDatabase>

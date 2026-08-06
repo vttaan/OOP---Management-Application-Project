@@ -2,8 +2,6 @@
 #ifndef LOGINVIEW_H
 #define LOGINVIEW_H
 
-// #include "ui_Login_View.h"
-
 class Login_Control;
 
 QT_BEGIN_NAMESPACE

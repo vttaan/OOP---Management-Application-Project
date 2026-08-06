@@ -25,11 +25,6 @@ Profile_View::Profile_View(QWidget *parent)
     editPasswordWidget->setGeometry(this->rect());
 
     connect(editPasswordWidget, &EditPassword_Widget::saveRequested, this, [this](const QString& oldPassword, const QString& newPassword) {
-        if (this->editPasswordWidget->txtNewPassword->text() != this->editPasswordWidget->txtConfirmPassword->text()) {
-            QMessageBox::warning(this, "Lỗi", "Mật khẩu mới không trùng khớp!");
-            return;
-        }
-        
         emit requestPasswordUpdate(oldPassword, newPassword);
     });
 }
@@ -137,7 +132,7 @@ void Profile_View::showPasswordUpdateResult(bool success, const QString& errorMs
         editPasswordWidget->slideOut();
         QMessageBox::information(this, "Thành công", "Đổi mật khẩu thành công!");
     } else {
-        QMessageBox::warning(this, "Lỗi", errorMsg.isEmpty() ? "Đổi mật khẩu thất bại!" : errorMsg);
+        editPasswordWidget->showErrorMessage(errorMsg.isEmpty() ? "Đổi mật khẩu thất bại!" : errorMsg);
     }
 }
 
