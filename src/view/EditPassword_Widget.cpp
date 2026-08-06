@@ -66,9 +66,9 @@ EditPassword_Widget::EditPassword_Widget(QWidget *parent) : QWidget(parent), isP
     scrollLayout->addStretch();
 
     // Clear error message when user starts typing again
-    connect(txtOldPassword, &QLineEdit::textChanged, this, &EditPassword_Widget::clearErrorMessage);
-    connect(txtNewPassword, &QLineEdit::textChanged, this, &EditPassword_Widget::clearErrorMessage);
-    connect(txtConfirmPassword, &QLineEdit::textChanged, this, &EditPassword_Widget::clearErrorMessage);
+    connect(txtOldPassword, &QLineEdit::textEdited, this, &EditPassword_Widget::clearErrorMessage);
+    connect(txtNewPassword, &QLineEdit::textEdited, this, &EditPassword_Widget::clearErrorMessage);
+    connect(txtConfirmPassword, &QLineEdit::textEdited, this, &EditPassword_Widget::clearErrorMessage);
 
     scrollContent->setLayout(scrollLayout);
     scrollArea->setWidget(scrollContent);

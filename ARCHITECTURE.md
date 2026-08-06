@@ -206,38 +206,10 @@ This module acts as the intermediary between the View and Model layers, orchestr
     *   `loadData()`, `loadStaffSchedule()`, `loadManagerSchedule()`: Loads schedule based on role. `loadStaffSchedule` handles both approved and pending schedules. *Calls `Schedule_Model::getAcceptedSchedule`, `getPendingSchedule`, or `getManagerWeeklyGrid`.*
     *   `onPrevWeek()`, `onNextWeek()`, `onCurrentWeek()`: Navigation slots.
 
-### 5.2. Core Module (`src/core`)
-
-This module defines the foundational entities and domain objects of the application.
-
-#### 5.2.1. `User` (Abstract)
-*   **Role:** Represents a generic person in the system.
-*   **Variables:**
-    *   `role`, `idEmployee`, `avatarPath`, `idCitizenIdentity`, `name`, `dob`, `address`, `phoneNum`, `gender`. *Used throughout the app to display or edit user info.*
-*   **Functions:**
-    *   Getters and Setters for all variables.
-    *   `getSalary()`: Pure virtual function to be implemented by derived classes.
-
-#### 5.2.2. `Staff` (Inherits `User`)
-*   **Role:** Represents a staff-level employee.
-*   **Variables:**
-    *   `hourSalary`, `hourWork`.
-*   **Functions:**
-
-#### 5.1.8. `ViewSchedule_Control`
-*   **Role:** Manages logic for viewing existing schedules.
-*   **Variables:**
-    *   `view` (Pointer to `ViewSchedule_View`).
-    *   `model` (Pointer to `Schedule_Model`).
-    *   `currentSession` (Pointer to `SessionManager`).
-*   **Functions:**
-    *   `loadData()`, `loadStaffSchedule()`, `loadManagerSchedule()`: Loads schedule based on role. `loadStaffSchedule` handles both approved and pending schedules. *Calls `Schedule_Model::getAcceptedSchedule`, `getPendingSchedule`, or `getManagerWeeklyGrid`.*
-    *   `onPrevWeek()`, `onNextWeek()`, `onCurrentWeek()`: Navigation slots.
 
 ### 5.2. Core Module (`src/core`)
 
 This module defines the foundational entities and domain objects of the application.
-
 #### 5.2.1. `User` (Abstract)
 *   **Role:** Represents a generic person in the system.
 *   **Variables:**

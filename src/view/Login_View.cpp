@@ -111,8 +111,8 @@ void Login_View::setupUI(){
 void Login_View::initSignals(){
     connect(hidePassword,&QAction::triggered,this,&Login_View::togglePassword);
     connect(hideNewPassword, &QAction::triggered, this, &Login_View::toggleNewPassword);
-    connect(ui->txtLoginUsername, &QLineEdit::textChanged, this, &Login_View::clearError);
-    connect(ui->txtLoginPassword, &QLineEdit::textChanged, this, &Login_View::clearError);
+    connect(ui->txtLoginUsername, &QLineEdit::textEdited, this, &Login_View::clearError);
+    connect(ui->txtLoginPassword, &QLineEdit::textEdited, this, &Login_View::clearError);
 }
 
 void Login_View::togglePassword()
