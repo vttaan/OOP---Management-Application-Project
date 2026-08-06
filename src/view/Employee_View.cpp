@@ -5,7 +5,7 @@
 #include "EditEmployee_Dialog.h"
 #include "EmployeeDetails_Dialog.h"
 #include "utils/SessionManage.h"
-
+#include <QTimer>
 #include <QMenu>
 
 // ============================================================
@@ -180,9 +180,14 @@ void Employee_View::setupConnections()
   connect(ui->addEmployeeBtn, &QPushButton::clicked, this,
           &Employee_View::handleAddEmployee);
 
-  // Search bar — emit combined update when text changes
-  connect(ui->searchRoster, &QLineEdit::textChanged, this,
-          &Employee_View::emitUpdateRequest);
+  // Search bar — debounce 30ms to avoid rebuilding table on every keystroke (Fix 1)
+  m_searchTimer = new QTimer(this);
+  m_searchTimer->setSingleShot(true);
+  m_searchTimer->setInterval(150);
+  connect(m_searchTimer, &QTimer::timeout, this, &Employee_View::emitUpdateRequest);
+  connect(ui->searchRoster, &QLineEdit::textChanged, this, [this]() {
+      m_searchTimer->start();
+  });
 
   // Filter dropdown toggle
   connect(ui->filterBtn, &QPushButton::clicked, this,
@@ -254,6 +259,9 @@ void Employee_View::loadEmployees(const QList<User *> &employees, const QMap<int
           .arg(shown)
           .arg(total)
           .arg(breakdown));
+
+
+  ui->employeesTable->setUpdatesEnabled(false);
 
   for (int row = 0; row < employees.size(); ++row)
   {
@@ -384,7 +392,7 @@ void Employee_View::loadEmployees(const QList<User *> &employees, const QMap<int
     bool isOtherManager = false;
     User* currentUser = SessionManager::getInstance()->getCurrentUser();
     if (currentUser) {
-        if ((emp->getRole() == "Manager" || emp->getRole() == "Admin") && 
+        if ((emp->getRole() == "Manager" || emp->getRole() == "Admin") &&
             emp->getIdEmployee() != currentUser->getIdEmployee()) {
             isOtherManager = true;
         }
@@ -400,7 +408,10 @@ void Employee_View::loadEmployees(const QList<User *> &employees, const QMap<int
     actionsLayout->addStretch();
     ui->employeesTable->setCellWidget(row, 8, actionsWidget);
   }
+
+  ui->employeesTable->setUpdatesEnabled(true);
 }
+
 
 // ============================================================
 // showError / showSuccess
@@ -519,51 +530,47 @@ QLabel *Employee_View::createAvatar(const QString &avatarPath)
 {
   const int size = 32;
 
-  // Resolve the absolute file path (avatars are stored relative to resources/avatars/)
-  QPixmap avatarPixmap;
-  if (!avatarPath.isEmpty()) {
-      // Try Qt resource path first (starts with ":")
-      if (avatarPath.startsWith(":/")) {
-          avatarPixmap.load(avatarPath);
-      } else {
-          // Build path the same way sidebar_widget does
-          QDir appDir(QCoreApplication::applicationDirPath());
-          appDir.cdUp(); // build
-          appDir.cdUp(); // project root
-          QString fullPath = appDir.filePath("resources/avatars/") + avatarPath;
-          if (QFile::exists(fullPath))
-              avatarPixmap.load(fullPath);
+  // Fix 3: Check cache first — skip disk I/O and QPainter if already rendered
+  const QString cacheKey = avatarPath.isEmpty() ? QStringLiteral("__default__") : avatarPath;
+  if (!m_avatarCache.contains(cacheKey)) {
+      QPixmap avatarPixmap;
+      if (!avatarPath.isEmpty()) {
+          if (avatarPath.startsWith(":/")) {
+              avatarPixmap.load(avatarPath);
+          } else {
+              QDir appDir(QCoreApplication::applicationDirPath());
+              appDir.cdUp();
+              appDir.cdUp();
+              QString fullPath = appDir.filePath("resources/avatars/") + avatarPath;
+              if (QFile::exists(fullPath))
+                  avatarPixmap.load(fullPath);
+          }
       }
+      if (avatarPixmap.isNull())
+          avatarPixmap.load(":/images/avatarSample.png");
+
+      QPixmap scaled = avatarPixmap.scaled(size, size, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+      QPixmap rounded(size, size);
+      rounded.fill(Qt::transparent);
+      QPainter painter(&rounded);
+      painter.setRenderHint(QPainter::Antialiasing, true);
+      painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
+      QPainterPath path;
+      path.addRoundedRect(0, 0, size, size, size / 2, size / 2);
+      painter.setClipPath(path);
+      int xOffset = (size - scaled.width()) / 2;
+      int yOffset = (size - scaled.height()) / 2;
+      painter.drawPixmap(xOffset, yOffset, scaled);
+      painter.end();
+
+      m_avatarCache.insert(cacheKey, rounded);
   }
-
-  // Fall back to the bundled default avatar
-  if (avatarPixmap.isNull())
-      avatarPixmap.load(":/images/avatarSample.png");
-
-  // Scale to fill the target square, then clip to a circle with QPainter
-  QPixmap scaled = avatarPixmap.scaled(size, size, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
-
-  QPixmap rounded(size, size);
-  rounded.fill(Qt::transparent);
-
-  QPainter painter(&rounded);
-  painter.setRenderHint(QPainter::Antialiasing, true);
-  painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
-
-  QPainterPath path;
-  path.addRoundedRect(0, 0, size, size, size / 2, size / 2);
-  painter.setClipPath(path);
-
-  int xOffset = (size - scaled.width()) / 2;
-  int yOffset = (size - scaled.height()) / 2;
-  painter.drawPixmap(xOffset, yOffset, scaled);
-  painter.end();
 
   QLabel *avatar = new QLabel();
   avatar->setObjectName("empAvatar");
   avatar->setFixedSize(size, size);
   avatar->setAlignment(Qt::AlignCenter);
-  avatar->setPixmap(rounded);
+  avatar->setPixmap(m_avatarCache[cacheKey]);
   return avatar;
 }
 

@@ -307,7 +307,7 @@ QList<User *> Employee_Model::SearchSortFilter(QString contentSearch, short type
 QString Employee_Model::removeAccent(const QString &input)
 {
   QString res = "";
-  QMap<QString, QString> mapping =
+  static const QMap<QString, QString> mapping =
       {
           {"à", "a"}, {"á", "a"}, {"ạ", "a"}, {"ả", "a"}, {"ã", "a"}, {"â", "a"}, {"ầ", "a"}, {"ấ", "a"}, {"ậ", "a"}, {"ẩ", "a"}, {"ẫ", "a"}, {"ă", "a"}, {"ằ", "a"}, {"ắ", "a"}, {"ặ", "a"}, {"ẳ", "a"}, {"ẵ", "a"}, 
           {"è", "e"}, {"é", "e"}, {"ẹ", "e"}, {"ẻ", "e"}, {"ẽ", "e"}, {"ê", "e"}, {"ề", "e"}, {"ế", "e"}, {"ệ", "e"}, {"ể", "e"}, {"ễ", "e"}, 
@@ -343,13 +343,12 @@ QString Employee_Model::getPattern(User *emp)
   QString id = QString::number(emp->getIdEmployee());
   QString name = emp->getName();
   QString role = emp->getRole();
-  QString idIn = emp->getIdentityID();
   QString phone = emp->getPhoneNum();
-  QString dob = emp->getDOB();
-  QString address = emp->getAddress();
-  QString gender = emp->getGender();
-  pattern = id + '|' + name + '|' + role + '|' + idIn + '|' + phone + '|' +
-            dob + '|' + address + '|' + gender;
+  QString typeWork = emp->getIsFixedEmployee() ? "Co dinh": "Theo gio";
+  QString stat = emp->getStatus();
+  if(stat.toLower() == "active") stat = "Dang lam";
+  else stat = "Khong hoat dong";
+  pattern = id + '|' + name + '|' + role  + '|' + phone + '|' + typeWork + '|' + stat;
   QString patternNew = pattern.toLower();
   patternNew = removeAccent(patternNew);
   return patternNew;

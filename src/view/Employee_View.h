@@ -2,7 +2,6 @@
 #ifndef EMPLOYEE_VIEW_H
 #define EMPLOYEE_VIEW_H
 
-#include "model/Employee_Model.h"
 
 namespace Ui { class Employee_View; }
 
@@ -80,6 +79,12 @@ private:
     bool       m_sortOpen  = false;
     QString    m_sortField;  // "" | "id" | "name"
     int        m_sortDir   = 0; // 0=none, 1=asc, -1=desc
+
+    // --- Search debounce timer
+    QTimer    *m_searchTimer = nullptr;
+
+    // --- Avatar pixmap cache
+    QHash<QString, QPixmap> m_avatarCache;
 };
 
 #endif // EMPLOYEE_VIEW_H

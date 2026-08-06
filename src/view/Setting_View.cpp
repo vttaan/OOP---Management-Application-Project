@@ -81,9 +81,19 @@ void Setting_View::loadData(short openHour, short closeHour, Qt::DayOfWeek dayOp
     int row = 0;
 
     for (auto it = roles.constBegin(); it != roles.constEnd(); ++it) {
+        const QString& roleKey = it.key();
+        QString roleDisplay;
+        if      (roleKey == "KitchenAssitant") roleDisplay = "Phụ Bếp";
+        else if (roleKey == "HallStaff")        roleDisplay = "Phục Vụ";
+        else if (roleKey == "Cashier")          roleDisplay = "Thu Ngân";
+        else if (roleKey == "Manager")          roleDisplay = "Quản Lý";
+        else if (roleKey == "Admin")            roleDisplay = "Quản Trị Viên";
+        else                                    roleDisplay = roleKey;
+
         // col 1: Roles READ ONLY - bold + larger font
-        QTableWidgetItem* roleItem = new QTableWidgetItem(it.key());
+        QTableWidgetItem* roleItem = new QTableWidgetItem(roleDisplay);
         roleItem->setFlags(roleItem->flags() ^ Qt::ItemIsEditable);
+        roleItem->setData(Qt::UserRole, roleKey);
         QFont roleFont = roleItem->font();
         roleFont.setBold(true);
         roleFont.setPointSize(11);
@@ -126,10 +136,9 @@ void Setting_View::saveClicked()
 
     QMap<QString, QPair<short, short>> rolesMap;
     for (int i = 0; i < ui->tableRoles->rowCount(); ++i) {
-        // Lấy tên chức danh từ Cột 0
-        QString roleName = ui->tableRoles->item(i, 0)->text();
-
-        // Ép kiểu (cast) widget trong ô ra thành QSpinBox để lấy giá trị
+        QString roleName = ui->tableRoles->item(i, 0)->data(Qt::UserRole).toString();
+        if (roleName.isEmpty())
+            roleName = ui->tableRoles->item(i, 0)->text();
         QSpinBox* spinMin = qobject_cast<QSpinBox*>(ui->tableRoles->cellWidget(i, 1));
         QSpinBox* spinMax = qobject_cast<QSpinBox*>(ui->tableRoles->cellWidget(i, 2));
 
