@@ -46,6 +46,8 @@ private:
 private slots:
     void initTestCase()
     {
+        Config::setOpenHour(7);
+        Config::setCloseHour(22);
         Config::setDayOpenRegisShift(Qt::Tuesday);
         QVERIFY(temporaryDirectory.isValid());
         QDir root(temporaryDirectory.path());
@@ -81,6 +83,8 @@ private slots:
 
     void init()
     {
+        Config::setOpenHour(7);
+        Config::setCloseHour(22);
         QVERIFY(execute("DROP TRIGGER IF EXISTS reject_evening"));
         QVERIFY(execute("DELETE FROM SHIFT"));
         QVERIFY(execute("DELETE FROM NOTIFICATION"));
@@ -181,6 +185,31 @@ private slots:
         QVERIFY(model.replacePendingShiftsForWeek(1001, weekStart, {}));
         QCOMPARE(scalar("SELECT COUNT(*) FROM SHIFT WHERE status = 0"), 0);
         QCOMPARE(scalar("SELECT COUNT(*) FROM SHIFT WHERE status = 1"), 1);
+    }
+
+    void configuredShopHoursDefineCanonicalShiftBoundaries()
+    {
+        Config::setOpenHour(8);
+        Config::setCloseHour(23);
+
+        QCOMPARE(Config::getShiftStartTime(0), QTime(8, 0));
+        QCOMPARE(Config::getShiftEndTime(0), QTime(12, 0));
+        QCOMPARE(Config::getShiftTimeLabel(0), QString("08:00 - 12:00"));
+        QCOMPARE(Config::getShiftTimeLabel(1), QString("12:00 - 17:00"));
+        QCOMPARE(Config::getShiftStartTime(2), QTime(17, 0));
+        QCOMPARE(Config::getShiftEndTime(2), QTime(23, 0));
+        QCOMPARE(Config::getShiftTimeLabel(2), QString("17:00 - 23:00"));
+
+        QVERIFY(execute(
+            "INSERT INTO SHIFT (idEmployee, workDate, startTime, endTime, status) VALUES "
+            "(1001, '2026-08-03', '08:00', '12:00', 0), "
+            "(1001, '2026-08-04', '17:00', '23:00', 1)"));
+
+        Schedule_Model model;
+        const FullTimeScheduleGrid grid =
+            model.getFullTimeScheduleGrid(1001, weekStart);
+        QCOMPARE(grid[0][0], FullTimeShiftStatus::Pending);
+        QCOMPARE(grid[1][2], FullTimeShiftStatus::Approved);
     }
 
     void scheduleWeeksAlwaysUseMondayRegardlessOfOpenDay()

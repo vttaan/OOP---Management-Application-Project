@@ -143,7 +143,7 @@ Optimizer::RoleSolveResult Optimizer::solveForRole(const QString& role,
     }
 
     // Init Graph
-    const int K = 3; // 0 = Sang (7-15), 1 = Toi (15-23 Fixed / 15-22 Part-time)
+    const int K = 3; // Morning, afternoon, and evening canonical blocks.
     const int S = 0, T = 1;
     auto nEmp  = [&](int i)          { return 2 + i; };
     auto nDay  = [&](int i, int d)   { return 2 + E + i * 7 + d; };
@@ -222,8 +222,6 @@ Optimizer::RoleSolveResult Optimizer::solveForRole(const QString& role,
     minCostFlow(S, T, INF, cost2);
 
 // ---PHASE 3
-    static const QTime BLK_START[3]={QTime(7,0),QTime(12,0),QTime(17,0)};
-    static const QTime BLK_END[3]={QTime(12,0),QTime(17,0),QTime(22,0)};
     const int minMinutesPT = Config::getMinimumHourWorkPerDay_PT() * 60;
     const int maxMinutesPT = Config::getMaximumHourWorkPerDay_PT() * 60;
 
@@ -235,8 +233,8 @@ Optimizer::RoleSolveResult Optimizer::solveForRole(const QString& role,
         bool coCandidate = false;
 
         for (int blk = 0; blk < K; ++blk) {
-            QTime blkStart=BLK_START[blk];
-            QTime blkEnd=BLK_END[blk];
+            QTime blkStart = Config::getShiftStartTime(blk);
+            QTime blkEnd = Config::getShiftEndTime(blk);
             QTime ovStart  = qMax(s->getStartTime(), blkStart);
             QTime ovEnd    = qMin(s->getEndTime(),   blkEnd);
             if (ovStart >= ovEnd) continue;

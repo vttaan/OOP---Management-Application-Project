@@ -187,10 +187,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core Qt6::Widgets Qt6::Sql Qt
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_precompile_headers(${PROJECT_NAME} PRIVATE src/global.h)
 option(OPTIMUS_COPY_DATABASE "Copy the runtime SQLite database into the build tree" ON)
-if(OPTIMUS_COPY_DATABASE)
-    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/database
-         DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-endif()
+# if(OPTIMUS_COPY_DATABASE)
+#     file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/database
+#          DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+# endif()
 
 if(BUILD_TESTING)
     find_package(Qt6 REQUIRED COMPONENTS Test)

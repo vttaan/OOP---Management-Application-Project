@@ -714,6 +714,16 @@ void ViewSchedule_View::setManagerFeaturesVisible(bool visible)
     ui->scheduleTitle->setText(visible ? "Lịch làm việc toàn bộ nhân sự"
                                        : "Lịch làm việc cá nhân");
 
+    if (visible)
+    {
+        ui->tableSchedule->setRowCount(3);
+        QStringList vHeaders;
+        for (int i = 0; i < 3; ++i)
+            vHeaders << QString("%1\n%2").arg(ScheduleStyle::SHIFT_NAMES[i],
+                                                Config::getShiftTimeLabel(i));
+        ui->tableSchedule->setVerticalHeaderLabels(vHeaders);
+    }
+
     // Only re-polish styles if the mode is actually changing — this is expensive
     // and causes a visible stutter when triggered on every tab navigation.
     if (m_isManagerMode == visible)
@@ -728,14 +738,9 @@ void ViewSchedule_View::setManagerFeaturesVisible(bool visible)
     if (visible)
     {
         // Manager mode: 3-row grid with vertical headers
-        ui->tableSchedule->setRowCount(3);
         ui->tableSchedule->verticalHeader()->setVisible(true);
         ui->tableSchedule->verticalHeader()->setDefaultSectionSize(90);
         ui->tableSchedule->verticalHeader()->setMinimumWidth(110);
-        QStringList vHeaders;
-        for (int i = 0; i < 3; ++i)
-            vHeaders << QString("%1\n%2").arg(ScheduleStyle::SHIFT_NAMES[i], ScheduleStyle::SHIFT_TIMES[i]);
-        ui->tableSchedule->setVerticalHeaderLabels(vHeaders);
         ui->tableSchedule->verticalHeader()->setStyleSheet(
             "QHeaderView::section { background-color: #EFF6FF; color: #1D4ED8; font-weight: bold; "
             "border: 1px solid #BFDBFE; padding: 6px; }");

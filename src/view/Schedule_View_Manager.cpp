@@ -5,8 +5,6 @@
 
 namespace {
 static const QString SHIFT_NAMES[3] = {"Ca Sáng", "Ca Chiều", "Ca Tối"};
-static const QString SHIFT_TIMES[3] = {"07:00 - 12:00", "12:00 - 17:00",
-                                       "17:00 - 22:00"};
 } // namespace
 
 void Schedule_View::updateTableHeaders(QDate monday)
@@ -92,9 +90,9 @@ void Schedule_View::setManagerMode(bool isManager)
     ui->tableSum->setRowCount(3);
     ui->tableSum->setColumnCount(7);
     QStringList shiftLabels = {
-        QString("%1\n%2").arg(SHIFT_NAMES[0], SHIFT_TIMES[0]),
-        QString("%1\n%2").arg(SHIFT_NAMES[1], SHIFT_TIMES[1]),
-        QString("%1\n%2").arg(SHIFT_NAMES[2], SHIFT_TIMES[2])};
+        QString("%1\n%2").arg(SHIFT_NAMES[0], Config::getShiftTimeLabel(0)),
+        QString("%1\n%2").arg(SHIFT_NAMES[1], Config::getShiftTimeLabel(1)),
+        QString("%1\n%2").arg(SHIFT_NAMES[2], Config::getShiftTimeLabel(2))};
     ui->tableSum->setVerticalHeaderLabels(shiftLabels);
     ui->tableSum->verticalHeader()->setVisible(true);
     ui->tableSum->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);

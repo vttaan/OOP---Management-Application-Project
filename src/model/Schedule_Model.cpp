@@ -2,10 +2,6 @@
 #include "core/UserFactory.h"
 #include "model/Notification_Model.h"
 
-// ─── Canonical shift boundaries (shared by multiple functions) ────────────────
-static const QTime SHIFT_STARTS[3] = {QTime(7, 0), QTime(12, 0), QTime(17, 0)};
-static const QTime SHIFT_ENDS[3] = {QTime(12, 0), QTime(17, 0), QTime(22, 0)};
-
 // Returns true when [sStart, sEnd) overlaps [blockStart, blockEnd)
 static bool overlapsBlock(QTime sStart, QTime sEnd, QTime blockStart, QTime blockEnd)
 {
@@ -291,7 +287,9 @@ FullTimeScheduleGrid Schedule_Model::getFullTimeScheduleGrid(
 
             for (int shift = 0; shift < 3; ++shift)
             {
-                if (!overlapsBlock(start, end, SHIFT_STARTS[shift], SHIFT_ENDS[shift]))
+                if (!overlapsBlock(start, end,
+                                   Config::getShiftStartTime(shift),
+                                   Config::getShiftEndTime(shift)))
                     continue;
                 if (priority(status) > priority(result[day][shift]))
                     result[day][shift] = status;
@@ -337,7 +335,9 @@ FullTimeScheduleGrid Schedule_Model::getFullTimeScheduleGrid(
                 QTime start = databaseTime(staffing.value(1));
                 QTime end = databaseTime(staffing.value(2));
                 for (int shift = 0; shift < 3; ++shift)
-                    if (overlapsBlock(start, end, SHIFT_STARTS[shift], SHIFT_ENDS[shift]))
+                    if (overlapsBlock(start, end,
+                                      Config::getShiftStartTime(shift),
+                                      Config::getShiftEndTime(shift)))
                         ++acceptedCounts[day][shift];
             }
 
@@ -379,7 +379,9 @@ QMap<int, QMap<int, ShiftBlock *>> Schedule_Model::getManagerWeeklyGrid(QDate mo
         QDate currentDate = monday.addDays(col);
         for (int row = 0; row < 3; ++row)
         {
-            grid[col][row] = new ShiftBlock(currentDate, SHIFT_STARTS[row], SHIFT_ENDS[row]);
+            grid[col][row] = new ShiftBlock(currentDate,
+                                            Config::getShiftStartTime(row),
+                                            Config::getShiftEndTime(row));
         }
     }
 
@@ -430,7 +432,9 @@ QMap<int, QMap<int, ShiftBlock *>> Schedule_Model::getManagerWeeklyGrid(QDate mo
             // Sáng (08-12) and Chiều (13-17), matching real business logic.
             for (int row = 0; row < 3; ++row)
             {
-                if (overlapsBlock(startTime, endTime, SHIFT_STARTS[row], SHIFT_ENDS[row]))
+                if (overlapsBlock(startTime, endTime,
+                                  Config::getShiftStartTime(row),
+                                  Config::getShiftEndTime(row)))
                 {
                     grid[col][row]->addStaff(user, shiftId);
                 }
@@ -995,7 +999,7 @@ bool Schedule_Model::replacePendingShiftsForWeek(
 // ─────────────────────────────────────────────────────────────────────────────
 // Xếp Lịch Làm helpers
 // ─────────────────────────────────────────────────────────────────────────────
-// (SHIFT_STARTS, SHIFT_ENDS, overlapsBlock are defined at the top of this file)
+// Canonical shift boundaries come from Config; overlapsBlock is defined above.
 
 QMap<int, QMap<int, BlockCounts>>
 Schedule_Model::getAssignBlockCounts(QDate monday)
@@ -1041,7 +1045,9 @@ Schedule_Model::getAssignBlockCounts(QDate monday)
 
         for (int row = 0; row < 3; ++row)
         {
-            if (!overlapsBlock(sTime, eTime, SHIFT_STARTS[row], SHIFT_ENDS[row]))
+            if (!overlapsBlock(sTime, eTime,
+                               Config::getShiftStartTime(row),
+                               Config::getShiftEndTime(row)))
                 continue;
             if (st == 0)
                 result[col][row].pending++;
@@ -1071,8 +1077,6 @@ void Schedule_Model::publishStaffingWarningNotifications(QDate monday)
         QString::fromUtf8("Ca sáng"),
         QString::fromUtf8("Ca chiều"),
         QString::fromUtf8("Ca tối")};
-    static const QTime shiftStarts[3] = {QTime(7, 0), QTime(12, 0), QTime(17, 0)};
-    static const QTime shiftEnds[3] = {QTime(12, 0), QTime(17, 0), QTime(22, 0)};
     QSet<QString> activeWarningKeys;
 
     const QDate today = QDate::currentDate();
@@ -1085,7 +1089,7 @@ void Schedule_Model::publishStaffingWarningNotifications(QDate monday)
 
         for (int shift = 0; shift < 3; ++shift)
         {
-            if (date == today && shiftEnds[shift] <= now)
+            if (date == today && Config::getShiftEndTime(shift) <= now)
                 continue;
 
             const BlockCounts block = counts.value(day).value(shift);
@@ -1176,8 +1180,6 @@ void Schedule_Model::publishScheduledStaffingWarningNotifications(QDate today,
     if (managerIds.isEmpty())
         return;
 
-    static const QTime shiftStarts[3] = {QTime(7, 0), QTime(12, 0), QTime(17, 0)};
-    static const QTime shiftEnds[3] = {QTime(12, 0), QTime(17, 0), QTime(22, 0)};
     const QStringList shiftNames = {
         QString::fromUtf8("Ca sáng"),
         QString::fromUtf8("Ca chiều"),
@@ -1219,7 +1221,7 @@ void Schedule_Model::publishScheduledStaffingWarningNotifications(QDate today,
         const QString message = nextShift
             ? QString::fromUtf8("%1 %2 bắt đầu lúc %3: đã xếp %4/%5 nhân viên, còn thiếu %6.")
                   .arg(date.toString("dd/MM/yyyy"), shiftNames.value(shift),
-                       shiftStarts[shift].toString("HH:mm"),
+                       Config::getShiftStartTime(shift).toString("HH:mm"),
                        QString::number(block.accepted), QString::number(block.required),
                        QString::number(deficit))
             : QString::fromUtf8("%1 %2: đã xếp %3/%4 nhân viên, còn thiếu %5. Có %6 yêu cầu chờ duyệt.")
@@ -1256,7 +1258,7 @@ void Schedule_Model::publishScheduledStaffingWarningNotifications(QDate today,
     int nextShift = -1;
     for (int shift = 0; shift < 3; ++shift)
     {
-        if (now < shiftStarts[shift])
+        if (now < Config::getShiftStartTime(shift))
         {
             nextShift = shift;
             break;
@@ -1265,7 +1267,8 @@ void Schedule_Model::publishScheduledStaffingWarningNotifications(QDate today,
     if (nextShift < 0)
         return;
 
-    const int secondsUntilNextShift = now.secsTo(shiftStarts[nextShift]);
+    const int secondsUntilNextShift =
+        now.secsTo(Config::getShiftStartTime(nextShift));
     if (secondsUntilNextShift <= 0 || secondsUntilNextShift > 3 * 60 * 60)
         return;
 
@@ -1668,8 +1671,8 @@ QList<PendingShiftInfo> Schedule_Model::getShiftsForBlock(QDate monday, int col,
         return list;
 
     QDate targetDate = monday.addDays(col);
-    QTime bStart = SHIFT_STARTS[row];
-    QTime bEnd = SHIFT_ENDS[row];
+    QTime bStart = Config::getShiftStartTime(row);
+    QTime bEnd = Config::getShiftEndTime(row);
 
     QSqlQuery q(Database::getInstance()->getDbConnect());
     q.prepare("SELECT S.rowid, S.idEmployee, S.startTime, S.endTime, S.status, "

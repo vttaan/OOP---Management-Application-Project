@@ -99,16 +99,25 @@ void Schedule_Control::onLeaveRequested()
     if (!view || currentEmployeeId < 0)
         return;
 
-    const QDate weekStart = currentEmployeeRegistrationWeekStart.isValid()
-        ? currentEmployeeRegistrationWeekStart
-        : Config::getStartOfNextWeek(QDate::currentDate());
-    const QList<LeaveShiftOption> shiftOptions =
-        leaveRequestModel.getActiveShiftsForWeek(currentEmployeeId, weekStart);
+    // Leave requests are based on the current calendar week, independently of
+    // the registration view (which intentionally edits next week's schedule).
+    // Keep only shifts that are still actionable so a Monday/Tuesday shift
+    // cannot be selected after it has already started.
+    const QDate today = QDate::currentDate();
+    const QDate leaveWeekStart = Config::getStartOfCurrentWeek(today);
+    const QList<LeaveShiftOption> activeShifts =
+        leaveRequestModel.getActiveShiftsForWeek(currentEmployeeId, leaveWeekStart);
+    QList<LeaveShiftOption> shiftOptions;
+    for (const LeaveShiftOption &option : activeShifts)
+    {
+        if (option.date >= today)
+            shiftOptions.append(option);
+    }
     if (shiftOptions.isEmpty())
     {
         QMessageBox::information(
             view, QString::fromUtf8("Chưa có ca để xin nghỉ"),
-            QString::fromUtf8("Bạn chưa có ca chờ duyệt hoặc đã duyệt trong tuần đăng ký này."));
+            QString::fromUtf8("Bạn chưa có ca chờ duyệt hoặc đã duyệt trong tuần này."));
         return;
     }
 
@@ -129,7 +138,7 @@ void Schedule_Control::onLeaveRequested()
         "QPushButton:hover{background:#F1F5F9;}");
     auto *layout = new QVBoxLayout(&dialog);
     auto *shiftLabel = new QLabel(
-        QString::fromUtf8("Chọn ca làm của bạn trong tuần để gửi yêu cầu nghỉ cả ngày:"),
+        QString::fromUtf8("Chọn ca làm còn lại trong tuần này để gửi yêu cầu nghỉ cả ngày:"),
         &dialog);
     shiftLabel->setWordWrap(true);
     layout->addWidget(shiftLabel);
@@ -425,11 +434,6 @@ void Schedule_Control::onSaveFullTimeScheduleRequested(
         return;
     }
 
-    static const QTime shiftStarts[3] = {
-        QTime(7, 0), QTime(12, 0), QTime(17, 0)};
-    static const QTime shiftEnds[3] = {
-        QTime(12, 0), QTime(17, 0), QTime(22, 0)};
-
     QDate weekStart = currentEmployeeRegistrationWeekStart.isValid()
                           ? currentEmployeeRegistrationWeekStart
                           : Config::getStartOfNextWeek(QDate::currentDate());
@@ -443,8 +447,8 @@ void Schedule_Control::onSaveFullTimeScheduleRequested(
             if (shift < 0 || shift >= 3)
                 continue;
             registrations.append({weekStart.addDays(day),
-                                  shiftStarts[shift],
-                                  shiftEnds[shift]});
+                                  Config::getShiftStartTime(shift),
+                                  Config::getShiftEndTime(shift)});
         }
     }
 
@@ -552,8 +556,6 @@ void Schedule_Control::handleGenSchedule()
     QMap<int, QMap<int, BlockCounts>> afterCounts = beforeCounts;
     AutoSchedulePreview preview = model->previewGeneratedSchedule(currentAssignMonday);
 
-    static const QTime starts[3] = {QTime(7, 0), QTime(12, 0), QTime(17, 0)};
-    static const QTime ends[3] = {QTime(12, 0), QTime(17, 0), QTime(22, 0)};
     for (const ManagerScheduleChange &change : preview.changes)
     {
         int day = currentAssignMonday.daysTo(change.date);
@@ -561,7 +563,8 @@ void Schedule_Control::handleGenSchedule()
             continue;
         for (int row = 0; row < 3; ++row)
         {
-            if (!(change.startTime < ends[row] && change.endTime > starts[row]))
+            if (!(change.startTime < Config::getShiftEndTime(row) &&
+                  change.endTime > Config::getShiftStartTime(row)))
                 continue;
             BlockCounts &cell = afterCounts[day][row];
             if (change.type == ManagerScheduleChangeType::Approve)
@@ -768,17 +771,17 @@ void Schedule_Control::onShiftBlockClicked(int col, int row)
     QList<PendingShiftInfo> requests = model->getShiftsForBlock(currentAssignMonday, col, row);
 
     static const QString SHIFT_NAMES[3] = {"Ca Sáng", "Ca Chiều", "Ca Tối"};
-    static const QString SHIFT_TIMES[3] = {"07:00 - 12:00", "12:00 - 17:00", "17:00 - 22:00"};
 
     QString colLabel = currentAssignMonday.addDays(col).toString("dd/MM/yyyy");
     QString shiftLabel = QString("%1 (%2) — %3")
-                             .arg(SHIFT_NAMES[row], SHIFT_TIMES[row], colLabel);
+                             .arg(SHIFT_NAMES[row],
+                                  Config::getShiftTimeLabel(row), colLabel);
 
+    const QTime blockStart = Config::getShiftStartTime(row);
+    const QTime blockEnd = Config::getShiftEndTime(row);
     QList<EligibleEmployeeInfo> eligible =
         model->getEligibleEmployees(currentAssignMonday.addDays(col),
-                                    QTime(7 + row * 5, 0), QTime(12 + row * 5, 0));
-    QTime blockStart(7 + row * 5, 0);
-    QTime blockEnd(12 + row * 5, 0);
+                                    blockStart, blockEnd);
     view->showShiftRequestsDialog(requests, shiftLabel, eligible,
                                   currentAssignMonday.addDays(col),
                                   blockStart, blockEnd);
@@ -883,8 +886,6 @@ void Schedule_Control::onConfirmRequested()
         QStringList actions;
     };
     QMap<QString, ShiftImpact> impacts;
-    static const QTime starts[3] = {QTime(7, 0), QTime(12, 0), QTime(17, 0)};
-    static const QTime ends[3] = {QTime(12, 0), QTime(17, 0), QTime(22, 0)};
     static const QString shiftNames[3] = {"Ca Sáng", "Ca Chiều", "Ca Tối"};
 
     for (const ManagerScheduleChange &change : managerDraftChanges)
@@ -914,7 +915,8 @@ void Schedule_Control::onConfirmRequested()
         {
             for (int row = 0; row < 3; ++row)
             {
-                if (!(change.startTime < ends[row] && change.endTime > starts[row]))
+                if (!(change.startTime < Config::getShiftEndTime(row) &&
+                      change.endTime > Config::getShiftStartTime(row)))
                     continue;
                 QString key = QString("%1|%2").arg(change.date.toString(Qt::ISODate)).arg(row);
                 if (!impacts.contains(key))

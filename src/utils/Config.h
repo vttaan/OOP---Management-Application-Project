@@ -62,6 +62,37 @@ public:
 
     static short getOpenHour() { return openHour; }
     static short getCloseHour() { return closeHour; }
+    static QTime getShiftStartTime(int shiftIndex)
+    {
+        switch (shiftIndex)
+        {
+        case 0: return QTime(openHour, 0);
+        case 1: return QTime(12, 0);
+        case 2: return QTime(17, 0);
+        default: return {};
+        }
+    }
+
+    static QTime getShiftEndTime(int shiftIndex)
+    {
+        switch (shiftIndex)
+        {
+        case 0: return QTime(12, 0);
+        case 1: return QTime(17, 0);
+        case 2: return QTime(closeHour, 0);
+        default: return {};
+        }
+    }
+
+    static QString getShiftTimeLabel(int shiftIndex)
+    {
+        const QTime start = getShiftStartTime(shiftIndex);
+        const QTime end = getShiftEndTime(shiftIndex);
+        if (!start.isValid() || !end.isValid())
+            return {};
+        return QString("%1 - %2").arg(start.toString("HH:mm"),
+                                      end.toString("HH:mm"));
+    }
     static Qt::DayOfWeek getDayOpenRegisShift() { return dayOpenRegisShift; }
 
     static int getMaxStaffPerShift()

@@ -5,8 +5,6 @@
 
 namespace {
 static const QString SHIFT_NAMES[3] = {"Ca Sáng", "Ca Chiều", "Ca Tối"};
-static const QString SHIFT_TIMES[3] = {"07:00 - 12:00", "12:00 - 17:00",
-                                       "17:00 - 22:00"};
 static const QColor SELECTED_COLOR(0xBF, 0xDB, 0xFE);
 static const QColor SELECTED_BORDER(0x1D, 0x4E, 0xD8);
 
@@ -39,19 +37,19 @@ void Schedule_View::buildInteractiveGrid(int openHour, int closeHour)
 {
   QTableWidget *grid = ui->tableInteractiveGrid;
 
-  int rowCount = closeHour - openHour; // e.g. 22-7 = 15
+  int rowCount = closeHour - openHour;
   grid->clearContents();
   grid->setRowCount(rowCount);
   grid->setColumnCount(7);
 
-  // Row labels: "07:00 - 08:00", "08:00 - 09:00", …
+  // One hourly row from the configured opening time up to closing time.
   QStringList rowLabels;
   for (int h = openHour; h < closeHour; ++h)
   {
     QString hourLabel = QString("%1:00 - %2:00")
                             .arg(h, 2, 10, QChar('0'))
                             .arg(h + 1, 2, 10, QChar('0'));
-    if (h == 7)
+    if (h == openHour)
       hourLabel = QString("Ca Sáng\n%1").arg(hourLabel);
     else if (h == 12)
       hourLabel = QString("Ca Chiều\n%1").arg(hourLabel);
@@ -70,7 +68,8 @@ void Schedule_View::buildInteractiveGrid(int openHour, int closeHour)
   // Populate cells (empty, selectable)
   for (int r = 0; r < rowCount; ++r)
   {
-    bool shiftBoundary = (r == 0 || r == 5 || r == 10);
+    const int h = openHour + r;
+    bool shiftBoundary = (h == openHour || h == 12 || h == 17);
     grid->setRowHeight(r, shiftBoundary ? 48 : 38);
     if (QTableWidgetItem *headerItem = grid->verticalHeaderItem(r))
     {
@@ -198,9 +197,9 @@ void Schedule_View::buildFullTimeGrid()
       "border-bottom:1px solid #E2E8F0; }");
 
   QStringList shiftLabels = {
-      QString("%1\n%2").arg(SHIFT_NAMES[0], SHIFT_TIMES[0]),
-      QString("%1\n%2").arg(SHIFT_NAMES[1], SHIFT_TIMES[1]),
-      QString("%1\n%2").arg(SHIFT_NAMES[2], SHIFT_TIMES[2])};
+      QString("%1\n%2").arg(SHIFT_NAMES[0], Config::getShiftTimeLabel(0)),
+      QString("%1\n%2").arg(SHIFT_NAMES[1], Config::getShiftTimeLabel(1)),
+      QString("%1\n%2").arg(SHIFT_NAMES[2], Config::getShiftTimeLabel(2))};
   grid->setVerticalHeaderLabels(shiftLabels);
   grid->verticalHeader()->setVisible(true);
   grid->verticalHeader()->setMinimumWidth(165);
@@ -576,12 +575,16 @@ void Schedule_View::updateStaffInteractiveGridStatus(
       else
       {
         int shiftRow = -1;
-        if (currentHour >= 7 && currentHour < 12)
-          shiftRow = 0;
-        else if (currentHour >= 12 && currentHour < 17)
-          shiftRow = 1;
-        else if (currentHour >= 17 && currentHour < 22)
-          shiftRow = 2;
+        const QTime currentTime(currentHour, 0);
+        for (int candidate = 0; candidate < 3; ++candidate)
+        {
+          if (currentTime >= Config::getShiftStartTime(candidate) &&
+              currentTime < Config::getShiftEndTime(candidate))
+          {
+            shiftRow = candidate;
+            break;
+          }
+        }
 
         if (shiftRow >= 0 && managerGrid.contains(col) &&
             managerGrid[col].contains(shiftRow))
@@ -605,8 +608,16 @@ void Schedule_View::updateStaffInteractiveGridStatus(
       item->setToolTip(tooltip);
       item->setData(PART_TIME_VISUAL_ROLE, visualState);
       item->setData(PART_TIME_MUTED_ROLE, !m_partTimeRegistrationOpen);
-      item->setData(SHIFT_BOUNDARY_ROLE,
-                    row == 0 || row == 5 || row == 10);
+      bool shiftBoundary = false;
+      for (int shift = 0; shift < 3; ++shift)
+      {
+        if (QTime(currentHour, 0) == Config::getShiftStartTime(shift))
+        {
+          shiftBoundary = true;
+          break;
+        }
+      }
+      item->setData(SHIFT_BOUNDARY_ROLE, shiftBoundary);
       bool selectable = m_partTimeRegistrationOpen && !accepted;
       item->setFlags(selectable
                          ? Qt::ItemIsEnabled | Qt::ItemIsSelectable

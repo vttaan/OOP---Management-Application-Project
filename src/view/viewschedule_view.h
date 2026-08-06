@@ -23,9 +23,8 @@ namespace ScheduleStyle
 
     const QString Title = "font-size: 14px; font-weight: bold; color: #1F2937; padding-bottom: 5px;";
 
-    // 3 fixed shifts: Morning, Afternoon, Evening
+    // 3 canonical shifts: Morning, Afternoon, Evening
     const QStringList SHIFT_NAMES = {"Ca Sáng", "Ca Chiều", "Ca Tối"};
-    const QStringList SHIFT_TIMES = {"07:00 - 12:00", "12:00 - 17:00", "17:00 - 22:00"};
 }
 
 class ViewSchedule_View : public QWidget
