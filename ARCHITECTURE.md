@@ -223,6 +223,34 @@ This module defines the foundational entities and domain objects of the applicat
 *   **Variables:**
     *   `hourSalary`, `hourWork`.
 *   **Functions:**
+
+#### 5.1.8. `ViewSchedule_Control`
+*   **Role:** Manages logic for viewing existing schedules.
+*   **Variables:**
+    *   `view` (Pointer to `ViewSchedule_View`).
+    *   `model` (Pointer to `Schedule_Model`).
+    *   `currentSession` (Pointer to `SessionManager`).
+*   **Functions:**
+    *   `loadData()`, `loadStaffSchedule()`, `loadManagerSchedule()`: Loads schedule based on role. `loadStaffSchedule` handles both approved and pending schedules. *Calls `Schedule_Model::getAcceptedSchedule`, `getPendingSchedule`, or `getManagerWeeklyGrid`.*
+    *   `onPrevWeek()`, `onNextWeek()`, `onCurrentWeek()`: Navigation slots.
+
+### 5.2. Core Module (`src/core`)
+
+This module defines the foundational entities and domain objects of the application.
+
+#### 5.2.1. `User` (Abstract)
+*   **Role:** Represents a generic person in the system.
+*   **Variables:**
+    *   `role`, `idEmployee`, `avatarPath`, `idCitizenIdentity`, `name`, `dob`, `address`, `phoneNum`, `gender`. *Used throughout the app to display or edit user info.*
+*   **Functions:**
+    *   Getters and Setters for all variables.
+    *   `getSalary()`: Pure virtual function to be implemented by derived classes.
+
+#### 5.2.2. `Staff` (Inherits `User`)
+*   **Role:** Represents a staff-level employee.
+*   **Variables:**
+    *   `hourSalary`, `hourWork`.
+*   **Functions:**
     *   `getSalary()`: Calculates salary based on hourly rate and hours worked. *Called by `Salary_Model`.*
 
 #### 5.2.3. `Manager` (Inherits `User`)
@@ -266,9 +294,11 @@ This module defines the foundational entities and domain objects of the applicat
 This module handles database queries, business rules, and state management.
 
 #### 5.3.1. `Change_password`
-*   **Role:** Handles the logic and validation for changing a user's password.
+*   **Role:** Handles the logic and validation for changing a user's password. Password strength rules require: minimum 6 characters, at least 1 uppercase letter, at least 1 lowercase letter, at least 1 digit, at least 1 special character, and prohibits the `$` character (reserved for the `INIT$` system prefix).
 *   **Functions:**
-    *   `updatePassword(...)`: Orchestrates the password update process. *Calls `verifyOldPassword`, `validatePasswordStrength`, `executePasswordUpdate`. Called by `Profile_Model`.*
+    *   `updatePassword(...)`: Orchestrates the password update process. *Calls `verifyOldPassword`, `validatePasswordStrength`, `executePasswordUpdate`. Called by `Profile_Model` and `Login_Control`.*
+    *   `getPasswordStrengthError(newPassword)`: Static helper returning a specific human-readable Vietnamese error message identifying which rule is violated (or empty string if valid). *Called by `EditPassword_Widget`, `Login_View`, `Profile_Control`, and `Login_Control` for inline error feedback.*
+    *   `validatePasswordStrength(newPassword)`: Static boolean check wrapping `getPasswordStrengthError`.
 
 #### 5.3.2. `Employee_Model`
 *   **Role:** Manages the collection of employees and performs CRUD operations against the database.
@@ -282,7 +312,7 @@ This module handles database queries, business rules, and state management.
 #### 5.3.3. `Login_Model`
 *   **Role:** Verifies credentials against the database.
 *   **Functions:**
-    *   `verifyLogin(userName, password)`: Hashes input and checks against DB. *Calls `Security::hashPassword` and `UserFactory::createContainsUser`.*
+    *   `verifyLogin(userName, password, mustChangeInitialPassword)`: Hashes input and checks against DB, checking for the `INIT$` initial prefix. *Calls `Security::hashPassword`, `Security::unwrapPasswordHash`, and `UserFactory::createContainsUser`.*
 
 #### 5.3.4. `Profile_Model`
 *   **Role:** Handles updating a specific user's profile data.

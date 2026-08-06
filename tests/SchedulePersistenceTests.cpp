@@ -130,8 +130,26 @@ private slots:
         QVERIFY(mustChangePassword);
 
         Change_password changePassword;
+        // Rejects weak passwords
         QCOMPARE(changePassword.updatePassword(
-                     user->getIdEmployee(), "initial-secret", "changed-secret"),
+                     user->getIdEmployee(), "initial-secret", "weak"),
+                 PasswordChangeResult::NEW_PASSWORD_TOO_WEAK);
+        QCOMPARE(changePassword.updatePassword(
+                     user->getIdEmployee(), "initial-secret", "Pass$123!"),
+                 PasswordChangeResult::NEW_PASSWORD_TOO_WEAK);
+        QCOMPARE(changePassword.updatePassword(
+                     user->getIdEmployee(), "initial-secret", "password123!"),
+                 PasswordChangeResult::NEW_PASSWORD_TOO_WEAK);
+        QCOMPARE(changePassword.updatePassword(
+                     user->getIdEmployee(), "initial-secret", "PASSWORD123!"),
+                 PasswordChangeResult::NEW_PASSWORD_TOO_WEAK);
+        QCOMPARE(changePassword.updatePassword(
+                     user->getIdEmployee(), "initial-secret", "Password!"),
+                 PasswordChangeResult::NEW_PASSWORD_TOO_WEAK);
+
+        // Accepts valid strong password without '$'
+        QCOMPARE(changePassword.updatePassword(
+                     user->getIdEmployee(), "initial-secret", "Changed@123"),
                  PasswordChangeResult::SUCCESS);
 
         QSqlQuery query(database());
@@ -139,11 +157,11 @@ private slots:
         QVERIFY(query.exec());
         QVERIFY(query.next());
         QVERIFY(!Security::isInitialPasswordHash(query.value(0).toString()));
-        QCOMPARE(query.value(0).toString(), Security::hashPassword("changed-secret"));
+        QCOMPARE(query.value(0).toString(), Security::hashPassword("Changed@123"));
 
         mustChangePassword = true;
         std::unique_ptr<User> changedUser(login.verifyLogin(
-            "initial.user", "changed-secret", &mustChangePassword));
+            "initial.user", "Changed@123", &mustChangePassword));
         QVERIFY(changedUser != nullptr);
         QVERIFY(!mustChangePassword);
     }

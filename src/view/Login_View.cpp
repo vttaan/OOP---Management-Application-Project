@@ -1,6 +1,7 @@
 #include "global.h"
 #include "Login_View.h"
 #include "ui_Login_View.h"
+#include "model/Change_password.h"
 
 Login_View::Login_View(QWidget *parent)
 	: QWidget(parent)
@@ -9,15 +10,11 @@ Login_View::Login_View(QWidget *parent)
 	ui->setupUi(this);
     ui->btnLogin->setCheckable(true);
     ui->lblInitialPasswordNotice->hide();
+    ui->lblError->hide();
     ui->txtLoginUsername->setFocus();
     setupUI();
     initSignals();
-
-
 }
-
-
-
 
 Login_View::~Login_View()
 {
@@ -36,6 +33,7 @@ void Login_View::setController(Login_Control *newController)
 
 void Login_View::clearInputs() {
     resetToLoginMode();
+    clearError();
     ui->txtLoginUsername->clear();
     ui->txtLoginPassword->clear();
     ui->txtLoginUsername->setFocus();
@@ -48,6 +46,7 @@ void Login_View::clearPassword() {
 
 void Login_View::beginInitialPasswordChange() {
     pageMode = PageMode::InitialPasswordChange;
+    clearError();
     ui->lblTitle->setText("Đổi mật khẩu");
     ui->lblInitialPasswordNotice->show();
     ui->lblUsername->setText("Mật khẩu mới");
@@ -70,6 +69,7 @@ void Login_View::resetToLoginMode() {
         return;
 
     pageMode = PageMode::Login;
+    clearError();
     ui->lblTitle->setText("Đăng Nhập");
     ui->lblInitialPasswordNotice->hide();
     ui->lblUsername->setText("Tên đăng nhập");
@@ -82,10 +82,20 @@ void Login_View::resetToLoginMode() {
 }
 
 void Login_View::showInitialPasswordChangeError(const QString& message) {
-    QMessageBox::warning(this, "Không thể đổi mật khẩu", message);
+    showError(message);
     ui->txtLoginUsername->clear();
     ui->txtLoginPassword->clear();
     ui->txtLoginUsername->setFocus();
+}
+
+void Login_View::showError(const QString &message) {
+    ui->lblError->setText(message);
+    ui->lblError->show();
+}
+
+void Login_View::clearError() {
+    ui->lblError->clear();
+    ui->lblError->hide();
 }
 
 void Login_View::setupUI(){
@@ -101,6 +111,8 @@ void Login_View::setupUI(){
 void Login_View::initSignals(){
     connect(hidePassword,&QAction::triggered,this,&Login_View::togglePassword);
     connect(hideNewPassword, &QAction::triggered, this, &Login_View::toggleNewPassword);
+    connect(ui->txtLoginUsername, &QLineEdit::textChanged, this, &Login_View::clearError);
+    connect(ui->txtLoginPassword, &QLineEdit::textChanged, this, &Login_View::clearError);
 }
 
 void Login_View::togglePassword()
@@ -135,25 +147,34 @@ void Login_View::on_btnLogin_clicked() {
 
     if (pageMode == PageMode::InitialPasswordChange) {
         if (firstValue.isEmpty() || secondValue.isEmpty()) {
-            QMessageBox::warning(this, "Mật khẩu chưa hợp lệ", "Vui lòng nhập và xác nhận mật khẩu mới.");
+            showError("Vui lòng nhập và xác nhận mật khẩu mới.");
             return;
         }
         if (firstValue != secondValue) {
-            QMessageBox::warning(this, "Mật khẩu không khớp", "Hai mật khẩu mới phải giống nhau.");
+            showError("Hai mật khẩu mới phải giống nhau.");
             ui->txtLoginPassword->setFocus();
             return;
         }
+        const QString strengthError = Change_password::getPasswordStrengthError(firstValue);
+        if (!strengthError.isEmpty()) {
+            showError(strengthError);
+            ui->txtLoginUsername->setFocus();
+            return;
+        }
+        clearError();
         emit initialPasswordChangeSubmitted(firstValue);
         return;
     }
 
     if (firstValue.isEmpty() || secondValue.isEmpty()) {
-        QMessageBox::warning(this, "Cảnh báo - Sai thông tin", "Nhập lại đầy đủ tên đăng nhập và mật khẩu");
+        showError("Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu.");
         return;
     }
 
+    clearError();
     emit loginSubmitted(firstValue, secondValue);
 }
+
 void Login_View::paintEvent(QPaintEvent *event)
 {
     QWidget::paintEvent(event);
@@ -185,4 +206,3 @@ void Login_View::on_txtLoginPassword_returnPressed()
     ui->btnLogin->setCheckable(true);
     on_btnLogin_clicked();
 }
-

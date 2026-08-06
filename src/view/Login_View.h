@@ -2,8 +2,6 @@
 #ifndef LOGINVIEW_H
 #define LOGINVIEW_H
 
-// #include "ui_Login_View.h"
-
 class Login_Control;
 
 QT_BEGIN_NAMESPACE
@@ -43,6 +41,8 @@ public:
     void beginInitialPasswordChange();
     void resetToLoginMode();
     void showInitialPasswordChangeError(const QString &message);
+    void showError(const QString &message);
+    void clearError();
     Login_Control *getController() const;
     void setController(Login_Control *controller);
     ~Login_View();

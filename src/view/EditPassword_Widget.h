@@ -40,6 +40,8 @@ public:
     void setInitialData();
     void slideIn();
     void slideOut();
+    void showErrorMessage(const QString& message);
+    void clearErrorMessage();
     password_LineEdit* txtOldPassword;
     password_LineEdit* txtNewPassword;
     password_LineEdit* txtConfirmPassword;
@@ -57,6 +59,7 @@ private:
     QWidget *panelWidget;
     QPropertyAnimation *animation;
 
+    QLabel *lblError;
     QLabel *lblAvatarPreview;
     QString currentAvatarPath;
 
