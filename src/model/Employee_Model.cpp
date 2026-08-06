@@ -96,7 +96,10 @@ bool Employee_Model::addEmployee(const QString &role, const QString &avatarPath,
   if (!username.isEmpty() && !password.isEmpty())
   {
     QSqlQuery qAccount(db);
-    QString hashedPass = Security::hashPassword(password);
+    // A marker outside the hash identifies a manager-generated first password.
+    // The marker is removed automatically after the employee changes it.
+    QString hashedPass = Security::markInitialPasswordHash(
+        Security::hashPassword(password));
     qAccount.prepare("INSERT INTO ACCOUNTS (userName, passWord, idEmployee) "
                      "VALUES (:user, :pass, :id)");
     qAccount.bindValue(":user", username);

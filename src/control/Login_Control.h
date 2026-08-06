@@ -10,6 +10,10 @@ class Login_Control : public QObject {
 
 private:
     Login_View* view;
+    User* pendingInitialPasswordUser = nullptr;
+    QString pendingInitialPassword;
+    void completeLogin(User* user);
+    void clearPendingInitialPasswordChange();
 
 public:
     SessionManager* currentSession;
@@ -22,5 +26,6 @@ signals:
     void loginSuccessful(User* currentUser);
 private slots:
     void handleLoginSubmission(const QString& username, const QString& password);
+    void handleInitialPasswordChange(const QString& newPassword);
 };
 

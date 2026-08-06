@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "model/Login_Model.h"
+#include "model/Change_password.h"
 #include "model/Salary_Model.h"
 #include "model/Schedule_Model.h"
 #include "model/Notification_Model.h"
@@ -79,6 +80,13 @@ private slots:
             "VALUES (1001, 'fixed.user', :password)");
         account.bindValue(":password", Security::hashPassword("secret"));
         QVERIFY(account.exec());
+
+        account.prepare(
+            "INSERT INTO ACCOUNTS (idEmployee, userName, passWord) "
+            "VALUES (1002, 'initial.user', :password)");
+        account.bindValue(":password", Security::markInitialPasswordHash(
+            Security::hashPassword("initial-secret")));
+        QVERIFY(account.exec());
     }
 
     void init()
@@ -110,6 +118,34 @@ private slots:
         std::unique_ptr<User> user(login.verifyLogin("fixed.user", "secret"));
         QVERIFY(user != nullptr);
         QVERIFY(user->getIsFixedSalary());
+    }
+
+    void initialPasswordRequiresChangeAndIsClearedAfterUpdate()
+    {
+        Login_Model login;
+        bool mustChangePassword = false;
+        std::unique_ptr<User> user(login.verifyLogin(
+            "initial.user", "initial-secret", &mustChangePassword));
+        QVERIFY(user != nullptr);
+        QVERIFY(mustChangePassword);
+
+        Change_password changePassword;
+        QCOMPARE(changePassword.updatePassword(
+                     user->getIdEmployee(), "initial-secret", "changed-secret"),
+                 PasswordChangeResult::SUCCESS);
+
+        QSqlQuery query(database());
+        query.prepare("SELECT passWord FROM ACCOUNTS WHERE userName = 'initial.user'");
+        QVERIFY(query.exec());
+        QVERIFY(query.next());
+        QVERIFY(!Security::isInitialPasswordHash(query.value(0).toString()));
+        QCOMPARE(query.value(0).toString(), Security::hashPassword("changed-secret"));
+
+        mustChangePassword = true;
+        std::unique_ptr<User> changedUser(login.verifyLogin(
+            "initial.user", "changed-secret", &mustChangePassword));
+        QVERIFY(changedUser != nullptr);
+        QVERIFY(!mustChangePassword);
     }
 
     void fullTimeGridMapsDatabaseStatuses()

@@ -15,11 +15,19 @@ class Login_View : public QWidget
 {
 	Q_OBJECT
 private:
+    enum class PageMode {
+        Login,
+        InitialPasswordChange
+    };
+
     Ui::Login_View *ui;
     QAction *hidePassword;
+    QAction *hideNewPassword;
     QPixmap bgPixmap;
+    PageMode pageMode = PageMode::Login;
     void setupUI(); // setup icon/button/textbox/title
     void togglePassword();
+    void toggleNewPassword();
     void initSignals(); // set up code connect include Signals and Slots
     void paintEvent(QPaintEvent *event) override;
     Login_Control* controller;
@@ -27,11 +35,15 @@ public:
     Login_View(Login_Control* controller = nullptr, QWidget *parent = nullptr);
     void clearInputs();
     void clearPassword();
+    void beginInitialPasswordChange();
+    void resetToLoginMode();
+    void showInitialPasswordChangeError(const QString& message);
     Login_Control* getController() const;
     void setController(Login_Control* controller);
     ~Login_View();
 signals:
     void loginSubmitted(const QString& username, const QString& password);
+    void initialPasswordChangeSubmitted(const QString& newPassword);
     void loginSuccessful();
 private slots:
     void on_btnLogin_clicked();

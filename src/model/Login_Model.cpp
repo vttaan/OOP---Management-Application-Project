@@ -3,20 +3,30 @@
 #include "utils/Database.h"
 #include "core/UserFactory.h"
 #include "utils/Security.h"
-User *Login_Model::verifyLogin(const QString &userName, const QString &password)
+User *Login_Model::verifyLogin(const QString &userName, const QString &password,
+                               bool *mustChangeInitialPassword)
 {
+    if (mustChangeInitialPassword)
+        *mustChangeInitialPassword = false;
+
     QSqlDatabase openData = Database::getInstance()->getDbConnect();
     QSqlQuery queryAccount(openData);
-    queryAccount.prepare("SELECT * FROM ACCOUNTS");
-
-    // CONSIDER HASH IN CONTROL
     QString hashedPassWord = Security::hashPassword(password);
 
-    queryAccount.prepare("SELECT * FROM ACCOUNTS WHERE userName = :u AND passWord = :v");
+    // Fetch the stored value first because a first-login account has an INIT$
+    // marker outside its hash. Existing accounts remain stored as a plain hash.
+    queryAccount.prepare("SELECT * FROM ACCOUNTS WHERE userName = :u");
     queryAccount.bindValue(":u", userName);
-    queryAccount.bindValue(":v", hashedPassWord);
 
     if (!queryAccount.exec() || !queryAccount.next()) return nullptr;
+
+    const QString storedPassword = queryAccount.value("passWord").toString();
+    const bool isInitialPassword = Security::isInitialPasswordHash(storedPassword);
+    if (Security::unwrapPasswordHash(storedPassword) != hashedPassWord)
+        return nullptr;
+
+    if (mustChangeInitialPassword)
+        *mustChangeInitialPassword = isInitialPassword;
 
     short int idEmployee = queryAccount.value("idEmployee").toInt();
 

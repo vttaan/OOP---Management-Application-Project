@@ -31,18 +31,16 @@ bool Change_password::verifyOldPassword(short int employeeId, const QString& old
 {
     QSqlDatabase openData = Database::getInstance()->getDbConnect();
     QSqlQuery queryAccount(openData);
-    
-    QString hashedOldPassword = Security::hashPassword(oldPassword);
 
-    queryAccount.prepare("SELECT * FROM ACCOUNTS WHERE idEmployee = :id AND passWord = :pw");
+    queryAccount.prepare("SELECT passWord FROM ACCOUNTS WHERE idEmployee = :id");
     queryAccount.bindValue(":id", employeeId);
-    queryAccount.bindValue(":pw", hashedOldPassword);
 
     if (!queryAccount.exec() || !queryAccount.next()) {
         return false;
     }
 
-    return true;
+    const QString storedPassword = queryAccount.value("passWord").toString();
+    return Security::unwrapPasswordHash(storedPassword) == Security::hashPassword(oldPassword);
 }
 
 bool Change_password::validatePasswordStrength(const QString& newPassword)

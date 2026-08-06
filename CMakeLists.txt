@@ -199,6 +199,7 @@ if(BUILD_TESTING)
         src/view/ManagerEmployeeChooser_Dialog.h
         src/view/ManagerEmployeeChooser_Dialog.cpp
         src/model/Login_Model.cpp
+        src/model/Change_password.cpp
         src/model/Schedule_Model.cpp
         src/model/Salary_Model.cpp
         src/model/Notification_Model.cpp
