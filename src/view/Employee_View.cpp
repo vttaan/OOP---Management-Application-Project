@@ -232,11 +232,28 @@ void Employee_View::renderTable(const QList<User *> &employees)
   // ---- Dynamic subtitle & footer ----
   int total = m_allEmployees.size();
   int shown = employees.size();
+  
+  int cashierCount = 0;
+  int hallStaffCount = 0;
+  int kitchenCount = 0;
+  
+  for (User* emp : employees) {
+      if (emp->getRole() == "Cashier") cashierCount++;
+      else if (emp->getRole() == "HallStaff") hallStaffCount++;
+      else if (emp->getRole() == "KitchenAssistant") kitchenCount++;
+  }
+  
+  QString breakdown = QString(" (gồm %1 Thu ngân, %2 Nhân viên sảnh, %3 Phụ bếp)")
+                          .arg(cashierCount)
+                          .arg(hallStaffCount)
+                          .arg(kitchenCount);
+                          
   ui->rosterSubtitle->setText(QString("Tổng cộng %1 nhân viên").arg(total));
   ui->footerLabel->setText(
-      QString("Hiển thị %1 / %2 nhân viên")
+      QString("Hiển thị %1 / %2 nhân viên%3")
           .arg(shown)
-          .arg(total));
+          .arg(total)
+          .arg(breakdown));
 
   for (int row = 0; row < employees.size(); ++row)
   {

@@ -3,9 +3,7 @@
 #include "control/Dashboard_Control.h"
 #include "employeecard.h"
 
-// ---------------------------------------------------------------------------
-// Helper: create a white rounded card with a title header and inner layout
-// ---------------------------------------------------------------------------
+// Creates a styled card widget with an optional title header and inner layout.
 QFrame* Dashboard_View::makeCard(const QString& title, QLayout* innerLayout, bool isDark)
 {
     QFrame* card = new QFrame();
@@ -57,9 +55,7 @@ QFrame* Dashboard_View::makeCard(const QString& title, QLayout* innerLayout, boo
     return card;
 }
 
-// ---------------------------------------------------------------------------
-// Constructor: build the 2x2 grid programmatically
-// ---------------------------------------------------------------------------
+// Initializes the dashboard view and programmatically builds the 2x2 grid layout.
 Dashboard_View::Dashboard_View(Dashboard_Control *controller, QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::Dashboard_View)
@@ -69,7 +65,7 @@ Dashboard_View::Dashboard_View(Dashboard_Control *controller, QWidget *parent)
 
     // Legacy widgets were removed from the .ui file, so no need to hide them anymore.
 
-    // -- Panel 1 (Top-Left): Employees in current shift ---------------------
+    // Initialize Panel 1 (Top-Left): Current shift employees
     ui->scrollAreaEmployees->setStyleSheet(
         "QScrollArea { background: transparent; border: none; }"
         "QScrollArea > QWidget > QWidget { background: transparent; }"
@@ -88,7 +84,7 @@ Dashboard_View::Dashboard_View(Dashboard_Control *controller, QWidget *parent)
     empLayout->addWidget(ui->scrollAreaEmployees);
     QFrame* frame1 = makeCard("Nhân Viên Trong Ca Hiện Tại", empLayout);
 
-    // -- Panel 2 (Top-Right): Next shift employees ---------------------------
+    // Initialize Panel 2 (Top-Right): Next shift employees
     m_nextShiftLayout = new QVBoxLayout();
     m_nextShiftLayout->setContentsMargins(0, 0, 0, 0);
     m_nextShiftLayout->setSpacing(6);
@@ -107,26 +103,9 @@ Dashboard_View::Dashboard_View(Dashboard_Control *controller, QWidget *parent)
     nextOuter->addWidget(scrollNext);
     QFrame* frame2 = makeCard(QString::fromUtf8("Ca Làm Tiếp Theo"), nextOuter, true);
 
-    // -- Panel 4 (Bottom-Right): Absent employees ----------------------------
-    m_absentLayout = new QVBoxLayout();
-    m_absentLayout->setContentsMargins(0, 0, 0, 0);
-    m_absentLayout->setSpacing(6);
-    m_absentLayout->addStretch();
+    // (Absent panel removed)
 
-    QScrollArea* scrollAbsent = new QScrollArea();
-    scrollAbsent->setWidgetResizable(true);
-    scrollAbsent->setStyleSheet("QScrollArea { background: transparent; border: none; }");
-    QWidget* absentWrapper = new QWidget();
-    absentWrapper->setStyleSheet("background: transparent;");
-    absentWrapper->setLayout(m_absentLayout);
-    scrollAbsent->setWidget(absentWrapper);
-
-    QVBoxLayout* absentOuter = new QVBoxLayout();
-    absentOuter->setContentsMargins(0, 0, 0, 0);
-    absentOuter->addWidget(scrollAbsent);
-    QFrame* frame3 = makeCard(QString::fromUtf8("Nhân Viên Nghỉ"), absentOuter, true);
-
-    // -- Panel 3 (Bottom-Left): Salary bar chart with year tabs --------------
+    // Initialize Panel 3 (Bottom-Left): Salary bar chart with year selection tabs
     m_yearTabBar = new QTabBar();
     m_yearTabBar->setStyleSheet(
         "QTabBar::tab {"
@@ -237,16 +216,14 @@ Dashboard_View::Dashboard_View(Dashboard_Control *controller, QWidget *parent)
 
     grid->addWidget(frame1, 0, 0);
     grid->addWidget(frame2, 0, 1);
-    grid->addWidget(m_salaryCard, 1, 0);
-    grid->addWidget(frame3, 1, 1);
+    // Make salary chart span 2 columns
+    grid->addWidget(m_salaryCard, 1, 0, 1, 2);
     grid->addWidget(m_leaveRequestCard, 2, 0, 1, 2);
 }
 
 Dashboard_View::~Dashboard_View() { delete ui; }
 
-// ---------------------------------------------------------------------------
-// Year tab clicked -> emit signal to Controller
-// ---------------------------------------------------------------------------
+// Emits a signal to the controller when a year tab is clicked.
 void Dashboard_View::onYearTabClicked(int index)
 {
     if (index >= 0 && index < m_availableYears.size())
@@ -262,9 +239,7 @@ void Dashboard_View::setSalaryChartVisible(bool visible)
     }
 }
 
-// ---------------------------------------------------------------------------
-// Bar hovered -> show tooltip with month total in VND
-// ---------------------------------------------------------------------------
+// Shows a tooltip with formatted currency when hovering over a chart bar.
 void Dashboard_View::onBarHovered(bool status, int index, QBarSet* barSet)
 {
     if (!status || !barSet) {
@@ -288,9 +263,7 @@ void Dashboard_View::onBarHovered(bool status, int index, QBarSet* barSet)
     m_tooltipLabel->show();
 }
 
-// ---------------------------------------------------------------------------
-// Panel 1: clear all employee cards
-// ---------------------------------------------------------------------------
+// Clears all employee cards from Panel 1.
 void Dashboard_View::clearEmployeeGrid()
 {
     QLayout* old = m_empGridWidget->layout();
@@ -303,33 +276,30 @@ void Dashboard_View::clearEmployeeGrid()
     delete old;
 }
 
-// ---------------------------------------------------------------------------
-// Panel 1: add a single employee card in a 4-column grid (auto-wraps down)
-// ---------------------------------------------------------------------------
+// Adds a single employee card to Panel 1 using a responsive 4-column grid layout.
 void Dashboard_View::addEmployeeCard(EmployeeCard* card)
 {
     QGridLayout* grid = qobject_cast<QGridLayout*>(m_empGridWidget->layout());
+    const int COLS = 4;
     if (!grid) {
         grid = new QGridLayout(m_empGridWidget);
         grid->setContentsMargins(12, 12, 12, 12);
         grid->setSpacing(16);
-        grid->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+        grid->setAlignment(Qt::AlignTop);
+        for (int i = 0; i < COLS; ++i) {
+            grid->setColumnStretch(i, 1);
+        }
     }
-    // 4 columns
-    const int COLS = 4;
     int count = grid->count();
     
-    // Constrain dimensions to prevent the card from stretching indefinitely across empty columns when there are only 1-2 cards
-    card->setMinimumWidth(220);
-    card->setMaximumWidth(280);
-    card->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    card->setMinimumWidth(150);
+    card->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     
     grid->addWidget(card, count / COLS, count % COLS);
 }
 
-// ---------------------------------------------------------------------------
-// Panel 2: render next-shift employee rows with avatar initial + info
-// ---------------------------------------------------------------------------
+// Renders the next-shift employee list in Panel 2.
+// Displays an avatar (image or initial), name, phone, and role badge for each entry.
 void Dashboard_View::updateNextShiftPanel(const QList<ShiftEmployeeInfo>& entries)
 {
     // Remove all except trailing stretch
@@ -402,7 +372,13 @@ void Dashboard_View::updateNextShiftPanel(const QList<ShiftEmployeeInfo>& entrie
         nameCol->addWidget(lPhone);
 
         // Role badge
-        QLabel* lRole = new QLabel(e.role);
+        QString displayRole = e.role;
+        if (displayRole.compare("Cashier", Qt::CaseInsensitive) == 0) displayRole = QString::fromUtf8("Thu ngân");
+        else if (displayRole.compare("HallStaff", Qt::CaseInsensitive) == 0) displayRole = QString::fromUtf8("Nhân viên sảnh");
+        else if (displayRole.compare("KitchenAssistant", Qt::CaseInsensitive) == 0) displayRole = QString::fromUtf8("Phụ bếp");
+        else if (displayRole.compare("Manager", Qt::CaseInsensitive) == 0) displayRole = QString::fromUtf8("Quản lý");
+        
+        QLabel* lRole = new QLabel(displayRole);
         lRole->setStyleSheet(
             "font-size:10px; color:#637381; background:transparent; border:none;");
         lRole->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
@@ -499,110 +475,10 @@ void Dashboard_View::updateLeaveRequestPanel(const QList<LeaveRequestInfo>& requ
     }
 }
 
-// ---------------------------------------------------------------------------
-// Panel 4: render absent employee rows
-// ---------------------------------------------------------------------------
-void Dashboard_View::updateAbsentPanel(const QList<ShiftEmployeeInfo>& entries)
-{
-    // Remove all except trailing stretch
-    while (m_absentLayout->count() > 1) {
-        QLayoutItem* i = m_absentLayout->takeAt(0);
-        if (i->widget()) i->widget()->deleteLater();
-        delete i;
-    }
 
-    if (entries.isEmpty()) {
-        QLabel* lbl = new QLabel(QString::fromUtf8("Không có nhân viên nghỉ."));
-        lbl->setStyleSheet(
-            "color:#919eab; font-style:italic; padding:4px 0;"
-            "background:transparent; border:none;");
-        m_absentLayout->insertWidget(0, lbl);
-        return;
-    }
 
-    int idx = 0;
-    for (const ShiftEmployeeInfo& e : entries) {
-        QWidget* row = new QWidget();
-        row->setStyleSheet("background: transparent;");
-        row->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-
-        QHBoxLayout* hl = new QHBoxLayout(row);
-        hl->setContentsMargins(4, 4, 4, 4);
-        hl->setSpacing(10);
-
-        // Avatar circle (image or initial letter)
-        QLabel* avatar = new QLabel();
-        avatar->setFixedSize(36, 36);
-        QPixmap pix(e.avatarPath);
-        if (!e.avatarPath.isEmpty() && !pix.isNull()) {
-            QPixmap scaledPix = pix.scaled(36, 36, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
-            QPixmap circularPix(36, 36);
-            circularPix.fill(Qt::transparent);
-            QPainter painter(&circularPix);
-            painter.setRenderHint(QPainter::Antialiasing);
-            QPainterPath path;
-            path.addEllipse(circularPix.rect());
-            painter.setClipPath(path);
-            int x = (36 - scaledPix.width()) / 2;
-            int y = (36 - scaledPix.height()) / 2;
-            painter.drawPixmap(x, y, scaledPix);
-            
-            avatar->setPixmap(circularPix);
-            avatar->setStyleSheet("border: none;");
-        } else {
-            QString initial = e.name.isEmpty() ? "?" : QString(e.name[0]).toUpper();
-            avatar->setText(initial);
-            avatar->setAlignment(Qt::AlignCenter);
-            avatar->setStyleSheet(
-                QString("background:#8B2020; color:white; border-radius:18px;"
-                        "font-weight:bold; font-size:14px; border:none;"));
-        }
-
-        // Name + phone
-        QLabel* lName = new QLabel(e.name);
-        lName->setStyleSheet(
-            "font-weight:600; font-size:13px; color:#212b36; background:transparent; border:none;");
-
-        QLabel* lPhone = new QLabel(e.phone);
-        lPhone->setStyleSheet(
-            "font-size:11px; color:#637381; background:transparent; border:none;");
-
-        QVBoxLayout* nameCol = new QVBoxLayout();
-        nameCol->setSpacing(1);
-        nameCol->addWidget(lName);
-        nameCol->addWidget(lPhone);
-
-        // Role badge
-        QLabel* lRole = new QLabel(e.role);
-        lRole->setStyleSheet(
-            "font-size:10px; color:#637381; background:transparent; border:none;");
-        lRole->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-
-        hl->addWidget(avatar);
-        hl->addLayout(nameCol, 1);
-        hl->addWidget(lRole);
-
-        // Separator line
-        QFrame* sep = new QFrame();
-        sep->setFrameShape(QFrame::HLine);
-        sep->setStyleSheet("border: none; border-top: 1px solid #f0f0f0; background: transparent;");
-        sep->setFixedHeight(1);
-
-        QWidget* wrapper = new QWidget();
-        wrapper->setStyleSheet("background: transparent;");
-        QVBoxLayout* wl = new QVBoxLayout(wrapper);
-        wl->setContentsMargins(0, 0, 0, 0);
-        wl->setSpacing(0);
-        wl->addWidget(row);
-        wl->addWidget(sep);
-
-        m_absentLayout->insertWidget(idx++, wrapper);
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Panel 3: update chart bars and year tabs
-// ---------------------------------------------------------------------------
+// Updates the salary bar chart data and year tabs in Panel 3.
+// Recreates the chart series and adjusts axes based on the provided statistics.
 void Dashboard_View::updateSalaryChart(const QVector<double>& lastYear, const QVector<double>& thisYear, int lastYearEmpCount, int thisYearEmpCount, int selectedYear)
 {
     // Disconnect temporarily to avoid triggering onYearChanged
@@ -665,9 +541,37 @@ void Dashboard_View::updateSalaryChart(const QVector<double>& lastYear, const QV
     m_chart->addAxis(axX, Qt::AlignBottom);
     series->attachAxis(axX);
 
-    QValueAxis* axY = new QValueAxis();
+    // Tính toán max value để set Y axis
+    double maxVal = 0;
+    for (int i = 0; i < 12; ++i) {
+        if (lastYear[i] > maxVal) maxVal = lastYear[i];
+        if (thisYear[i] > maxVal) maxVal = thisYear[i];
+    }
+    
+    if (maxVal == 0) {
+        maxVal = 400000000;
+    }
+    
+    long long step = 100000000;
+    long long maxBound = ((static_cast<long long>(maxVal) / step) + 1) * step;
+    
+    // Nếu maxBound < 400tr thì tối thiểu là 400tr như người dùng ví dụ
+    if (maxBound < 400000000) maxBound = 400000000;
+
+    QCategoryAxis* axY = new QCategoryAxis();
     axY->setTitleText("VNĐ");
-    axY->setLabelFormat("%.0f");
+    
+    for (long long v = 0; v <= maxBound; v += step) {
+        QString label = QString::number(v);
+        for (int j = label.length() - 3; j > 0; j -= 3) {
+            label.insert(j, ".");
+        }
+        axY->append(label, v);
+    }
+    
+    axY->setRange(0, maxBound);
+    axY->setLabelsPosition(QCategoryAxis::AxisLabelsPositionOnValue);
+    
     m_chart->addAxis(axY, Qt::AlignLeft);
     series->attachAxis(axY);
 }

@@ -1,0 +1,34 @@
+\clearpage
+\begingroup
+\small
+\setlength{\parskip}{0pt}
+\begin{longtblr}[
+    caption={25127509 - Trần Quang Thịnh's AI usage log},
+    label={tab:tran-quang-thinh-ai-usage-log}
+]{
+    colspec={|X[2,l]|X[1.3,l]|X[2.4,l]|X[3.2,l]|},
+    rowhead=1,
+    hlines,
+    vlines,
+    rows={valign=t}
+}
+\textbf{Task} & \textbf{AI Tool Used} & \textbf{Prompt / Instruction} & \textbf{Student Verification or Modification} \\
+\hline
+\textbf{Login Window Implementation \& MVC Architecture} & Google Gemini, Google Antigravity & Asked for assistance in implementing the Model-View-Controller architecture for the login system, incorporating image assets, and redesigning the user interface layout. & Reviewed the generated MVC structure to ensure proper database connections. Manually adjusted widget layouts, scaled background images, and refined QSS styling to fit the application's theme. \\
+\hline
+\textbf{Employee Management (CRUD Operations)} & Google Gemini, Google Antigravity & Asked to implement functions for adding, editing, and deleting employees across the Employee Model, Control, and View layers. & Verified the data flow between layers. Manually tested UI inputs, mapped user roles, and adjusted the backend logic to handle system constraints (e.g., maximum employee limits). \\
+\hline
+\textbf{Schedule Viewing \& Role-based UI} & Google Gemini, Google Antigravity & Asked to create UIs for viewing and generating schedules for managers and employees. Initially prompted for 4 separate pages, but later requested to refactor and consolidate them into 2 role-specific views. & Deleted redundant pages and merged the scheduling logic to clean up the architecture. Tested the automated schedule optimizer's output and adjusted constraints to ensure practical feasibility. \\
+\hline
+\textbf{Dashboard Implementation \& Data Visualization} & Google Gemini, Google Antigravity & Asked to build a dashboard displaying current shift employees, next shift details, absent staff lists, and a salary statistical chart. & Cross-checked the SQL queries fetching shift data. Modified the salary chart's Y-axis to use QCategoryAxis for correct Vietnamese currency formatting (e.g., 100.000.000) and manually mapped role translations. \\
+\hline
+\textbf{Global Bug Fixing \& System Theming} & Google Gemini, Google Antigravity & Asked to fix overlapping schedule issues, max constraint violations, and system dark-mode OS conflicts affecting QMessageBox. & Analyzed error logs and refined the scheduling algorithm constraints. Addressed the dark-mode bug by writing a global QSS override in styles.qss instead of modifying individual UI components. \\
+\hline
+\textbf{Settings UI Configuration} & Google Gemini, Google Antigravity & Asked to build a Settings UI for configuring system parameters (like max shifts and operating hours). & Manually integrated the UI into the global navigator routing. Tested saving/loading configurations from the database to ensure state persistence. \\
+\hline
+\textbf{Shift Block Logic Integration} & Google Gemini, Google Antigravity & Asked to design the ShiftBlock data structure and integrate it to handle rendering timetable shifts correctly in the UI. & Traced object properties during runtime. Verified that the ShiftBlock class successfully bridges raw database shift records with the visual timetable grid. \\
+\hline
+\textbf{Sidebar Layout Adjustments} & Google Gemini, Google Antigravity & Asked to modify the global sidebar layout design and ensure proper scaling. & Adjusted the geometry and layout constraints. Tested the application to ensure the sidebar scales seamlessly across different screen resolutions. \\
+\hline
+\end{longtblr}
+\endgroup
