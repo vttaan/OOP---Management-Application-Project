@@ -40,6 +40,8 @@ public:
     void beginInitialPasswordChange();
     void resetToLoginMode();
     void showInitialPasswordChangeError(const QString &message);
+    void showError(const QString &message);
+    void clearError();
     ~Login_View();
 signals:
     void loginSubmitted(const QString &username, const QString &password);

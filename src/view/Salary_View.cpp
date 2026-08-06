@@ -139,6 +139,46 @@ void Salary_View::setupUI()
     
     ui->normalTable->setTextElideMode(Qt::ElideLeft);
     ui->holidayTable->setTextElideMode(Qt::ElideLeft);
+
+    QString comboBoxStyle = R"(
+        QComboBox {
+            background-color: white;
+            color: #1a73e8;
+            border: 1px solid #1a73e8;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-weight: bold;
+        }
+        QComboBox:hover {
+            background-color: #f0f4ff;
+            border: 2px solid #1558d6;
+        }
+        QComboBox::drop-down {
+            subcontrol-origin: padding;
+            subcontrol-position: top right;
+            width: 24px;
+            border-left-width: 0px;
+        }
+        QComboBox::down-arrow {
+            image: url(:/images/down-arrow-blue.svg);
+            width: 12px; height: 12px;
+        }
+        QComboBox QAbstractItemView {
+            background-color: white;
+            color: #1a73e8;
+            selection-background-color: #1a73e8;
+            selection-color: white;
+            border: 1px solid #1a73e8;
+            border-radius: 4px;
+            outline: none;
+        }
+        QComboBox QAbstractItemView::item {
+            padding: 8px 12px;
+            min-height: 24px;
+        }
+    )";
+    ui->monthComboBox->setStyleSheet(comboBoxStyle);
+    ui->yearComboBox->setStyleSheet(comboBoxStyle);
 }
 
 void Salary_View::setupConnections()

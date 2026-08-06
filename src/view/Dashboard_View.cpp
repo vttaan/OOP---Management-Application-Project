@@ -215,9 +215,12 @@ Dashboard_View::Dashboard_View(QWidget *parent)
 
     grid->addWidget(frame1, 0, 0);
     grid->addWidget(frame2, 0, 1);
-    // Make salary chart span 2 columns
     grid->addWidget(m_salaryCard, 1, 0, 1, 2);
     grid->addWidget(m_leaveRequestCard, 2, 0, 1, 2);
+    
+    // Spacer to consume bottom space in Staff view
+    QSpacerItem* staffSpacer = new QSpacerItem(20, 20, QSizePolicy::Minimum, QSizePolicy::Expanding);
+    grid->addItem(staffSpacer, 3, 0, 1, 2);
 }
 
 Dashboard_View::~Dashboard_View() { delete ui; }
@@ -235,6 +238,22 @@ void Dashboard_View::setSalaryChartVisible(bool visible)
 {
     if (m_salaryCard) {
         m_salaryCard->setVisible(visible);
+    }
+    
+    // Adjust row stretch based on role
+    QGridLayout* grid = qobject_cast<QGridLayout*>(ui->pageOverview->layout());
+    if (grid) {
+        if (visible) {
+            grid->setRowStretch(0, 4);
+            grid->setRowStretch(1, 6);
+            grid->setRowStretch(2, 4);
+            grid->setRowStretch(3, 0);
+        } else {
+            grid->setRowStretch(0, 7);
+            grid->setRowStretch(1, 0);
+            grid->setRowStretch(2, 0);
+            grid->setRowStretch(3, 3);
+        }
     }
 }
 
