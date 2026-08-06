@@ -1,0 +1,264 @@
+﻿#pragma once
+#include <global.h>
+#include <QDate>
+#include <QMap>
+#include <QString>
+#include <QList>
+#include <QPair>
+#include <QSqlQuery>
+#include <QSqlError>
+
+class Config
+{
+private:
+    // Time
+    inline static short openHour;
+    inline static short closeHour;
+    inline static Qt::DayOfWeek dayOpenRegisShift;
+
+    // < < < < < < < < < Temporary merge branch 1 static const Qt::DayOfWeek dayOpenRegisShift = Qt::Sunday;
+    // static const short minStaffPerShift = 4;
+    // static const short maxStaffPerShift = 6;
+    // == == == == =
+    //static const Qt::DayOfWeek dayOpenRegisShift = Qt::Sunday;
+    static const int baseSalaryStaff = 25000;
+
+     // Number of staff min and max in specific role. First is Min, Second is Max
+    inline static QMap<QString, QPair<short, short>> numberEmployeeOfRoles;
+
+    // Rule for full time
+    inline static short minimumDaysWorkPerWeek_FT;
+    inline static short maximumLeavePerMonth_FT;
+
+    // Rule for part time
+    inline static short minimumDaysWorkPerWeek_PT;
+    inline static short minimumHourWorkPerDay_PT;
+    inline static short maximumHourWorkPerDay_PT;
+
+    inline static short guaranteedDaysPerWeek_FT = 0;
+
+public:
+    // ------SETTERS----
+    static void setOpenHour(short h) { openHour = h; }
+    static void setCloseHour(short h) { closeHour = h; }
+    static void setDayOpenRegisShift(Qt::DayOfWeek day) { dayOpenRegisShift = day; }
+
+    static void setRoles(const QMap<QString, QPair<short, short>> &roles)
+    {
+        numberEmployeeOfRoles = roles;
+    }
+
+    static void setMinimumDaysWorkPerWeek_FT(short days) { minimumDaysWorkPerWeek_FT = days; }
+    static void setMaximumLeavePerMonth_FT(short days) { maximumLeavePerMonth_FT = days; }
+
+    static void setMinimumDaysWorkPerWeek_PT(short days) { minimumDaysWorkPerWeek_PT = days; }
+    static void setMinimumHourWorkPerDay_PT(short hours) { minimumHourWorkPerDay_PT = hours; }
+    static void setMaximumHourWorkPerDay_PT(short hours) { maximumHourWorkPerDay_PT = hours; }
+
+    static void setGuaranteedDaysPerWeek_FT(short days) { guaranteedDaysPerWeek_FT = days; }
+    // --- GETTERS ---
+
+    static short getOpenHour() { return openHour; }
+    static short getCloseHour() { return closeHour; }
+    static Qt::DayOfWeek getDayOpenRegisShift() { return dayOpenRegisShift; }
+
+    static int getMaxStaffPerShift()
+    {
+        int total = 0;
+        for (const QString &role : numberEmployeeOfRoles.keys())
+        {
+            total += numberEmployeeOfRoles[role].second;
+        }
+        return total > 0 ? total : 6;
+    }
+
+    static int getBaseSalaryStaff() { return baseSalaryStaff; }
+
+    static QDate getStartOfCurrentWeek(QDate date)
+    {
+        int diff = dayOpenRegisShift - date.dayOfWeek();
+        if (diff > 0)
+            diff -= 7;
+        return date.addDays(diff);
+    }
+
+    static int getMinStaffForRole(const QString &roleName)
+    {
+        if (numberEmployeeOfRoles.contains(roleName))
+            return numberEmployeeOfRoles[roleName].first;
+        return 0;
+    }
+
+    static int getMaxStaffForRole(const QString &roleName)
+    {
+        if (numberEmployeeOfRoles.contains(roleName))
+            return numberEmployeeOfRoles[roleName].second;
+        return 99;
+    }
+
+    static QList<QString> getAllRoles()
+    {
+        return numberEmployeeOfRoles.keys();
+    }
+
+    static short getMinimumDaysWorkPerWeek_FT() { return minimumDaysWorkPerWeek_FT; }
+    static short getMaximumLeavePerMonth_FT() { return maximumLeavePerMonth_FT; }
+
+    static short getMinimumDaysWorkPerWeek_PT() { return minimumDaysWorkPerWeek_PT; }
+    static short getMinimumHourWorkPerDay_PT() { return minimumHourWorkPerDay_PT; }
+    static short getMaximumHourWorkPerDay_PT() { return maximumHourWorkPerDay_PT; }
+    static short getGuaranteedDaysPerWeek_FT()
+    {
+        return guaranteedDaysPerWeek_FT > 0 ? guaranteedDaysPerWeek_FT : 5;
+    }
+};
+#pragma once
+
+
+#include "global.h"
+class Database {
+private:
+	static Database* instance;
+	QSqlDatabase dbConnect;
+	Database();
+public:
+	static Database* getInstance();
+	QSqlQuery execQuery(const QString& query);
+	void closeConnect();
+	QSqlDatabase getDbConnect();
+};
+#pragma once
+#include "global.h"
+
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Shared Data Transfer Objects for the Schedule feature.
+// Included by both Schedule_Model (model) and Schedule_View (view)
+// via their respective headers. Neither layer owns these types.
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+// Carries all information for a single pending/approved/declined shift request.
+// Used by the manager's Xep Lich Lam popup dialog.
+struct PendingShiftInfo {
+    int     shiftId = 0;        // DB rowid â€” used to approve / decline
+    int     employeeId = 0;
+    QString employeeName;
+    QString role;           // Manager/Admin or a concrete staff role from PROFILES
+    QDate   date;
+    QTime   startTime;
+    QTime   endTime;
+    short   status = 0;         // 0 = pending, 1 = approved, -1 = declined
+};
+
+// Count breakdown per shift block for the assign grid.
+struct BlockCounts {
+    int pending = 0;
+    int accepted = 0;
+    int declined = 0;
+    int required = 0;
+    int cancelled = 0;
+};
+
+enum class ManagerScheduleChangeType {
+    Approve,
+    Decline,
+    Add,
+    Cancel
+};
+
+// A manager edit is kept in memory until the weekly confirmation action.
+// This keeps the grid reversible and lets the model commit all edits atomically.
+struct ManagerScheduleChange {
+    ManagerScheduleChangeType type = ManagerScheduleChangeType::Add;
+    int shiftId = 0;
+    int employeeId = 0;
+    QString employeeName;
+    QString role;
+    QDate date;
+    QTime startTime;
+    QTime endTime;
+    QString reason;
+};
+
+// Dry-run result from the optimizer. Proposed changes stay in memory until the
+// manager accepts the preview and later publishes the weekly draft.
+struct AutoSchedulePreview {
+    QList<ManagerScheduleChange> changes;
+    QStringList warnings;
+    int approvedCount = 0;
+    int declinedCount = 0;
+};
+
+struct EligibleEmployeeInfo {
+    int employeeId = 0;
+    QString employeeName;
+    QString role;
+    bool isFixedSalary = false;
+    bool eligible = false;
+    QString reason;
+};
+
+// Controller-produced time range used to synchronize an employee's editable
+// pending registrations without exposing table row coordinates to the model.
+struct StaffShiftRegistration {
+    QDate date;
+    QTime startTime;
+    QTime endTime;
+};
+
+enum class EmployeeScheduleLayoutMode {
+    PartTimeHourly,
+    FullTimeSchedule
+};
+
+inline EmployeeScheduleLayoutMode scheduleLayoutModeForPayType(
+    bool isFixedSalary)
+{
+    return isFixedSalary
+        ? EmployeeScheduleLayoutMode::FullTimeSchedule
+        : EmployeeScheduleLayoutMode::PartTimeHourly;
+}
+
+enum class FullTimeShiftStatus {
+    Available,
+    Pending,
+    Approved,
+    Declined,
+    StaffShortage
+};
+
+// Outer list index = day (Monday-Sunday), inner list index = shift (morning-evening).
+using FullTimeScheduleGrid = QList<QList<FullTimeShiftStatus>>;
+#pragma once
+
+
+#include "global.h"
+class Security {
+public:
+	static QString hashPassword(const QString& password);
+};
+#pragma once
+
+#include "global.h"
+#include "core/User.h"
+
+class SessionManager
+{
+private:
+
+    SessionManager(const SessionManager &) = delete;
+    SessionManager &operator=(const SessionManager &) = delete;
+
+    User *currentUser = nullptr;
+
+public:
+
+    SessionManager();
+    ~SessionManager();
+    static SessionManager *getInstance();
+
+    void saveCurrentInfo(User *user);
+    void clearInfo();
+    User *getCurrentUser() const;
+    //void setCurrentUser(User* user);
+    bool checkPermission(const QString &requiredRole) const;
+};

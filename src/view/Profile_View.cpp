@@ -114,22 +114,7 @@ void Profile_View::setupAvatar(const QString& imagePath)
     ui->lblAvatar->setPixmap(rounded);
 }
 
-void Profile_View::loadUserData(const QString& name, const QString& studentId, const QString& dob,
-                                const QString& phone, const QString& email, const QString& avatarPath)
-{
-    // Populate left info panel
-    ui->lblProfileName->setText(name);
-    setupAvatar(avatarPath);
 
-    // Populate general details
-    ui->lblVal_Id->setText(studentId);
-    ui->lblVal_DoB->setText(dob);
-
-    // Populate detailed details
-    ui->lblVal_Phone->setText(phone);
-
-
-}
 
 
 

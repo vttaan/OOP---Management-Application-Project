@@ -1,0 +1,393 @@
+﻿#include "global.h"
+#ifndef CONTROL_NAVIGATOR_H
+#define CONTROL_NAVIGATOR_H
+#include "utils/SessionManage.h"
+#include "Login_Control.h"
+#include "Dashboard_Control.h"
+#include "Profile_Control.h"
+#include "Employee_Control.h"
+#include "Schedule_Control.h"
+#include "Salary_Control.h"
+#include "utils/Config.h"
+#include "Setting_Control.h"
+// #include "view/View_Navigator.h"
+#include "ViewSchedule_Control.h"
+class View_Navigator;
+class Control_Navigator : public QObject
+{
+    Q_OBJECT
+public:
+    Login_Control *loginController = nullptr;
+    Profile_Control *profileController = nullptr;
+    Dashboard_Control *dashboardController = nullptr;
+    Employee_Control *employeeController = nullptr;
+    Schedule_Control *scheduleController = nullptr;
+    Salary_Control *salaryController = nullptr;
+    View_Navigator *viewWindow = nullptr;
+    SessionManager *currentSession = SessionManager::getInstance();
+    ViewSchedule_Control *viewScheduleController = nullptr;
+    Setting_Control* settingController = nullptr;
+    Control_Navigator();
+    void switchTab(int index);
+
+    ~Control_Navigator();
+};
+
+#endif // CONTROL_NAVIGATOR_H
+#pragma once
+
+#include "global.h"
+#include "utils/SessionManage.h"
+#include "model/Employee_Model.h"
+#include "model/Dashboard_Model.h"
+
+class Dashboard_View;
+
+class Dashboard_Control : public QObject
+{
+    Q_OBJECT
+
+private:
+    Dashboard_View  *view;
+    Employee_Model  *empModel;
+    Dashboard_Model *dashModel;     // Owns all DB logic for the dashboard
+
+    int m_selectedYear = 0;         // Year currently shown in the chart
+
+    void loadEmployeeCards(const QList<User*>& list);
+    void loadShiftPanel();
+    void loadSalaryChart();
+
+public:
+    SessionManager *currentSession;
+    Dashboard_Control(QObject *parent = nullptr);
+    ~Dashboard_Control();
+    Dashboard_View *getView();
+    void setView(Dashboard_View *view);
+    void init();
+
+signals:
+    void profilePageClicked();
+
+public slots:
+    void onYearChanged(int year);   // Triggered by View when user picks a different year tab
+};
+#pragma once
+
+#include "global.h"
+#include "model/Employee_Model.h"
+#include "core/UserFactory.h"
+#include "view/AddEmployee_Dialog.h"
+#include "view/EditEmployee_Dialog.h"
+
+class Employee_View;
+
+class Employee_Control : public QObject {
+    Q_OBJECT
+
+public:
+    explicit Employee_Control(QObject *parent = nullptr);
+    //Employee_Control();
+    ~Employee_Control();
+
+    void setView(Employee_View *view);
+    void setModel(Employee_Model* emp);
+    Employee_View *getView() const;
+    void init();
+signals:
+    void profilePageClicked();
+    void backToDashBoard();
+private slots:
+
+    void handleLoadEmployees();
+    void handleAddEmployee();
+    void handleEditEmployee(int idEmployee);
+    void handleDeleteEmployee(int idEmployee);
+
+    void handleUpdate(const QString &searchText,
+                      const QList<QString> &contentFilter,
+                      const QList<QString> &contentSort,
+                      short sortDir);
+
+private:
+    Employee_View  *m_view;
+    Employee_Model   *m_model;
+};
+#pragma once
+
+#include "global.h"
+#include "model/Login_Model.h"
+#include "utils/SessionManage.h"
+
+class Login_View;
+
+class Login_Control : public QObject {
+    Q_OBJECT
+
+private:
+    Login_View* view;
+
+public:
+    SessionManager* currentSession;
+    Login_Control(QObject *parent = nullptr);
+    ~Login_Control();
+    Login_View* getView();
+    void setView(Login_View* view);
+    void init();
+signals:
+    void loginSuccessful(User* currentUser);
+private slots:
+    void handleLoginSubmission(const QString& username, const QString& password);
+};
+
+#include "global.h"
+#ifndef MAIN_CONTROL_H
+#define MAIN_CONTROL_H
+
+class Main_View;
+
+class Main_Control : public QObject
+{
+    Q_OBJECT
+public:
+    explicit Main_Control(QObject *parent = nullptr);
+    ~Main_Control();
+
+    void init();
+
+private:
+    Main_View* view = nullptr;
+};
+
+#endif // MAIN_CONTROL_H
+#pragma once
+#include "global.h"
+#include "utils/SessionManage.h"
+#include "model/Profile_Model.h"
+
+class Profile_View;
+
+class Profile_Control : public QObject {
+    Q_OBJECT
+
+private:
+    Profile_View* view;
+    Profile_Model model;
+
+public:
+    Profile_Control(QObject *parent = nullptr);
+    ~Profile_Control();
+    SessionManager* currentSession;
+    Profile_View* getView();
+    //void editUserInfo();
+    void setView(Profile_View* view);
+    void init();
+    bool checkIfMatchOldPassword(const QString& password);
+    void loadUserData();
+    User* getUser();
+    bool handleProfileUpdate(const QString& name, const QString& dob, const QString& address, const QString& phoneNum, const QString& citizenId, const QString& avatarPath, const QString& gender);
+    PasswordChangeResult handlePasswordUpdate(const QString& oldPassword, const QString& newPassword);
+    QString saveAvatarLocally(int empId, const QString &sourcePath);
+signals:
+    void backToPrevious();
+    void profileUpdated();
+};
+#ifndef SALARY_CONTROL_H
+#define SALARY_CONTROL_H
+
+#include "global.h"
+#include "utils/SessionManage.h"
+#include <QObject>
+#include "model/Salary_Model.h"
+#include "view/Salary_View.h"
+
+class Salary_Control : public QObject
+{
+    Q_OBJECT
+private:
+    Salary_View* view;
+    Salary_Model* model;
+
+public:
+    explicit Salary_Control(QObject *parent = nullptr);
+    ~Salary_Control();
+    SessionManager* currentSession;
+    void setView(Salary_View* view);
+    Salary_View* getView() const;
+    
+    void loadData(int month, int year);
+    void init();
+
+private slots:
+    void onMonthYearChanged(int month, int year);
+};
+
+#endif // SALARY_CONTROL_H
+#ifndef SCHEDULE_CONTROL_H
+#define SCHEDULE_CONTROL_H
+
+#include "global.h"
+#include "model/Schedule_Model.h"
+#include "view/Schedule_View.h"
+#include "utils/SessionManage.h"
+#include "utils/Config.h"
+class Schedule_Control : public QObject
+{
+    Q_OBJECT
+private:
+    Schedule_View *view;
+    Schedule_Model *model;
+    short int currentEmployeeId;
+
+    // Days list provided by business logic (Mon-Sun in the display language)
+    QList<QString> listDays;
+
+    // Tracks the week being shown in the assign grid
+    QDate currentAssignMonday;
+    bool managerWeekInitialized = false;
+
+    // Employee registration mode and the current database-backed full-time grid.
+    EmployeeScheduleLayoutMode employeeScheduleLayoutMode =
+        EmployeeScheduleLayoutMode::PartTimeHourly;
+    FullTimeScheduleGrid fullTimeScheduleStatuses;
+    QDate currentEmployeeRegistrationWeekStart;
+    QList<ManagerScheduleChange> managerDraftChanges;
+    int selectedManagerDay = -1;
+    int selectedManagerShift = -1;
+
+    // Helper: convert "Monday" display string -> QDate of that day this week
+    QDate dayStringToDate(const QString &day) const;
+
+public:
+    explicit Schedule_Control(QObject *parent = nullptr);
+    ~Schedule_Control();
+
+    // Called by navigator before showing the page
+    void setEmployeeId(short int id);
+    short int getEmployeeId() const;
+    void setEmployeeScheduleLayoutMode(EmployeeScheduleLayoutMode mode);
+
+    // Core lifecycle
+    void load();
+
+    // UML-required stubs (left for future implementation)
+    void handleGenSchedule();
+    void search();
+    void filter();
+    void chooseDate();
+    void handleChangeAlgorithm();
+
+    // View wiring
+    void setView(Schedule_View *view);
+    Schedule_View *getView() const;
+
+private slots:
+    // Fired by view when the staff presses "Luu / Xac Nhan"
+    // selectedHoursByDay: outer index = day (0-6), inner list = selected hour-row indices
+    void onSaveGridRequested(const QList<QList<int>> &selectedHoursByDay);
+
+    // Synchronizes editable full-time pending registrations to the database.
+    void onSaveFullTimeScheduleRequested(const QList<QList<int>> &selectedShiftsByDay);
+
+    // Fired when manager clicks a shift block in the assign grid
+    void onShiftBlockClicked(int col, int row);
+
+    // Fired from the popup dialog approve/decline buttons
+    void onApproveShift(PendingShiftInfo request);
+    void onDeclineShift(PendingShiftInfo request);
+    void onAddEmployeeToShift(int employeeId, QDate date, QTime startTime,
+                              QTime endTime, const QString &reason);
+    void onRemoveAssignedShift(int shiftId, int employeeId,
+                                const QString &reason);
+
+    // Fired when the manager clicks "Xac Nhan"
+    void onConfirmRequested();
+    void onPreviousManagerWeek();
+    void onNextManagerWeek();
+    void onCurrentManagerWeek();
+    void onUndoManagerDraft();
+    void onClearManagerDraft();
+
+
+signals:
+    void scheduleGenerated(bool success, int assignedCount, const QStringList &warnings);
+};
+
+#endif // SCHEDULE_CONTROL_H
+#ifndef SETTING_CONTROL_H
+#define SETTING_CONTROL_H
+
+#include "global.h"
+#include "view/Setting_View.h"
+#include "model/Setting_Model.h"
+
+class Setting_Control : public QObject
+{
+    Q_OBJECT
+public:
+
+    explicit Setting_Control(QObject *parent = nullptr);
+    ~Setting_Control();
+
+    void setView(Setting_View* v);
+    void init();
+
+private slots:
+
+    void handleSave(short openHour, short closeHour, Qt::DayOfWeek dayOpenRegis,
+                    QMap<QString, QPair<short, short>> roles, short maxLeaveFT,
+                    short maxDaysPT, short maxHourPT);
+
+
+    void handleCancel();
+
+private:
+    Setting_View *view;
+    Setting_Model *model;
+};
+
+#endif
+#ifndef VIEWSCHEDULE_CONTROL_H
+#define VIEWSCHEDULE_CONTROL_H
+
+#include <QObject>
+#include "global.h"
+#include "model/Schedule_Model.h"
+#include "core/ShiftBlock.h"
+#include "view/ViewSchedule_View.h"
+
+class SessionManager;
+
+class ViewSchedule_Control : public QObject
+{
+    Q_OBJECT
+private:
+    ViewSchedule_View* view;
+    Schedule_Model* model;
+    short int currentEmployeeId;
+    QDate currentViewMonday;
+
+    void updateDateRangeLabel();
+    void loadData();
+    void loadStaffSchedule();
+    void loadManagerSchedule();
+
+public:
+    SessionManager* currentSession = nullptr;
+    explicit ViewSchedule_Control(QObject *parent = nullptr);
+    ~ViewSchedule_Control();
+
+    void setEmployeeId(short int id);
+    void load();
+    void setView(ViewSchedule_View* view);
+
+private slots:
+    void onPrevWeek();
+    void onNextWeek();
+    void onCurrentWeek();
+    void onShiftClicked(int row, int col);
+private:
+    QMap<int, QMap<int, ShiftBlock*>> scheduleGrid;
+};
+
+#endif // VIEWSCHEDULE_CONTROL_H

@@ -24,15 +24,6 @@ Login_View::~Login_View()
 	delete ui;
 }
 
-Login_Control *Login_View::getController() const
-{
-    return controller;
-}
-
-void Login_View::setController(Login_Control *newController)
-{
-    controller = newController;
-}
 
 void Login_View::clearInputs() {
     resetToLoginMode();

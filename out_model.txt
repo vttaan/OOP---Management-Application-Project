@@ -1,0 +1,314 @@
+﻿#pragma once
+
+#include "global.h"
+#include "utils/Database.h"
+
+enum class PasswordChangeResult {
+    SUCCESS,
+    WRONG_OLD_PASSWORD,
+    NEW_PASSWORD_TOO_WEAK,
+    DATABASE_ERROR
+};
+
+class Change_password {
+public:
+    PasswordChangeResult updatePassword(short int employeeId, 
+                                        const QString& oldPassword, 
+                                        const QString& newPassword);
+
+private:
+    bool verifyOldPassword(short int employeeId, const QString& oldPassword);
+    bool validatePasswordStrength(const QString& newPassword);
+    bool executePasswordUpdate(short int employeeId, const QString& newHashedPassword);
+};
+#pragma once
+
+#include "global.h"
+#include "core/User.h"
+
+// DTO for next-shift employee info displayed in panel 2
+struct ShiftEmployeeInfo {
+    QString name;
+    QString phone;
+    QString role;
+    QString avatarPath;
+};
+
+// DTO for salary chart data
+struct SalaryChartData {
+    QVector<double> lastYearMonthly;   // 12 months of (year-1)
+    QVector<double> thisYearMonthly;   // 12 months of (year)
+    int lastYearEmpCount;
+    int thisYearEmpCount;
+};
+
+class Dashboard_Model
+{
+public:
+    Dashboard_Model();
+    ~Dashboard_Model() = default;
+
+    // Seed 4 employees into today's current shift if not already present
+    void seedTodayShifts();
+
+    // Return IDs of employees working the current shift
+    QSet<int> getWorkingEmployeeIds();
+
+    // Return employees scheduled for the next shift (name, phone, role, avatar)
+    QList<ShiftEmployeeInfo> getNextShiftEmployees();
+
+    // Return names of absent employees in the current shift
+    QStringList getAbsentEmployees();
+
+    // Return salary chart data comparing (year-1) vs (year)
+    SalaryChartData getSalaryStats(int year);
+
+private:
+    // Determine current and next shift start times from system clock
+    void resolveShifts(QString& currentStart, QString& nextStart, QString& nextDate) const;
+};
+#pragma once
+#include "global.h"
+#include "core/User.h"
+#include "utils/Database.h"
+#include "core/UserFactory.h"
+
+using namespace std;
+
+class Employee_Model
+{
+private:
+    QList<User *> listEmployee;
+    QString getPattern(User *emp);
+    bool cmpAscending(User *a, User *b, QList<QString> contentSort);
+    bool cmpDescending(User *a, User *b, QList<QString> contentSort);
+    bool rabinKarp(QString pattern, QString contentSearch);
+    QString saveAvatarLocally(int empId, const QString &sourcePath);
+
+    //--------REMOVE ACCENT FOR SEARCH
+    static QString removeAccent(const QString &input);
+    //-----------------------------------
+    QList<User *> searchInEmployee(QList<User *> inputList, QString contentSearch);
+    QList<User *> filterInEmployee(QList<User *> inputList, QList<QString> contentFilter);
+    QList<User *> sortInEmployee(QList<User *> inputList, short typeOrder, QList<QString> contentSort);
+
+public:
+    Employee_Model();
+    ~Employee_Model()
+    {
+        qDeleteAll(listEmployee);
+        listEmployee.clear();
+    }
+    QList<User *> getListEmployee() { return this->listEmployee; }
+    bool addUserInList(User *emp);
+    bool popUserInList(short idEmployee);
+    void loadData();
+
+    QList<User *> SearchSortFilter(QString contentSearch, short typeOrder, QList<QString> contentSort,
+                                   QList<QString> contentFilter);
+
+    bool addEmployee(const QString &role, const QString &avatarPath, const QString &citizenId,
+                     const QString &name, const QString &dob, const QString &address,
+                     const QString &phone, const QString &gender, const int& baseSalary, bool isFixedSalary,
+                     const QString &username, const QString &password);
+
+    long long calculateExpectedPayrollCurrentMonth();
+    int countManagers();
+
+    bool updateEmployee(User* emp);
+    bool deleteEmployee(short idEmployee);
+
+    static QString generateAutoUsername(int id, QString& role);
+    static QString generateAutoPassword(QString& name, QString& dob);
+
+    static int getNextId(const QString& role);
+
+};
+#pragma once
+
+#include "global.h"
+#include "core/User.h"
+class Login_Model {
+public:
+	User* verifyLogin(const QString& userName, const QString& password);
+	void logOut();
+
+};
+#pragma once
+
+#include "global.h"
+#include "model/Change_password.h"  // Provides PasswordChangeResult enum + Change_password class
+
+class Profile_Model {
+public:
+    bool updateProfile(short int idEmployee, const QString& name, const QString& dob,
+                       const QString& address, const QString& phoneNum,
+                       const QString& citizenId, const QString& avatarPath, const QString& gender);
+
+    // Delegates to Change_password for verification, hashing, and DB update.
+    // Returns a PasswordChangeResult so the controller can show precise error messages.
+    PasswordChangeResult updatePassword(short int idEmployee,
+                                        const QString& oldPassword,
+                                        const QString& newPassword);
+
+    // Checks whether the supplied plain-text password matches the stored hash.
+    bool checkIfUserExist(short int idEmployee, const QString& password);
+};
+#ifndef SALARY_MODEL_H
+#define SALARY_MODEL_H
+
+#include "global.h"
+#include "core/User.h"
+#include "core/Staff.h"
+#include "utils/Database.h"
+#include "core/Shift.h"
+
+using namespace std;
+
+struct SalaryData {
+    int normalHours;
+    int holidayHours;
+    int normalSalary;
+    int holidaySalary;
+    int penalty;
+    int totalSalary;
+};
+
+class Salary_Model : public QObject
+{
+    Q_OBJECT
+public:
+    explicit Salary_Model(QObject *parent = nullptr);
+    ~Salary_Model();
+
+
+    static SalaryData getSalarySummary(short int id, QString role, double base, int month, int year);
+
+    static QMap<QString, int> getNormalDaysData(short int id, QString role, double base, int month, int year);
+    static QMap<QString, int> getHolidayDaysData(short int id, QString role, double base, int month, int year);
+    User* currentUser;
+
+
+signals:
+
+};
+
+#endif // SALARY_MODEL_H
+#ifndef SCHEDULE_MODEL_H
+#define SCHEDULE_MODEL_H
+
+#include "global.h"
+#include "core/Shift.h"
+#include "utils/Database.h"
+#include "utils/ScheduleDTOs.h"
+
+#include "core/ShiftBlock.h"
+#include <QMap>
+#include "core/Optimizer.h"
+
+class Schedule_Model
+{
+private:
+    QList<QList<Shift *>> shiftList{7}; // 7 days
+    int numberOfShift;
+    QList<User *> currentWeeklyUsers;
+    QList<Shift *> draftShifts;
+
+    QVector<Shift *> fetchPendingShifts(const QDate &weekStart, const QDate &weekEnd);
+    // Láº¥y tá»•ng sá»‘ phÃºt Ä‘Ã£ lÃ m cá»§a tá»«ng nhÃ¢n viÃªn
+    QMap<User *, int> fetchAllEmployeeInfos(const QDate &weekStart);
+
+public:
+    Schedule_Model();
+    bool checkOverlapping(short int id, QDate date, QTime start, QTime end);
+    Shift *getPreviewShift(short int id, QDate date, QTime start, QTime end);
+    Shift *handleAddShiftSubmission(short int id, QDate date, QTime start, QTime end);
+    void getSchedule(short int id, QDate monday);
+
+    // Returns the in-memory weekly shift list (index 0=Mon, 6=Sun)
+    const QList<QList<Shift *>> &getShiftList() const { return shiftList; }
+
+    void getAcceptedSchedule(short int id, QDate monday);
+    void getPendingSchedule(short int id, QDate monday);
+    QMap<int, QMap<int, ShiftBlock *>> getManagerWeeklyGrid(QDate monday, int status = 1);
+    QMap<int, QList<QString>> getWeeklySummaryStrings() const;
+
+    // Xáº¿p Lá»‹ch LÃ m â€” assignment grid: fetches all statuses (pending + accepted + declined)
+    // grid: col (0-6 Mon-Sun) -> row (0-2 shift) -> { pendingCount, acceptedCount, declinedCount }
+    QMap<int, QMap<int, BlockCounts>> getAssignBlockCounts(QDate monday);
+
+    // Returns all shift requests that touch a given shift block (col=day 0-6, row=shift 0-2)
+    QList<PendingShiftInfo> getShiftsForBlock(QDate monday, int col, int row);
+
+    // Employees that can be considered for a manager override. The result also
+    // contains ineligible employees with a human-readable reason for the chooser.
+    QList<EligibleEmployeeInfo> getEligibleEmployees(QDate date,
+                                                     QTime startTime,
+                                                     QTime endTime);
+
+    // Applies a manager's reviewed weekly draft in one transaction. Approved
+    // removals are retained as status -2 (cancelled), never hard-deleted.
+    bool applyManagerScheduleChanges(const QList<ManagerScheduleChange> &changes,
+                                     QStringList *errors = nullptr);
+    QStringList validateManagerScheduleChanges(
+        const QList<ManagerScheduleChange> &changes) const;
+    AutoSchedulePreview previewGeneratedSchedule(QDate weekStart);
+
+    // Raw shifts for 15x7 rendering
+    QMap<int, QList<Shift*>> getRawStaffShifts(short int id, QDate monday, int status);
+
+    // Database-backed 3x7 schedule for fixed-salary employees.
+    FullTimeScheduleGrid getFullTimeScheduleGrid(short int employeeId,
+                                                 QDate weekStart);
+
+    // Approve or decline a shift by its DB rowid; returns true on success
+    bool approveShift(int shiftId);
+    bool declineShift(int shiftId);
+
+signals:
+
+    QStringList generateSchedule();
+    bool saveDraftShiftsToDatabase();
+    bool replacePendingShiftsForWeek(
+        short int employeeId,
+        QDate weekStart,
+        const QList<StaffShiftRegistration> &registrations);
+    void clearDrafts() { draftShifts.clear(); }
+
+    ~Schedule_Model();
+};
+
+#endif // SCHEDULE_MODEL_H
+#ifndef SETTING_MODEL_H
+#define SETTING_MODEL_H
+#include "global.h"
+#include "utils/Database.h"
+#include "utils/Config.h"
+class Setting_Model
+{
+public:
+    Setting_Model();
+
+    bool loadData(short &openHour, short &closeHour, Qt::DayOfWeek &dayOpenRegis,
+                  QMap<QString, QPair<short, short>> &roles,
+                  short &maxLeaveFT, short &maxDaysPT, short &maxHourPT);
+
+    bool saveData(short openHour, short closeHour, Qt::DayOfWeek dayOpenRegis,
+                  const QMap<QString, QPair<short, short>>& roles,
+                  short maxLeaveFT, short maxDaysPT, short maxHourPT);
+};
+
+#endif // SETTING_MODEL_H
+#ifndef VALIDATOR_H
+#define VALIDATOR_H
+
+class Validator
+{
+public:
+    static bool isValidPassword(const QString& password);
+    static bool isValidDate(const QString& datestring);
+    static bool isValidPhoneNumber(const QString& num);
+    static bool isValidCitizenId(const QString& citizenId);
+};
+
+#endif // VALIDATOR_H

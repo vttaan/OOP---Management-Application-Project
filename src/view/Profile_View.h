@@ -30,9 +30,6 @@ public:
 
     void loadUserData();
 
-    // Call this function to fill the UI with user data dynamically
-    void loadUserData(const QString& name, const QString& studentId, const QString& dob,
-                      const QString& phone, const QString& email, const QString& avatarPath);
 
 protected:
     void resizeEvent(QResizeEvent *event) override;

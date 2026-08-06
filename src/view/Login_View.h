@@ -28,7 +28,6 @@ private:
     QAction *hidePassword;
     QAction *hideNewPassword;
     QPixmap bgPixmap;
-    Login_Control *controller = nullptr;
     PageMode pageMode = PageMode::Login;
     void setupUI(); // setup icon/button/textbox/title
     void togglePassword();
@@ -43,8 +42,6 @@ public:
     void beginInitialPasswordChange();
     void resetToLoginMode();
     void showInitialPasswordChangeError(const QString &message);
-    Login_Control *getController() const;
-    void setController(Login_Control *controller);
     ~Login_View();
 signals:
     void loginSubmitted(const QString &username, const QString &password);

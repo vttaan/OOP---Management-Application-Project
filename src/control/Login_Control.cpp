@@ -32,7 +32,6 @@ void Login_Control::setView(Login_View *view)
     this->view = view;
     if (this->view)
     {
-        this->view->setController(this);
         QObject::connect(this->view, &Login_View::loginSubmitted,
                          this, &Login_Control::handleLoginSubmission);
         QObject::connect(this->view, &Login_View::initialPasswordChangeSubmitted,
