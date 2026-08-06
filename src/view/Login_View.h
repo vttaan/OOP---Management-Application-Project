@@ -28,6 +28,7 @@ private:
     QAction *hidePassword;
     QAction *hideNewPassword;
     QPixmap bgPixmap;
+    Login_Control *controller = nullptr;
     PageMode pageMode = PageMode::Login;
     void setupUI(); // setup icon/button/textbox/title
     void togglePassword();
