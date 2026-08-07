@@ -94,12 +94,12 @@ void Employee_View::buildFilterDropdown()
   chkHallStaff = new QCheckBox("Nhân viên sảnh");
   chkKitchenAssistant = new QCheckBox("Phụ bếp");
   chkManager = new QCheckBox("Quản lý");
-  chkAdmin = new QCheckBox("Quản trị viên");
+
   layout->addWidget(chkCashier);
   layout->addWidget(chkHallStaff);
   layout->addWidget(chkKitchenAssistant);
   layout->addWidget(chkManager);
-  layout->addWidget(chkAdmin);
+
 
   // Separator
   QFrame *sep = new QFrame();

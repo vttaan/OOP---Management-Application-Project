@@ -452,7 +452,7 @@ QList<User *> Employee_Model::filterInEmployee(QList<User *> inputList, QList<QS
   QStringList genders;
   
   for (const QString &s : contentFilter) {
-      if (s == "Manager" || s == "Admin" || s == "Cashier" || s == "HallStaff" || s == "KitchenAssistant") {
+      if (s == "Manager" || s == "Cashier" || s == "HallStaff" || s == "KitchenAssistant") {
           roles.append(s);
       } else {
           genders.append(s);
