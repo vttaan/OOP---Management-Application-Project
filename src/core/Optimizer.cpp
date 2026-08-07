@@ -207,8 +207,6 @@ Optimizer::RoleSolveResult Optimizer::solveForRole(const QString& role,
         int cap = qMin((int)floorDays, registeredDaysFixed.value(i, 0));
         if (cap > 0) addEdge(S, nEmp(i), cap, 0);
     }
-    int cost1 = 0;
-    minCostFlow(S, T, INF, cost1);
 
     // --- PHASE 2
     for (int i = 0; i < E; ++i) {
@@ -216,10 +214,8 @@ Optimizer::RoleSolveResult Optimizer::solveForRole(const QString& role,
         int total = registeredDaysFixed.value(i, 0);
         int floorCap = qMin((int)floorDays, total);
         int extra = total - floorCap;
-        if (extra > 0) addEdge(S, nEmp(i), extra, 0);
+        if (extra > 0) addEdge(S, nEmp(i), extra, 10000);
     }
-    int cost2 = 0;
-    minCostFlow(S, T, INF, cost2);
 
 // ---PHASE 3
     const int minMinutesPT = Config::getMinimumHourWorkPerDay_PT() * 60;
@@ -260,11 +256,12 @@ Optimizer::RoleSolveResult Optimizer::solveForRole(const QString& role,
     for (int i = 0; i < E; ++i) {
         if (empList[i]->getIsFixedEmployee()) continue;
         int cap = registeredDaysPT.value(i, 0);
-        if (cap > 0) addEdge(S, nEmp(i), cap, 0);
+        if (cap > 0) addEdge(S, nEmp(i), cap, 20000);
     }
-    int cost3 = 0;
-    minCostFlow(S, T, INF, cost3);
-
+    
+    // RUN OPTIMIZATION ONCE
+    int totalGraphCost = 0;
+    minCostFlow(S, T, INF, totalGraphCost);
 
     QMap<int,int> assignedCount;
     QMap<int, QSet<int>> empDaysAssigned;
@@ -287,7 +284,7 @@ Optimizer::RoleSolveResult Optimizer::solveForRole(const QString& role,
     int flowSum = 0;
     for (auto v : assignedCount) flowSum += v;
     result.totalFlow = flowSum;
-    result.totalCost = cost1 + cost2 + cost3;
+    result.totalCost = totalGraphCost;
     result.feasible  = flowSum > 0;
 
     // insufficient staff

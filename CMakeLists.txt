@@ -186,6 +186,14 @@ qt_add_executable(${PROJECT_NAME} WIN32 ${PROJECT_SOURCES}
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Core Qt6::Widgets Qt6::Sql Qt6::Charts)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_precompile_headers(${PROJECT_NAME} PRIVATE src/global.h)
+
+option(BUILD_SHIFT_SEEDER "Build the reusable next-week pending-shift seeder" ON)
+if(BUILD_SHIFT_SEEDER)
+    qt_add_executable(seed_next_week_shifts
+        tools/seed_next_week_shifts.cpp)
+    target_link_libraries(seed_next_week_shifts PRIVATE Qt6::Core Qt6::Sql)
+endif()
+
 option(OPTIMUS_COPY_DATABASE "Copy the runtime SQLite database into the build tree" ON)
 # if(OPTIMUS_COPY_DATABASE)
 #     file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/database
