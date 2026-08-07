@@ -63,8 +63,9 @@
 #### Tính Năng: Đăng nhập hệ thống
 
 - **Dữ liệu / Attribute sử dụng:**
-  - `userName` (từ View, gửi qua Signal)
-  - `passWord` (từ View, gửi qua Signal)
+  - Dữ liệu thu thập từ View để khởi tạo object/phiên đăng nhập:
+    - `ui->inpUsername` (QLineEdit): Lấy tên đăng nhập (`userName`)
+    - `ui->inpPassword` (QLineEdit): Lấy mật khẩu (`passWord`)
   - Database table `ACCOUNTS`: `userName`, `passWord`, `idEmployee`
   - Database table `PROFILES`: `role`, `idEmployee`, `name`, `gender`, `isFixed`, v.v.
 
@@ -122,20 +123,36 @@ Dashboard tự động cập nhật (refresh) theo chu kỳ.
   - Quản lý lấy danh sách chờ duyệt.
   - Xác nhận Duyệt/Từ chối: Cập nhật status vào `LEAVE_REQUESTS`, tạo Notification báo cho nhân viên.
 
+#### Tính Năng: Xin nghỉ phép (Staff only)
+- **Dữ liệu / Attribute sử dụng (khi tạo object LeaveRequest từ View):**
+  - `shiftList` (QListWidget): Danh sách các ca làm, chọn để lấy `shiftId`.
+  - `reasonEdit` (QPlainTextEdit): TextField để nhập lý do xin nghỉ (`reason`).
+- **Được gọi tới từ:** Nút "Xin nghỉ phép" trên `Schedule_View` gọi tới `Schedule_Control::onLeaveRequested()`.
+- **Sẽ gọi hàm:** `LeaveRequest_Model::submitLeaveRequest()`.
+- **Công dụng:** Khởi tạo object `LeaveRequest` với trạng thái pending (chờ duyệt) và lưu vào bảng `LEAVE_REQUESTS`.
+
 ---
 
 ### 2.3. Trang Hồ Sơ Cá Nhân (Profile)
 
 #### Tính Năng: Sửa thông tin cá nhân
-- **Dữ liệu / Attribute sử dụng:**
-  - `name`, `dob`, `address`, `phoneNum`, `citizenId` (CCCD), `gender`, `avatarPath`.
+- **Dữ liệu / Attribute sử dụng (khi tạo/cập nhật object Profile từ View):**
+  - `ui->inpName` (QLineEdit): Lấy tên (`name`)
+  - `ui->inpDob` (QDateEdit): Lấy ngày sinh (`dob`)
+  - `ui->inpAddress` (QLineEdit): Lấy địa chỉ (`address`)
+  - `ui->inpPhone` (QLineEdit): Lấy SĐT (`phoneNum`)
+  - `ui->inpCitizenId` (QLineEdit): Lấy CCCD (`citizenId`)
+  - `ui->cmbGender` (QComboBox): Lấy giới tính (`gender`)
+  - Biến nội bộ `m_avatarPath`: Lấy đường dẫn ảnh đại diện (`avatarPath`)
 - **Được gọi tới từ:** Sự kiện Save trên `EditProfile_Widget` phát signal tới `Profile_Control::handleProfileUpdate()`.
 - **Sẽ gọi hàm:** `Profile_Model::updateProfile(id, name, dob, address, ...)`.
 - **Công dụng:** Validate dữ liệu, lưu file ảnh avatar vào thư mục resources nội bộ, sau đó thực thi `UPDATE PROFILES` trong Database và cập nhật đối tượng `User` hiện tại trong `SessionManager`.
 
 #### Tính Năng: Đổi mật khẩu
-- **Dữ liệu / Attribute sử dụng:**
-  - `oldPassword`, `newPassword` (từ UI).
+- **Dữ liệu / Attribute sử dụng (từ View):**
+  - `ui->inpOldPassword` (QLineEdit): Lấy mật khẩu cũ
+  - `ui->inpNewPassword` (QLineEdit): Lấy mật khẩu mới
+  - `ui->inpConfirmPassword` (QLineEdit): Xác nhận mật khẩu mới
   - Database `ACCOUNTS`: `passWord`.
 - **Được gọi tới từ:** Sự kiện Confirm trên `EditPassword_Widget` phát signal tới `Profile_Control::handlePasswordUpdate()`.
 - **Sẽ gọi hàm:** `Profile_Model::updatePassword()` -> `Change_password::updatePassword()`.
@@ -162,8 +179,19 @@ Chỉ Manager mới có quyền truy cập trang này.
   - Sắp xếp tăng/giảm theo ID hoặc Tên (`sortInEmployee`).
 
 #### Tính Năng: Thêm/Sửa/Xóa Nhân Viên (CRUD)
-- **Dữ liệu / Attribute sử dụng:**
-  - Tất cả các field trong bảng `PROFILES` và `ACCOUNTS`.
+- **Dữ liệu / Attribute sử dụng (khi khởi tạo object Employee từ View `AddEmployee_Dialog` / `EditEmployee_Dialog`):**
+  - `inpName` (QLineEdit): Tên nhân viên
+  - `cmbRole` (QComboBox): Chức vụ (Quản lý, Thu ngân...)
+  - `cmbGender` (QComboBox): Giới tính
+  - `inpPhone` (QLineEdit): Số điện thoại
+  - `inpDob` (QDateEdit): Ngày sinh
+  - `inpAddress` (QLineEdit): Địa chỉ
+  - `inpCitizenId` (QLineEdit): CCCD
+  - `cmbIsFixedSalary` (QComboBox): Loại lương (Cố định / Theo giờ)
+  - `inpSalary` (QLineEdit): Mức lương
+  - `m_avatarPath` (QString): Đường dẫn ảnh đại diện
+  - `inpUsername`, `inpPassword` (QLineEdit): Thông tin đăng nhập tự động sinh
+  - Các thuộc tính View này map trực tiếp vào object `User/Employee` để update Database.
 - **Được gọi tới từ:** Action buttons trên UI gọi các slot của `Employee_Control` (`handleAddEmployee`, `handleEditEmployee`, `handleDeleteEmployee`).
 - **Sẽ gọi hàm:**
   - `Employee_Model::addEmployee(...)` / `updateEmployee(...)` / `deleteEmployee(...)`.
@@ -259,8 +287,12 @@ Trang này có 2 giao diện tùy vào quyền của user: Staff đăng ký ca, 
 Chỉ có Manager / Admin mới vào được trang này.
 
 #### Tính Năng: Lưu cấu hình hoạt động của quán
-- **Dữ liệu / Attribute sử dụng:**
-  - `SETTINGS`: Các tham số như Giờ mở cửa, Giờ đóng cửa, Ngày mở đăng ký, Số ngày nghỉ phép tối đa, Mức lương từng role, v.v.
+- **Dữ liệu / Attribute sử dụng (khởi tạo cấu hình Settings từ View):**
+  - `ui->spinBoxOpen` / `ui->spinBoxClose` (QSpinBox): Giờ mở / đóng cửa
+  - `ui->comboBoxDateRegis` (QComboBox): Ngày mở đăng ký lịch làm việc
+  - `ui->comboBoxFullTime` (QComboBox): Số ngày nghỉ phép tối đa
+  - `ui->spinBoxDayMaxPartTime` / `ui->spinBoxHourMaxPartTime` (QSpinBox): Giới hạn part-time
+  - `ui->tableRoles` (QTableWidget) có nhúng `QSpinBox`: Số nhân viên tối thiểu/tối đa cho từng chức vụ
 - **Được gọi tới từ:** Nút Save, trigger `Setting_Control::handleSave()`.
 - **Sẽ gọi hàm:**
   - `Setting_Model::saveSettings()`.
