@@ -251,7 +251,7 @@ This module defines the foundational entities and domain objects of the applicat
     *   `date`, `startTime`, `endTime`, `employees` (List of `User*`).
 *   **Functions:**
     *   `addStaff(User* u)`: Assigns a user to this block.
-    *   `getStatus()`: Determines if the block is empty, understaffed, or sufficient. *Calls `Config::getMinStaffPerShift`.*
+    *   `getStatus()`: Determines if the block is empty, understaffed, or sufficient by comparing the assigned count of every operational role with that role's configured minimum. Manager and Admin profiles do not contribute to coverage.
 
 #### 5.2.7. `Optimizer`
 *   **Role:** Contains the algorithm (Max Flow / Min Cost Flow) for automatically generating schedules.
@@ -310,6 +310,7 @@ This module handles database queries, business rules, and state management.
     *   `ensurePendingCarryForwardForWeek(...)`: Once per employee and registration week, copies the previous week's approved shifts forward as editable pending rows while skipping active-shift and approved-leave conflicts. `SHIFT_CARRY_FORWARD` stores durable completion markers so deleted inherited rows are not recreated.
     *   `getEligibleEmployees(...)`, `validateManagerScheduleChanges(...)`, `applyManagerScheduleChanges(...)`: Preflights conflicts and stale/duplicate actions, then commits approved, declined, added, and cancelled changes atomically. Cancelled assignments remain in history through `SHIFT_AUDIT`.
     *   `getFullTimeScheduleGrid(...)`: Maps one fixed-salary employee's pending, approved, and declined `SHIFT` rows to the canonical 3x7 grid and derives staffing-shortage cells from approved staffing data.
+    *   `getAssignBlockCounts(...)`: Joins `SHIFT` with `PROFILES` and returns `BlockCounts` whose `byRole` map is authoritative for coverage. Aggregate pending/accepted/declined/cancelled totals remain available to the manager UI, while `missingSlots()` and `hasShortage()` sum deficits independently for each operational role.
 
 #### 5.3.7. `Validator`
 *   **Role:** Utility class providing static methods to validate common user inputs.
@@ -321,11 +322,12 @@ This module handles database queries, business rules, and state management.
 This module provides cross-cutting utilities like configuration, database connections, and session state.
 
 #### 5.4.1. `Config`
-*   **Role:** Stores global configuration constants (e.g., store opening hours).
+*   **Role:** Stores global configuration constants (e.g., store opening hours) and the shared scheduling-role policy.
 *   **Variables:**
     *   `openHour`, `closeHour`, `minStaffPerShift`, etc.
 *   **Functions:**
     *   Getters for constants. *Called by `Schedule_Model` and `ShiftBlock`.*
+    *   `canonicalRoleName(...)`, `isOperationalRole(...)`, `getOperationalRoles()`: Normalize the historical `KitchenAssitant` policy key to `KitchenAssistant`, exclude `Manager`, `Manage`, and `Admin` from per-shift coverage, and allow future non-management roles to use the configured min/max policy. Existing management policy rows remain compatible but are presented as not applicable to shift scheduling.
 
 #### 5.4.2. `Database`
 *   **Role:** Singleton class managing the SQLite database connection.

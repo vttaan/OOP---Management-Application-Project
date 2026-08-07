@@ -589,7 +589,7 @@ QLabel *Employee_View::createRoleBadge(const QString &role)
         displayRole = "Thu ngân";
     else if (role == "HallStaff")
         displayRole = "Nhân viên sảnh";
-    else if (role == "KitchenAssistant")
+    else if (Config::canonicalRoleName(role) == "KitchenAssistant")
         displayRole = "Phụ bếp";
     else displayRole = "Nhân viên";
 

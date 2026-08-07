@@ -92,10 +92,15 @@ void Schedule_View::showShiftRequestsDialog(
       else if (request.status == 0) ++pendingCount;
     }
     int required = 0;
+    int missing = 0;
     if (m_lastAssignCounts.contains(m_selectedManagerDay) &&
         m_lastAssignCounts[m_selectedManagerDay].contains(m_selectedManagerShift))
-      required = m_lastAssignCounts[m_selectedManagerDay][m_selectedManagerShift].required;
-    int missing = qMax(0, required - approvedCount);
+    {
+      const BlockCounts counts =
+          m_lastAssignCounts[m_selectedManagerDay][m_selectedManagerShift];
+      required = counts.required;
+      missing = counts.missingSlots();
+    }
 
     QHBoxLayout *metrics = new QHBoxLayout();
     metrics->setSpacing(8);
@@ -169,7 +174,7 @@ void Schedule_View::showShiftRequestsDialog(
         return QString("Thu ngân");
       if (role.compare("HallStaff", Qt::CaseInsensitive) == 0)
         return QString("Nhân viên sảnh");
-      if (role.compare("KitchenAssistant", Qt::CaseInsensitive) == 0)
+      if (Config::canonicalRoleName(role).compare("KitchenAssistant", Qt::CaseInsensitive) == 0)
         return QString("Phụ bếp");
       return role;
     };
@@ -596,7 +601,7 @@ void Schedule_View::showShiftRequestsDialog(
       roleDisplay = "Nhân viên sảnh";
       roleColors = "background-color:#FFEDD5;color:#C2410C;";
     }
-    else if (info.role == "KitchenAssistant")
+    else if (Config::canonicalRoleName(info.role) == "KitchenAssistant")
     {
       roleDisplay = "Phụ bếp";
       roleColors = "background-color:#FFE4E6;color:#BE123C;";
@@ -804,5 +809,3 @@ void Schedule_View::showShiftRequestsDialog(
   dlg->show();
   // WA_DeleteOnClose owns the non-blocking detail surface.
 }
-
-

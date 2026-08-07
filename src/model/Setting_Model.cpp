@@ -45,7 +45,7 @@ bool Setting_Model::loadData(short &openHour, short &closeHour, Qt::DayOfWeek &d
 
     if (roles.isEmpty()) {
         qDebug() << "Bảng PolicyForRole_CONFIG trống. Tự động thêm các chức vụ mặc định.";
-        QList<QString> defaultRoles = {"Cashier", "HallStaff", "KitchenAssistant", "Manager"};
+        QList<QString> defaultRoles = {"Cashier", "HallStaff", "KitchenAssistant"};
         for (const QString& role : defaultRoles) {
             roles[role] = qMakePair<short, short>(1, 6); // Default 1 min, 6 max
             QSqlQuery insertQuery(db);

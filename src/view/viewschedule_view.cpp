@@ -20,7 +20,7 @@ namespace
             return QString::fromUtf8("Thu ngân");
         if (role.compare("HallStaff", Qt::CaseInsensitive) == 0)
             return QString::fromUtf8("Nhân viên sảnh");
-        if (role.compare("KitchenAssistant", Qt::CaseInsensitive) == 0)
+        if (Config::canonicalRoleName(role).compare("KitchenAssistant", Qt::CaseInsensitive) == 0)
             return QString::fromUtf8("Phụ bếp");
         if (role.compare("Admin", Qt::CaseInsensitive) == 0)
             return QString::fromUtf8("Quản trị viên");

@@ -82,23 +82,33 @@ void Setting_View::loadData(short openHour, short closeHour, Qt::DayOfWeek dayOp
 
     for (auto it = roles.constBegin(); it != roles.constEnd(); ++it) {
         const QString& roleKey = it.key();
-        QString roleDisplay;
-        if      (roleKey == "KitchenAssitant") roleDisplay = "Phụ Bếp";
-        else if (roleKey == "HallStaff")        roleDisplay = "Phục Vụ";
-        else if (roleKey == "Cashier")          roleDisplay = "Thu Ngân";
-        else if (roleKey == "Manager")          roleDisplay = "Quản Lý";
-        else if (roleKey == "Admin")            roleDisplay = "Quản Trị Viên";
-        else                                    roleDisplay = roleKey;
+        const QString roleDisplay = Config::displayRoleName(roleKey);
 
         // col 1: Roles READ ONLY - bold + larger font
         QTableWidgetItem* roleItem = new QTableWidgetItem(roleDisplay);
         roleItem->setFlags(roleItem->flags() ^ Qt::ItemIsEditable);
         roleItem->setData(Qt::UserRole, roleKey);
+        roleItem->setData(Qt::UserRole + 1, it.value().first);
+        roleItem->setData(Qt::UserRole + 2, it.value().second);
         QFont roleFont = roleItem->font();
         roleFont.setBold(true);
         roleFont.setPointSize(11);
         roleItem->setFont(roleFont);
         ui->tableRoles->setItem(row, 0, roleItem);
+
+        if (!Config::isOperationalRole(roleKey)) {
+            for (int column = 1; column <= 2; ++column) {
+                QLabel *notApplicable = new QLabel(
+                    QString::fromUtf8("Không áp dụng cho xếp ca"), ui->tableRoles);
+                notApplicable->setAlignment(Qt::AlignCenter);
+                notApplicable->setWordWrap(true);
+                notApplicable->setStyleSheet(
+                    "color:#64748B;background:#F8FAFC;font-size:10px;");
+                ui->tableRoles->setCellWidget(row, column, notApplicable);
+            }
+            row++;
+            continue;
+        }
 
         // col 2: Min Staff - compact spinbox
         QSpinBox* spinMin = new QSpinBox(ui->tableRoles);
@@ -142,7 +152,13 @@ void Setting_View::saveClicked()
         QSpinBox* spinMin = qobject_cast<QSpinBox*>(ui->tableRoles->cellWidget(i, 1));
         QSpinBox* spinMax = qobject_cast<QSpinBox*>(ui->tableRoles->cellWidget(i, 2));
 
-        if(spinMin && spinMax) {
+        if (!Config::isOperationalRole(roleName)) {
+            rolesMap[roleName] = qMakePair(
+                static_cast<short>(ui->tableRoles->item(i, 0)
+                                       ->data(Qt::UserRole + 1).toInt()),
+                static_cast<short>(ui->tableRoles->item(i, 0)
+                                       ->data(Qt::UserRole + 2).toInt()));
+        } else if(spinMin && spinMax) {
             rolesMap[roleName] = qMakePair(static_cast<short>(spinMin->value()),
                                            static_cast<short>(spinMax->value()));
         }

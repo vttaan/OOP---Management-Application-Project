@@ -16,6 +16,7 @@ struct MissingShiftInfo {
     QString shiftName;
     int required = 0;
     int assigned = 0;
+    QMap<QString, int> missingByRole;
     int dayColumn = -1;
     int shiftRow = -1;
 };

@@ -192,7 +192,7 @@ QString EmployeeDetails_Dialog::getVietnameseRole(const QString& roleName)
     if (roleName == "Admin") return "Quản trị viên";
     if (roleName == "Cashier") return "Thu ngân";
     if (roleName == "HallStaff") return "Nhân viên sảnh";
-    if (roleName == "KitchenAssistant") return "Phụ bếp";
+    if (Config::canonicalRoleName(roleName) == "KitchenAssistant") return "Phụ bếp";
     return "Nhân viên";
 }
 

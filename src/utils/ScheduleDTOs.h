@@ -20,13 +20,105 @@ struct PendingShiftInfo {
     short   status = 0;         // 0 = pending, 1 = approved, -1 = declined
 };
 
-// Count breakdown per shift block for the assign grid.
+// Count breakdown for one operational role inside a canonical shift block.
+struct RoleBlockCounts {
+    int pending = 0;
+    int accepted = 0;
+    int declined = 0;
+    int required = 0;
+    int cancelled = 0;
+
+    int missingSlots() const
+    {
+        return qMax(0, required - accepted);
+    }
+};
+
+// Count breakdown per shift block for the assign grid. Aggregate fields retain
+// the existing UI contract; byRole is authoritative for staffing sufficiency.
 struct BlockCounts {
     int pending = 0;
     int accepted = 0;
     int declined = 0;
     int required = 0;
     int cancelled = 0;
+    QMap<QString, RoleBlockCounts> byRole;
+
+    void recalculateTotals()
+    {
+        pending = 0;
+        accepted = 0;
+        declined = 0;
+        required = 0;
+        cancelled = 0;
+        for (const RoleBlockCounts &counts : byRole)
+        {
+            pending += counts.pending;
+            accepted += counts.accepted;
+            declined += counts.declined;
+            required += counts.required;
+            cancelled += counts.cancelled;
+        }
+    }
+
+    int missingSlots() const
+    {
+        int missing = 0;
+        for (const RoleBlockCounts &counts : byRole)
+            missing += counts.missingSlots();
+        return missing;
+    }
+
+    int coveredRequiredSlots() const
+    {
+        return qMax(0, required - missingSlots());
+    }
+
+    bool hasShortage() const
+    {
+        return missingSlots() > 0;
+    }
+
+    QMap<QString, int> missingByRole() const
+    {
+        QMap<QString, int> missing;
+        for (auto it = byRole.constBegin(); it != byRole.constEnd(); ++it)
+        {
+            const int deficit = it.value().missingSlots();
+            if (deficit > 0)
+                missing.insert(it.key(), deficit);
+        }
+        return missing;
+    }
+
+    QString deficitSignature() const
+    {
+        QStringList parts;
+        const QMap<QString, int> missing = missingByRole();
+        for (auto it = missing.constBegin(); it != missing.constEnd(); ++it)
+            parts.append(QString("%1:%2").arg(it.key()).arg(it.value()));
+        return parts.join(",");
+    }
+
+    void adjustStatus(const QString &role, int status, int delta)
+    {
+        if (role.trimmed().isEmpty() || delta == 0)
+            return;
+        RoleBlockCounts &counts = byRole[role];
+        int *target = nullptr;
+        if (status == 0)
+            target = &counts.pending;
+        else if (status == 1)
+            target = &counts.accepted;
+        else if (status == -1)
+            target = &counts.declined;
+        else if (status == -2)
+            target = &counts.cancelled;
+        if (!target)
+            return;
+        *target = qMax(0, *target + delta);
+        recalculateTotals();
+    }
 };
 
 enum class ManagerScheduleChangeType {

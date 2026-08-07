@@ -173,7 +173,7 @@ void EditEmployee_Dialog::setupUi(User *emp)
         // Map English role to Vietnamese display text
         QString displayRole = emp->getRole();
         if (displayRole == "Manager") displayRole = "Quản lý";
-        else if (displayRole == "KitchenAssistant") displayRole = "Phụ bếp";
+        else if (Config::canonicalRoleName(displayRole) == "KitchenAssistant") displayRole = "Phụ bếp";
         else if (displayRole == "Cashier") displayRole = "Thu ngân";
         else if (displayRole == "HallStaff") displayRole = "Nhân viên sảnh";
         else displayRole = "Nhân viên";
