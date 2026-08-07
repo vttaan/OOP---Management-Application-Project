@@ -1680,7 +1680,7 @@ QList<PendingShiftInfo> Schedule_Model::getShiftsForBlock(QDate monday, int col,
               "FROM SHIFT S "
               "JOIN PROFILES P ON S.idEmployee = P.idEmployee "
                   "WHERE S.workDate = :date AND S.status <> -2");
-    q.bindValue(":date", targetDate);
+    q.bindValue(":date", targetDate.toString(Qt::ISODate));
     if (!q.exec())
         return list;
 
@@ -1750,7 +1750,7 @@ QList<PendingShiftInfo> Schedule_Model::getEligibleReplacements(int oldShiftId, 
                "FROM SHIFT S "
                "JOIN PROFILES P ON S.idEmployee = P.idEmployee "
                "WHERE S.workDate = :date AND S.status = -1 AND P.role = :role");
-    rq.bindValue(":date", workDate);
+    rq.bindValue(":date", workDate.toString(Qt::ISODate));
     rq.bindValue(":role", role);
     if (!rq.exec())
         return list;

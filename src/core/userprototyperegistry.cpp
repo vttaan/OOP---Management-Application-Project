@@ -1,7 +1,19 @@
 #include "userprototyperegistry.h"
+#include "core/Cashier.h"
+#include "core/HallStaff.h"
+#include "core/KitchenAssistant.h"
+#include "core/Manager.h"
+
+UserPrototypeRegistry::UserPrototypeRegistry()
+{
+    prototypes.insert("Cashier", new Cashier(0, "", "", "", "", "", "", "", 0.0, false, 0.0));
+    prototypes.insert("HallStaff", new HallStaff(0, "", "", "", "", "", "", "", 0, false, 0.0));
+    prototypes.insert("KitchenAssistant", new KitchenAssistant(0, "", "", "", "", "", "", "", 0, false, 0.0));
+    prototypes.insert("Manager", new Manager("Manager", 0, "", "", "", "", "", "", "", 0));
+}
+
 UserPrototypeRegistry& UserPrototypeRegistry::instance()
 {
-
     static UserPrototypeRegistry inst;
     return inst;
 }
