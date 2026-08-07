@@ -640,6 +640,51 @@ private slots:
                 preview.changes.size());
     }
 
+    void automaticPreviewUsesOnlyRemainingRoleCapacity()
+    {
+        Config::setRoles({{"Cashier", {1, 2}}});
+        Config::setMinimumDaysWorkPerWeek_PT(1);
+        Config::setMinimumHourWorkPerDay_PT(1);
+        Config::setMaximumHourWorkPerDay_PT(8);
+        QVERIFY(execute(
+            "INSERT INTO SHIFT (idEmployee, workDate, startTime, endTime, status) VALUES "
+            "(1003, '2026-08-03', '07:00', '12:00', 1), "
+            "(1001, '2026-08-03', '07:00', '12:00', 0), "
+            "(1004, '2026-08-03', '07:00', '12:00', 0)"));
+
+        Schedule_Model model;
+        const AutoSchedulePreview preview = model.previewGeneratedSchedule(weekStart);
+
+        QCOMPARE(preview.changes.size(), 2);
+        QCOMPARE(preview.approvedCount, 1);
+        QCOMPARE(preview.declinedCount, 1);
+        QCOMPARE(scalar("SELECT status FROM SHIFT WHERE IdShift = 1"), 1);
+        QCOMPARE(scalar("SELECT status FROM SHIFT WHERE IdShift = 2"), 0);
+        QCOMPARE(scalar("SELECT status FROM SHIFT WHERE IdShift = 3"), 0);
+    }
+
+    void automaticPreviewRejectsEmployeeOverlapWithApprovedShift()
+    {
+        Config::setRoles({{"HallStaff", {1, 6}}});
+        Config::setMinimumDaysWorkPerWeek_PT(1);
+        Config::setMinimumHourWorkPerDay_PT(1);
+        Config::setMaximumHourWorkPerDay_PT(8);
+        QVERIFY(execute(
+            "INSERT INTO SHIFT (idEmployee, workDate, startTime, endTime, status) VALUES "
+            "(1002, '2026-08-03', '07:00', '12:00', 1), "
+            "(1002, '2026-08-03', '08:00', '11:00', 0)"));
+
+        Schedule_Model model;
+        const AutoSchedulePreview preview = model.previewGeneratedSchedule(weekStart);
+
+        QCOMPARE(preview.changes.size(), 1);
+        QCOMPARE(preview.approvedCount, 0);
+        QCOMPARE(preview.declinedCount, 1);
+        QCOMPARE(static_cast<int>(preview.changes.first().type),
+                 static_cast<int>(ManagerScheduleChangeType::Decline));
+        QCOMPARE(scalar("SELECT status FROM SHIFT WHERE IdShift = 2"), 0);
+    }
+
     void automaticPreviewCarriesOptimizerAssignedTime()
     {
         Config::setRoles({{"HallStaff", {1, 6}}});
@@ -719,6 +764,25 @@ private slots:
 
         QVERIFY(!errors.isEmpty());
         QCOMPARE(scalar("SELECT status FROM SHIFT WHERE IdShift = 1"), 0);
+    }
+
+    void approvingShiftRejectsExistingApprovedOverlap()
+    {
+        QVERIFY(execute(
+            "INSERT INTO SHIFT (idEmployee, workDate, startTime, endTime, status) VALUES "
+            "(1002, '2026-08-03', '07:00', '12:00', 1), "
+            "(1002, '2026-08-03', '08:00', '11:00', 0)"));
+
+        Schedule_Model model;
+        QList<ManagerScheduleChange> changes = {
+            {ManagerScheduleChangeType::Approve, 2, 1002, "Employee", "HallStaff",
+             weekStart, QTime(8, 0), QTime(11, 0), "Automatic assignment"}};
+        QStringList errors;
+
+        QVERIFY(!model.applyManagerScheduleChanges(changes, &errors));
+        QVERIFY(!errors.isEmpty());
+        QCOMPARE(scalar("SELECT status FROM SHIFT WHERE IdShift = 1"), 1);
+        QCOMPARE(scalar("SELECT status FROM SHIFT WHERE IdShift = 2"), 0);
     }
 
     void managerDecisionCreatesStaffNotification()

@@ -65,8 +65,12 @@ int Optimizer::minCostFlow(int s,int t,int maxFlow,int &outCost){
     return flow;
 }
 
-Optimizer::Optimizer(const QVector<Shift*>& shifts, const QMap<User*, int>& userMinutes)
-    : shifts(shifts), userMinutes(userMinutes) {}
+Optimizer::Optimizer(const QVector<Shift*>& shifts,
+                     const QMap<User*, int>& userMinutes,
+                     const QVector<ExistingAssignment>& existingAssignments)
+    : shifts(shifts),
+      userMinutes(userMinutes),
+      existingAssignments(existingAssignments) {}
 
 User* Optimizer::findUserById(short int id) const {
     return m_userById.value(id, nullptr);
@@ -144,15 +148,63 @@ Optimizer::RoleSolveResult Optimizer::solveForRole(const QString& role,
 
     // Init Graph
     const int K = 3; // Morning, afternoon, and evening canonical blocks.
+    const QString canonicalRole = Config::canonicalRoleName(role);
+    QMap<int, int> existingAssignedCount;
+    QMap<QPair<int, QDate>, QVector<QPair<QTime, QTime>>> existingByEmployeeDate;
+
+    auto overlaps = [](const QTime& firstStart, const QTime& firstEnd,
+                       const QTime& secondStart, const QTime& secondEnd) {
+        return firstStart < secondEnd && firstEnd > secondStart;
+    };
+
+    for (const ExistingAssignment& assignment : existingAssignments) {
+        if (!assignment.date.isValid() || !assignment.startTime.isValid() ||
+            !assignment.endTime.isValid() ||
+            assignment.startTime >= assignment.endTime)
+            continue;
+
+        existingByEmployeeDate[{assignment.employeeId, assignment.date}]
+            .append({assignment.startTime, assignment.endTime});
+
+        if (Config::canonicalRoleName(assignment.role).compare(
+                canonicalRole, Qt::CaseInsensitive) != 0)
+            continue;
+
+        const int day = assignment.date.dayOfWeek() - 1;
+        if (day < 0 || day >= 7)
+            continue;
+        for (int block = 0; block < K; ++block) {
+            if (overlaps(assignment.startTime, assignment.endTime,
+                         Config::getShiftStartTime(block),
+                         Config::getShiftEndTime(block)))
+                ++existingAssignedCount[day * K + block];
+        }
+    }
+
+    auto overlapsExistingAssignment = [&](int employeeId, const QDate& date,
+                                          const QTime& start,
+                                          const QTime& end) {
+        const auto intervals = existingByEmployeeDate.value({employeeId, date});
+        for (const auto& interval : intervals)
+            if (overlaps(start, end, interval.first, interval.second))
+                return true;
+        return false;
+    };
+
     const int S = 0, T = 1;
     auto nEmp  = [&](int i)          { return 2 + i; };
     auto nDay  = [&](int i, int d)   { return 2 + E + i * 7 + d; };
     auto nSlot = [&](int d, int blk) { return 2 + 8 * E + d * K + blk; };
     init(2 + 8 * E + 7 * K);
 
-    for (int d = 0; d < 7; ++d)
-        for (int blk = 0; blk < K; ++blk)
-            addEdge(nSlot(d, blk), T, Config::getMaxStaffForRole(role), 0);
+    for (int d = 0; d < 7; ++d) {
+        for (int blk = 0; blk < K; ++blk) {
+            const int remainingCapacity = qMax(
+                0, Config::getMaxStaffForRole(role) -
+                       existingAssignedCount.value(d * K + blk, 0));
+            addEdge(nSlot(d, blk), T, remainingCapacity, 0);
+        }
+    }
 
     struct AssignEdge {
         Shift* shift;
@@ -188,9 +240,13 @@ Optimizer::RoleSolveResult Optimizer::solveForRole(const QString& role,
     for (Shift* s : fixedShifts) {
         User* u = findUserById(s->getEmployeeID());
         int ei = empIdx[u];
-        registeredDaysFixed[ei] = registeredDaysFixed.value(ei, 0) + 1;
-
         int d   = s->getDate().dayOfWeek() - 1;
+        if (d < 0 || d >= 7 ||
+            overlapsExistingAssignment(s->getEmployeeID(), s->getDate(),
+                                       s->getStartTime(), s->getEndTime()))
+            continue;
+
+        registeredDaysFixed[ei] = registeredDaysFixed.value(ei, 0) + 1;
         int blk = blockOfFixed(s->getStartTime());
         ensureDayCap(ei, d);
 
@@ -240,6 +296,9 @@ Optimizer::RoleSolveResult Optimizer::solveForRole(const QString& role,
 
             int usedMinutes = qMin(ovMinutes, maxMinutesPT);
             QTime realEnd = ovStart.addSecs(usedMinutes * 60);
+            if (overlapsExistingAssignment(s->getEmployeeID(), s->getDate(),
+                                           ovStart, realEnd))
+                continue;
 
             int cost = costOf(u, d);
             int eid = m_edges.size();
@@ -291,7 +350,8 @@ Optimizer::RoleSolveResult Optimizer::solveForRole(const QString& role,
     static const QStringList BLOCK_NAMES = {"Sáng","Chiều", "Tối"};
     for (int d = 0; d < 7; ++d) {
         for (int blk = 0; blk < K; ++blk) {
-            int cnt = assignedCount.value(d * K + blk, 0);
+            int cnt = existingAssignedCount.value(d * K + blk, 0) +
+                      assignedCount.value(d * K + blk, 0);
             int minNeeded = Config::getMinStaffForRole(role);
             if (cnt == 0) {
                 result.warnings << QString("[%1] Ngày %2 - Ca %3: không có nhân viên nào được xếp.")

@@ -514,6 +514,37 @@ Schedule_Model::fetchPendingShifts(const QDate &weekStart, const QDate &weekEnd)
     return regs;
 }
 
+QVector<Optimizer::ExistingAssignment>
+Schedule_Model::fetchApprovedAssignments(const QDate &weekStart,
+                                         const QDate &weekEnd)
+{
+    QVector<Optimizer::ExistingAssignment> assignments;
+    QSqlQuery query(Database::getInstance()->getDbConnect());
+    query.prepare(
+        "SELECT S.idEmployee, P.role, S.workDate, S.startTime, S.endTime "
+        "FROM SHIFT S "
+        "JOIN PROFILES P ON P.idEmployee = S.idEmployee "
+        "WHERE S.status = 1 "
+        "  AND S.workDate >= :start "
+        "  AND S.workDate <= :end");
+    query.bindValue(":start", weekStart.toString(Qt::ISODate));
+    query.bindValue(":end", weekEnd.toString(Qt::ISODate));
+    if (!query.exec())
+        return assignments;
+
+    while (query.next())
+    {
+        Optimizer::ExistingAssignment assignment;
+        assignment.employeeId = query.value(0).toInt();
+        assignment.role = query.value(1).toString();
+        assignment.date = QDate::fromString(query.value(2).toString(), Qt::ISODate);
+        assignment.startTime = databaseTime(query.value(3));
+        assignment.endTime = databaseTime(query.value(4));
+        assignments.append(assignment);
+    }
+    return assignments;
+}
+
 QMap<User *, int>
 Schedule_Model::fetchAllEmployeeInfos(const QDate &weekStart)
 {
@@ -578,9 +609,11 @@ AutoSchedulePreview Schedule_Model::previewGeneratedSchedule(QDate weekStart)
     QDate weekEnd = weekStart.addDays(6);
 
     QVector<Shift *> pendingShifts = fetchPendingShifts(weekStart, weekEnd);
+    const QVector<Optimizer::ExistingAssignment> approvedAssignments =
+        fetchApprovedAssignments(weekStart, weekEnd);
     QMap<User *, int> employeeMinutes = fetchAllEmployeeInfos(weekStart);
 
-    Optimizer opt(pendingShifts, employeeMinutes);
+    Optimizer opt(pendingShifts, employeeMinutes, approvedAssignments);
     opt.solve();
     preview.warnings = opt.getWarnings();
 
@@ -1416,7 +1449,7 @@ QStringList Schedule_Model::validateManagerScheduleChanges(
 {
     QStringList errors;
     QSet<int> touchedShiftIds;
-    QList<ManagerScheduleChange> draftAdds;
+    QList<ManagerScheduleChange> draftActiveAssignments;
     QSqlDatabase db = Database::getInstance()->getDbConnect();
 
     for (const ManagerScheduleChange &change : changes)
@@ -1494,12 +1527,12 @@ QStringList Schedule_Model::validateManagerScheduleChanges(
                 errors << QString("%1 đã có ca trùng ngày %2.")
                               .arg(employeeLabel, change.date.toString("dd/MM/yyyy"));
 
-            for (const ManagerScheduleChange &other : draftAdds)
+            for (const ManagerScheduleChange &other : draftActiveAssignments)
                 if (other.employeeId == change.employeeId && other.date == change.date &&
                     other.startTime < change.endTime && other.endTime > change.startTime)
                     errors << QString("%1 có hai thay đổi nháp bị trùng ngày %2.")
                                   .arg(employeeLabel, change.date.toString("dd/MM/yyyy"));
-            draftAdds.append(change);
+            draftActiveAssignments.append(change);
             continue;
         }
 
@@ -1538,6 +1571,36 @@ QStringList Schedule_Model::validateManagerScheduleChanges(
             if (status != 0 && status != 1)
                 errors << QString("Ca %1 đã được xử lý bởi thay đổi khác.")
                               .arg(change.shiftId);
+        }
+
+        if (change.type == ManagerScheduleChangeType::Approve)
+        {
+            QSqlQuery overlap(db);
+            overlap.prepare(
+                "SELECT 1 FROM SHIFT WHERE idEmployee = :id AND workDate = :date "
+                "AND rowid <> :shiftId AND status = 1 "
+                "AND startTime < :end AND endTime > :start LIMIT 1");
+            overlap.bindValue(":id", change.employeeId);
+            overlap.bindValue(":date", change.date);
+            overlap.bindValue(":shiftId", change.shiftId);
+            overlap.bindValue(":start", change.startTime);
+            overlap.bindValue(":end", change.endTime);
+            if (!overlap.exec())
+                errors << overlap.lastError().text();
+            else if (overlap.next())
+                errors << QString::fromUtf8(
+                              "Nhân viên %1 đã có ca được duyệt trùng ngày %2.")
+                              .arg(change.employeeId)
+                              .arg(change.date.toString("dd/MM/yyyy"));
+
+            for (const ManagerScheduleChange &other : draftActiveAssignments)
+                if (other.employeeId == change.employeeId && other.date == change.date &&
+                    other.startTime < change.endTime && other.endTime > change.startTime)
+                    errors << QString::fromUtf8(
+                                  "Nhân viên %1 có các ca nháp trùng nhau ngày %2.")
+                                  .arg(change.employeeId)
+                                  .arg(change.date.toString("dd/MM/yyyy"));
+            draftActiveAssignments.append(change);
         }
     }
 
