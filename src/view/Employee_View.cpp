@@ -99,7 +99,7 @@ void Employee_View::buildFilterDropdown()
   layout->addWidget(chkHallStaff);
   layout->addWidget(chkKitchenAssistant);
   layout->addWidget(chkManager);
-  layout->addWidget(chkAdmin);
+  //layout->addWidget(chkAdmin);
 
   // Separator
   QFrame *sep = new QFrame();
