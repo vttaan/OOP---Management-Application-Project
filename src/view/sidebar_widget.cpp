@@ -260,7 +260,7 @@ void Sidebar_Widget::loadUserData(SessionManager *session)
 
         if (roleInternal == "Manager")
         {
-            displayText = "Quản lý";
+            displayText = Config::displayRoleName(roleInternal);
             // Purple pill — matches employee table Manager badge
             pillStyle = "font-size: 11px; font-weight: 800; "
                         "color: #6D28D9; background-color: #EDE9FE; "
@@ -268,7 +268,7 @@ void Sidebar_Widget::loadUserData(SessionManager *session)
         }
         else if (roleInternal == "Admin")
         {
-            displayText = "Quản trị viên";
+            displayText = Config::displayRoleName(roleInternal);
             // Blue pill
             pillStyle = "font-size: 11px; font-weight: 800; "
                         "color: #1D4ED8; background-color: #DBEAFE; "
@@ -276,7 +276,7 @@ void Sidebar_Widget::loadUserData(SessionManager *session)
         }
         else
         {
-            displayText = "Nhân viên";
+            displayText = Config::displayRoleName(roleInternal);
             // Light blue pill — matches employee table Staff badge
             pillStyle = "font-size: 11px; font-weight: 800; "
                         "color: #0369A1; background-color: #E0F2FE; "
