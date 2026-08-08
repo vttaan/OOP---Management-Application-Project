@@ -1,6 +1,5 @@
 #include "Dashboard_View.h"
 #include "ui_Dashboard_View.h"
-#include "control/Dashboard_Control.h"
 #include "employeecard.h"
 
 // Creates a styled card widget with an optional title header and inner layout.
