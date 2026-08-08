@@ -85,3 +85,4 @@
 #include "core/Cashier.h"
 #include "utils/Database.h"
 #include "utils/ScheduleDTOs.h"
+#include "utils/Config.h"

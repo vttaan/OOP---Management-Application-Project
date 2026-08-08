@@ -8,6 +8,15 @@ QDateTime readDateTime(const QVariant &value) {
         result = QDateTime::fromString(value.toString(), Qt::ISODate);
     return result;
 }
+
+QString localizeStaffingRoles(QString message)
+{
+    message.replace("KitchenAssitant", Config::displayRoleName("KitchenAssitant"));
+    message.replace("KitchenAssistant", Config::displayRoleName("KitchenAssistant"));
+    message.replace("HallStaff", Config::displayRoleName("HallStaff"));
+    message.replace("Cashier", Config::displayRoleName("Cashier"));
+    return message;
+}
 }
 
 QList<NotificationInfo> Notification_Model::getNotifications(
@@ -45,6 +54,8 @@ QList<NotificationInfo> Notification_Model::getNotifications(
         info.type = query.value(2).toString();
         info.title = query.value(3).toString();
         info.message = query.value(4).toString();
+        if (info.type == "STAFFING_SHORTAGE")
+            info.message = localizeStaffingRoles(info.message);
         info.status = query.value(5).toString();
         info.priority = query.value(6).toInt();
         info.dedupeKey = query.value(7).toString();

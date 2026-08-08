@@ -1,6 +1,5 @@
 #include "Dashboard_View.h"
 #include "ui_Dashboard_View.h"
-#include "control/Dashboard_Control.h"
 #include "employeecard.h"
 
 // Creates a styled card widget with an optional title header and inner layout.
@@ -393,7 +392,7 @@ void Dashboard_View::updateNextShiftPanel(const QList<ShiftEmployeeInfo>& entrie
         QString displayRole = e.role;
         if (displayRole.compare("Cashier", Qt::CaseInsensitive) == 0) displayRole = QString::fromUtf8("Thu ngân");
         else if (displayRole.compare("HallStaff", Qt::CaseInsensitive) == 0) displayRole = QString::fromUtf8("Nhân viên sảnh");
-        else if (displayRole.compare("KitchenAssistant", Qt::CaseInsensitive) == 0) displayRole = QString::fromUtf8("Phụ bếp");
+        else if (Config::canonicalRoleName(displayRole).compare("KitchenAssistant", Qt::CaseInsensitive) == 0) displayRole = QString::fromUtf8("Phụ bếp");
         else if (displayRole.compare("Manager", Qt::CaseInsensitive) == 0) displayRole = QString::fromUtf8("Quản lý");
         
         QLabel* lRole = new QLabel(displayRole);

@@ -1,7 +1,6 @@
 #include "global.h"
 #include "View_Navigator.h"
 #include "ui_View_Navigator.h"
-#include "control/Control_Navigator.h"
 #include "Login_View.h"
 #include "Dashboard_View.h"
 #include "Profile_View.h"

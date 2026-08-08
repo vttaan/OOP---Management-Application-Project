@@ -175,7 +175,7 @@ QString ManagerEmployeeChooser_Dialog::displayRole(const QString &role) const
         return QString::fromUtf8("Thu ngân");
     if (role.compare("HallStaff", Qt::CaseInsensitive) == 0)
         return QString::fromUtf8("Nhân viên sảnh");
-    if (role.compare("KitchenAssistant", Qt::CaseInsensitive) == 0)
+    if (Config::canonicalRoleName(role).compare("KitchenAssistant", Qt::CaseInsensitive) == 0)
         return QString::fromUtf8("Phụ bếp");
     return role;
 }

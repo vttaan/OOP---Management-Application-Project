@@ -7,9 +7,26 @@
 
 class Optimizer
 {
+public:
+    struct ExistingAssignment {
+        int employeeId = 0;
+        QString role;
+        QDate date;
+        QTime startTime;
+        QTime endTime;
+    };
+    struct AssignEdge {
+        Shift* shift;
+        int edgeIdx;
+        int empIdx;
+        int day;
+        int blk;
+        QTime assignStart, assignEnd;
+    };
 private:
     QVector<Shift*> shifts;
     QMap<User*, int> userMinutes;
+    QVector<ExistingAssignment> existingAssignments;
 
     bool feasible = false;
     int totalFlow = 0;
@@ -17,7 +34,9 @@ private:
     QStringList warnings;
 
 public:
-    Optimizer(const QVector<Shift*>& shifts, const QMap<User*, int>& userMinutes);
+    Optimizer(const QVector<Shift*>& shifts,
+              const QMap<User*, int>& userMinutes,
+              const QVector<ExistingAssignment>& existingAssignments = {});
     bool solve();
     bool isFeasible() const { return feasible; }
     int getTotalFlow() const { return totalFlow; }

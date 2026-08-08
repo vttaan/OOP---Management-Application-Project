@@ -19,6 +19,8 @@ private:
     QList<Shift *> draftShifts;
 
     QVector<Shift *> fetchPendingShifts(const QDate &weekStart, const QDate &weekEnd);
+    QVector<Optimizer::ExistingAssignment> fetchApprovedAssignments(
+        const QDate &weekStart, const QDate &weekEnd);
     // Lấy tổng số phút đã làm của từng nhân viên
     QMap<User *, int> fetchAllEmployeeInfos(const QDate &weekStart);
 

@@ -62,6 +62,39 @@ public:
 
     static short getOpenHour() { return openHour; }
     static short getCloseHour() { return closeHour; }
+    static QString canonicalRoleName(const QString &roleName)
+    {
+        const QString role = roleName.trimmed();
+        if (role.compare("Cashier", Qt::CaseInsensitive) == 0)
+            return "Cashier";
+        if (role.compare("HallStaff", Qt::CaseInsensitive) == 0)
+            return "HallStaff";
+        if (role.compare("KitchenAssistant", Qt::CaseInsensitive) == 0 ||
+            role.compare("KitchenAssitant", Qt::CaseInsensitive) == 0)
+            return "KitchenAssistant";
+        if (role.compare("Manager", Qt::CaseInsensitive) == 0 ||
+            role.compare("Manage", Qt::CaseInsensitive) == 0)
+            return "Manager";
+        if (role.compare("Admin", Qt::CaseInsensitive) == 0)
+            return "Admin";
+        return role;
+    }
+
+    static QString displayRoleName(const QString &roleName)
+    {
+        const QString role = canonicalRoleName(roleName);
+        if (role.compare("Cashier", Qt::CaseInsensitive) == 0)
+            return QString::fromUtf8("Thu ngân");
+        if (role.compare("HallStaff", Qt::CaseInsensitive) == 0)
+            return QString::fromUtf8("Nhân viên sảnh");
+        if (role.compare("KitchenAssistant", Qt::CaseInsensitive) == 0)
+            return QString::fromUtf8("Phụ bếp");
+        if (role.compare("Manager", Qt::CaseInsensitive) == 0)
+            return QString::fromUtf8("Quản lý");
+        if (role.compare("Admin", Qt::CaseInsensitive) == 0)
+            return QString::fromUtf8("Quản trị viên");
+        return roleName;
+    }
     static QTime getShiftStartTime(int shiftIndex)
     {
         switch (shiftIndex)
@@ -98,9 +131,9 @@ public:
     static int getMaxStaffPerShift()
     {
         int total = 0;
-        for (const QString &role : numberEmployeeOfRoles.keys())
+        for (const QString &role : getOperationalRoles())
         {
-            total += numberEmployeeOfRoles[role].second;
+            total += getMaxStaffForRole(role);
         }
         return total > 0 ? total : 6;
     }
@@ -121,21 +154,51 @@ public:
 
     static int getMinStaffForRole(const QString &roleName)
     {
-        if (numberEmployeeOfRoles.contains(roleName))
-            return numberEmployeeOfRoles[roleName].first;
+        const QString canonicalRole = canonicalRoleName(roleName);
+        for (auto it = numberEmployeeOfRoles.constBegin();
+             it != numberEmployeeOfRoles.constEnd(); ++it)
+            if (canonicalRoleName(it.key()).compare(
+                    canonicalRole, Qt::CaseInsensitive) == 0)
+                return it.value().first;
         return 0;
     }
 
     static int getMaxStaffForRole(const QString &roleName)
     {
-        if (numberEmployeeOfRoles.contains(roleName))
-            return numberEmployeeOfRoles[roleName].second;
+        const QString canonicalRole = canonicalRoleName(roleName);
+        for (auto it = numberEmployeeOfRoles.constBegin();
+             it != numberEmployeeOfRoles.constEnd(); ++it)
+            if (canonicalRoleName(it.key()).compare(
+                    canonicalRole, Qt::CaseInsensitive) == 0)
+                return it.value().second;
         return 99;
     }
 
     static QList<QString> getAllRoles()
     {
         return numberEmployeeOfRoles.keys();
+    }
+
+    static bool isOperationalRole(const QString &roleName)
+    {
+        const QString role = canonicalRoleName(roleName);
+        return !role.isEmpty() &&
+               role.compare("Manager", Qt::CaseInsensitive) != 0 &&
+               role.compare("Manage", Qt::CaseInsensitive) != 0 &&
+               role.compare("Admin", Qt::CaseInsensitive) != 0;
+    }
+
+    static QList<QString> getOperationalRoles()
+    {
+        QList<QString> roles;
+        for (const QString &role : numberEmployeeOfRoles.keys())
+            if (isOperationalRole(role))
+            {
+                const QString canonicalRole = canonicalRoleName(role);
+                if (!roles.contains(canonicalRole))
+                    roles.append(canonicalRole);
+            }
+        return roles;
     }
 
     static short getMinimumDaysWorkPerWeek_FT() { return minimumDaysWorkPerWeek_FT; }

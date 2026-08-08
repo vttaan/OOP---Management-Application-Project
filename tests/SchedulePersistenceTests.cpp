@@ -73,7 +73,8 @@ private slots:
             "INSERT INTO PROFILES (idEmployee, role, isFixed) VALUES "
             "(1001, 'Cashier', 1), (1002, 'HallStaff', 0), "
             "(1003, 'Cashier', 0), (1004, 'Cashier', 0), "
-            "(2001, 'Manager', 0)"));
+            "(1005, 'KitchenAssistant', 0), "
+            "(2001, 'Manager', 0), (2002, 'Admin', 0)"));
         QSqlQuery account(database());
         account.prepare(
             "INSERT INTO ACCOUNTS (idEmployee, userName, passWord) "
@@ -93,6 +94,11 @@ private slots:
     {
         Config::setOpenHour(7);
         Config::setCloseHour(22);
+        Config::setRoles({
+            {"Cashier", {1, 6}},
+            {"HallStaff", {1, 6}},
+            {"KitchenAssitant", {1, 6}},
+            {"Manager", {1, 6}}});
         QVERIFY(execute("DROP TRIGGER IF EXISTS reject_evening"));
         QVERIFY(execute("DELETE FROM SHIFT"));
         QVERIFY(execute("DELETE FROM NOTIFICATION"));
@@ -634,6 +640,51 @@ private slots:
                 preview.changes.size());
     }
 
+    void automaticPreviewUsesOnlyRemainingRoleCapacity()
+    {
+        Config::setRoles({{"Cashier", {1, 2}}});
+        Config::setMinimumDaysWorkPerWeek_PT(1);
+        Config::setMinimumHourWorkPerDay_PT(1);
+        Config::setMaximumHourWorkPerDay_PT(8);
+        QVERIFY(execute(
+            "INSERT INTO SHIFT (idEmployee, workDate, startTime, endTime, status) VALUES "
+            "(1003, '2026-08-03', '07:00', '12:00', 1), "
+            "(1001, '2026-08-03', '07:00', '12:00', 0), "
+            "(1004, '2026-08-03', '07:00', '12:00', 0)"));
+
+        Schedule_Model model;
+        const AutoSchedulePreview preview = model.previewGeneratedSchedule(weekStart);
+
+        QCOMPARE(preview.changes.size(), 2);
+        QCOMPARE(preview.approvedCount, 1);
+        QCOMPARE(preview.declinedCount, 1);
+        QCOMPARE(scalar("SELECT status FROM SHIFT WHERE IdShift = 1"), 1);
+        QCOMPARE(scalar("SELECT status FROM SHIFT WHERE IdShift = 2"), 0);
+        QCOMPARE(scalar("SELECT status FROM SHIFT WHERE IdShift = 3"), 0);
+    }
+
+    void automaticPreviewRejectsEmployeeOverlapWithApprovedShift()
+    {
+        Config::setRoles({{"HallStaff", {1, 6}}});
+        Config::setMinimumDaysWorkPerWeek_PT(1);
+        Config::setMinimumHourWorkPerDay_PT(1);
+        Config::setMaximumHourWorkPerDay_PT(8);
+        QVERIFY(execute(
+            "INSERT INTO SHIFT (idEmployee, workDate, startTime, endTime, status) VALUES "
+            "(1002, '2026-08-03', '07:00', '12:00', 1), "
+            "(1002, '2026-08-03', '08:00', '11:00', 0)"));
+
+        Schedule_Model model;
+        const AutoSchedulePreview preview = model.previewGeneratedSchedule(weekStart);
+
+        QCOMPARE(preview.changes.size(), 1);
+        QCOMPARE(preview.approvedCount, 0);
+        QCOMPARE(preview.declinedCount, 1);
+        QCOMPARE(static_cast<int>(preview.changes.first().type),
+                 static_cast<int>(ManagerScheduleChangeType::Decline));
+        QCOMPARE(scalar("SELECT status FROM SHIFT WHERE IdShift = 2"), 0);
+    }
+
     void automaticPreviewCarriesOptimizerAssignedTime()
     {
         Config::setRoles({{"HallStaff", {1, 6}}});
@@ -713,6 +764,25 @@ private slots:
 
         QVERIFY(!errors.isEmpty());
         QCOMPARE(scalar("SELECT status FROM SHIFT WHERE IdShift = 1"), 0);
+    }
+
+    void approvingShiftRejectsExistingApprovedOverlap()
+    {
+        QVERIFY(execute(
+            "INSERT INTO SHIFT (idEmployee, workDate, startTime, endTime, status) VALUES "
+            "(1002, '2026-08-03', '07:00', '12:00', 1), "
+            "(1002, '2026-08-03', '08:00', '11:00', 0)"));
+
+        Schedule_Model model;
+        QList<ManagerScheduleChange> changes = {
+            {ManagerScheduleChangeType::Approve, 2, 1002, "Employee", "HallStaff",
+             weekStart, QTime(8, 0), QTime(11, 0), "Automatic assignment"}};
+        QStringList errors;
+
+        QVERIFY(!model.applyManagerScheduleChanges(changes, &errors));
+        QVERIFY(!errors.isEmpty());
+        QCOMPARE(scalar("SELECT status FROM SHIFT WHERE IdShift = 1"), 1);
+        QCOMPARE(scalar("SELECT status FROM SHIFT WHERE IdShift = 2"), 0);
     }
 
     void managerDecisionCreatesStaffNotification()
@@ -799,6 +869,135 @@ private slots:
 
         schedule.publishStaffingWarningNotifications(warningWeek);
         QCOMPARE(notifications.getNotifications(2001).size(), countAfterFirstPublish);
+    }
+
+    void roleAwareCountsRequireEveryOperationalRole()
+    {
+        Config::setRoles({
+            {"Cashier", {1, 6}},
+            {"HallStaff", {1, 6}},
+            {"KitchenAssitant", {1, 6}},
+            {"Manager", {1, 6}}});
+        QVERIFY(Config::isOperationalRole("Cashier"));
+        QVERIFY(!Config::isOperationalRole("Manager"));
+        QVERIFY(!Config::isOperationalRole("Admin"));
+        QCOMPARE(Config::getOperationalRoles().size(), 3);
+        QCOMPARE(Config::getMinStaffForRole("KitchenAssistant"), 1);
+
+        QVERIFY(execute(
+            "INSERT INTO SHIFT (idEmployee, workDate, startTime, endTime, status) VALUES "
+            "(1001, '2026-08-03', '07:00', '12:00', 1), "
+            "(1003, '2026-08-03', '07:00', '12:00', 1), "
+            "(1004, '2026-08-03', '07:00', '12:00', 1), "
+            "(2001, '2026-08-03', '07:00', '12:00', 1), "
+            "(2002, '2026-08-03', '07:00', '12:00', 1)"));
+
+        Schedule_Model model;
+        BlockCounts wrongMix = model.getAssignBlockCounts(weekStart)[0][0];
+        QCOMPARE(wrongMix.required, 3);
+        QCOMPARE(wrongMix.accepted, 3);
+        QCOMPARE(wrongMix.byRole.value("Cashier").accepted, 3);
+        QCOMPARE(wrongMix.byRole.value("HallStaff").accepted, 0);
+        QCOMPARE(wrongMix.byRole.value("KitchenAssistant").accepted, 0);
+        QCOMPARE(wrongMix.missingSlots(), 2);
+        QVERIFY(wrongMix.hasShortage());
+        QVERIFY(!wrongMix.byRole.contains("Manager"));
+        QVERIFY(!wrongMix.byRole.contains("Admin"));
+
+        QVERIFY(execute("DELETE FROM SHIFT"));
+        QVERIFY(execute(
+            "INSERT INTO SHIFT (idEmployee, workDate, startTime, endTime, status) VALUES "
+            "(1001, '2026-08-03', '07:00', '12:00', 1), "
+            "(1002, '2026-08-03', '07:00', '12:00', 1), "
+            "(1005, '2026-08-03', '07:00', '12:00', 1)"));
+
+        BlockCounts correctMix = model.getAssignBlockCounts(weekStart)[0][0];
+        QCOMPARE(correctMix.accepted, 3);
+        QCOMPARE(correctMix.missingSlots(), 0);
+        QVERIFY(!correctMix.hasShortage());
+    }
+
+    void roleAwareCountsPreserveStatusBreakdownAndDraftDeltas()
+    {
+        Config::setRoles({
+            {"Cashier", {1, 6}},
+            {"HallStaff", {1, 6}},
+            {"KitchenAssistant", {1, 6}}});
+        QVERIFY(execute(
+            "INSERT INTO SHIFT (idEmployee, workDate, startTime, endTime, status) VALUES "
+            "(1001, '2026-08-03', '07:00', '12:00', 0), "
+            "(1002, '2026-08-03', '07:00', '12:00', 1), "
+            "(1005, '2026-08-03', '07:00', '12:00', -1), "
+            "(1003, '2026-08-03', '07:00', '12:00', -2)"));
+
+        Schedule_Model model;
+        BlockCounts counts = model.getAssignBlockCounts(weekStart)[0][0];
+        QCOMPARE(counts.pending, 1);
+        QCOMPARE(counts.accepted, 1);
+        QCOMPARE(counts.declined, 1);
+        QCOMPARE(counts.cancelled, 1);
+        QCOMPARE(counts.byRole.value("Cashier").pending, 1);
+        QCOMPARE(counts.byRole.value("Cashier").cancelled, 1);
+        QCOMPARE(counts.byRole.value("HallStaff").accepted, 1);
+        QCOMPARE(counts.byRole.value("KitchenAssistant").declined, 1);
+
+        counts.adjustStatus("Cashier", 0, -1);
+        counts.adjustStatus("Cashier", 1, 1);
+        QCOMPARE(counts.pending, 0);
+        QCOMPARE(counts.accepted, 2);
+        QCOMPARE(counts.byRole.value("Cashier").accepted, 1);
+        QCOMPARE(counts.missingSlots(), 1);
+
+        counts.adjustStatus("KitchenAssistant", 1, 1);
+        QCOMPARE(counts.missingSlots(), 0);
+        QVERIFY(!counts.hasShortage());
+        counts.adjustStatus("HallStaff", 1, -1);
+        counts.adjustStatus("HallStaff", -2, 1);
+        QCOMPARE(counts.cancelled, 2);
+        QCOMPARE(counts.missingByRole().value("HallStaff"), 1);
+    }
+
+    void staffingWarningKeyTracksRoleDeficitMix()
+    {
+        Config::setRoles({
+            {"Cashier", {1, 6}},
+            {"HallStaff", {1, 6}}});
+        const QDate warningWeek =
+            Config::getStartOfCurrentWeek(QDate::currentDate()).addDays(7);
+        const QString date = warningWeek.toString(Qt::ISODate);
+        QVERIFY(execute(QString(
+            "INSERT INTO SHIFT (idEmployee, workDate, startTime, endTime, status) VALUES "
+            "(1001, '%1', '07:00', '12:00', 1), "
+            "(1003, '%1', '07:00', '12:00', 1)").arg(date)));
+
+        Schedule_Model schedule;
+        Notification_Model notifications;
+        schedule.publishStaffingWarningNotifications(warningWeek);
+        const QList<NotificationInfo> first = notifications.getNotifications(2001);
+        auto hallShortage = std::find_if(
+            first.cbegin(), first.cend(), [&date](const NotificationInfo &info) {
+                return info.dedupeKey.contains("|0|" + date + "|") &&
+                       info.dedupeKey.contains("HallStaff:1");
+            });
+        QVERIFY(hallShortage != first.cend());
+        const QString firstKey = hallShortage->dedupeKey;
+
+        QVERIFY(execute("DELETE FROM SHIFT"));
+        QVERIFY(execute(QString(
+            "INSERT INTO SHIFT (idEmployee, workDate, startTime, endTime, status) VALUES "
+            "(1002, '%1', '07:00', '12:00', 1), "
+            "(1002, '%1', '07:00', '12:00', 1)").arg(date)));
+        schedule.publishStaffingWarningNotifications(warningWeek);
+
+        const QList<NotificationInfo> second = notifications.getNotifications(2001);
+        auto cashierShortage = std::find_if(
+            second.cbegin(), second.cend(), [&date](const NotificationInfo &info) {
+                return info.dedupeKey.contains("|0|" + date + "|") &&
+                       info.dedupeKey.contains("Cashier:1");
+            });
+        QVERIFY(cashierShortage != second.cend());
+        QVERIFY(cashierShortage->dedupeKey != firstKey);
+        QVERIFY(cashierShortage->message.contains(QString::fromUtf8("Thu ngân 1")));
     }
 
     void staffingWarningsUseDayBeforeAndNextShiftTiming()

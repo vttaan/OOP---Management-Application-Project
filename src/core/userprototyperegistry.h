@@ -15,7 +15,7 @@ public:
     QList<QString> getAvailableRoles() const;
 
 private:
-    UserPrototypeRegistry() = default;
+    UserPrototypeRegistry();
     ~UserPrototypeRegistry();
     UserPrototypeRegistry(const UserPrototypeRegistry&) = delete;
     UserPrototypeRegistry& operator=(const UserPrototypeRegistry&) = delete;

@@ -57,17 +57,29 @@ public:
     // 3. Status (Logic centralized here)
     ShiftStatus getStatus() const {
         if (employees.isEmpty()) return ShiftStatus::Empty;
-        int required = 0;
         if (role.isEmpty())
         {
-            for (const QString &configuredRole : Config::getAllRoles())
-                required += Config::getMinStaffForRole(configuredRole);
+            for (const QString &configuredRole : Config::getOperationalRoles())
+            {
+                int assigned = 0;
+                for (const User *employee : employees)
+                    if (employee && Config::canonicalRoleName(employee->getRole()).compare(
+                            configuredRole, Qt::CaseInsensitive) == 0)
+                        ++assigned;
+                if (assigned < Config::getMinStaffForRole(configuredRole))
+                    return ShiftStatus::Understaffed;
+            }
         }
         else
         {
-            required = Config::getMinStaffForRole(role);
+            int assigned = 0;
+            for (const User *employee : employees)
+                if (employee && Config::canonicalRoleName(employee->getRole()).compare(
+                        Config::canonicalRoleName(role), Qt::CaseInsensitive) == 0)
+                    ++assigned;
+            if (assigned < Config::getMinStaffForRole(role))
+                return ShiftStatus::Understaffed;
         }
-        if (employees.size() < required) return ShiftStatus::Understaffed;
         return ShiftStatus::Sufficient;
     }
 

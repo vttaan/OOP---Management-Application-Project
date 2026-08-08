@@ -6,6 +6,22 @@
 #include <QPlainTextEdit>
 #include <QListWidget>
 
+static QString staffingRoleNameForSchedule(const QString &role)
+{
+    return Config::displayRoleName(role);
+}
+
+static QString staffingDeficitTextForSchedule(const BlockCounts &counts)
+{
+    QStringList parts;
+    const QMap<QString, int> missing = counts.missingByRole();
+    for (auto it = missing.constBegin(); it != missing.constEnd(); ++it)
+        parts.append(QString("%1 %2")
+                         .arg(staffingRoleNameForSchedule(it.key()))
+                         .arg(it.value()));
+    return parts.join(", ");
+}
+
 // ─────────────────────────────────────────────
 // Construction / Destruction
 // ─────────────────────────────────────────────
@@ -337,7 +353,7 @@ void Schedule_Control::load()
                 if (!block)
                     continue;
                 BlockCounts blockCounts = counts.value(col).value(row);
-                if (blockCounts.required <= blockCounts.accepted && blockCounts.pending == 0)
+                if (!blockCounts.hasShortage() && blockCounts.pending == 0)
                 {
                     ++staffedShifts;
                     continue;
@@ -347,10 +363,11 @@ void Schedule_Control::load()
                 info.shiftName = (row < shiftNames.size()) ? shiftNames[row] : "";
                 info.required = blockCounts.required;
                 info.assigned = blockCounts.accepted;
+                info.missingByRole = blockCounts.missingByRole();
                 info.dayColumn = col;
                 info.shiftRow = row;
                 missingList.append(info);
-                missingSlots += qMax(0, blockCounts.required - blockCounts.accepted);
+                missingSlots += blockCounts.missingSlots();
             }
         }
 
@@ -567,15 +584,18 @@ void Schedule_Control::handleGenSchedule()
                   change.endTime > Config::getShiftStartTime(row)))
                 continue;
             BlockCounts &cell = afterCounts[day][row];
+            if (!Config::isOperationalRole(change.role))
+                continue;
+            const QString staffingRole = Config::canonicalRoleName(change.role);
             if (change.type == ManagerScheduleChangeType::Approve)
             {
-                cell.pending = qMax(0, cell.pending - 1);
-                ++cell.accepted;
+                cell.adjustStatus(staffingRole, 0, -1);
+                cell.adjustStatus(staffingRole, 1, 1);
             }
             else if (change.type == ManagerScheduleChangeType::Decline)
             {
-                cell.pending = qMax(0, cell.pending - 1);
-                ++cell.declined;
+                cell.adjustStatus(staffingRole, 0, -1);
+                cell.adjustStatus(staffingRole, -1, 1);
             }
         }
     }
@@ -587,8 +607,8 @@ void Schedule_Control::handleGenSchedule()
         {
             const BlockCounts before = beforeCounts.value(day).value(row);
             const BlockCounts after = afterCounts.value(day).value(row);
-            bool wasMissing = before.accepted < before.required;
-            bool stillMissing = after.accepted < after.required;
+            bool wasMissing = before.hasShortage();
+            bool stillMissing = after.hasShortage();
             if (wasMissing && !stillMissing)
                 ++resolvedShifts;
             if (stillMissing)
@@ -880,9 +900,8 @@ void Schedule_Control::onConfirmRequested()
     {
         QDate date;
         int shiftRow = -1;
-        int required = 0;
-        int before = 0;
-        int after = 0;
+        BlockCounts before;
+        BlockCounts after;
         QStringList actions;
     };
     QMap<QString, ShiftImpact> impacts;
@@ -925,17 +944,33 @@ void Schedule_Control::onConfirmRequested()
                     ShiftImpact impact;
                     impact.date = change.date;
                     impact.shiftRow = row;
-                    impact.required = counts.required;
-                    impact.before = counts.accepted;
-                    impact.after = counts.accepted;
+                    impact.before = counts;
+                    impact.after = counts;
                     impacts.insert(key, impact);
                 }
                 ShiftImpact &impact = impacts[key];
-                if (change.type == ManagerScheduleChangeType::Approve ||
-                    change.type == ManagerScheduleChangeType::Add)
-                    ++impact.after;
-                else if (change.type == ManagerScheduleChangeType::Cancel)
-                    impact.after = qMax(0, impact.after - 1);
+                if (Config::isOperationalRole(change.role))
+                {
+                    const QString staffingRole =
+                        Config::canonicalRoleName(change.role);
+                    if (change.type == ManagerScheduleChangeType::Approve)
+                    {
+                        impact.after.adjustStatus(staffingRole, 0, -1);
+                        impact.after.adjustStatus(staffingRole, 1, 1);
+                    }
+                    else if (change.type == ManagerScheduleChangeType::Decline)
+                    {
+                        impact.after.adjustStatus(staffingRole, 0, -1);
+                        impact.after.adjustStatus(staffingRole, -1, 1);
+                    }
+                    else if (change.type == ManagerScheduleChangeType::Add)
+                        impact.after.adjustStatus(staffingRole, 1, 1);
+                    else if (change.type == ManagerScheduleChangeType::Cancel)
+                    {
+                        impact.after.adjustStatus(staffingRole, 1, -1);
+                        impact.after.adjustStatus(staffingRole, -2, 1);
+                    }
+                }
                 impact.actions << QString("%1 %2").arg(action, employee);
                 mapped = true;
             }
@@ -1007,19 +1042,27 @@ void Schedule_Control::onConfirmRequested()
                                 : (impact.date.isValid() ? impact.date.toString("dd/MM/yyyy")
                                                          : "Chưa xác định");
         QString resultText;
-        if (impact.required <= 0)
+        if (impact.after.required <= 0)
             resultText = "Không đổi định biên";
-        else if (impact.after >= impact.required)
+        else if (!impact.after.hasShortage())
             resultText = "Đủ nhân sự";
         else
-            resultText = QString("Thiếu %1").arg(impact.required - impact.after);
+            resultText = QString("Thiếu %1 (%2)")
+                             .arg(impact.after.missingSlots())
+                             .arg(staffingDeficitTextForSchedule(impact.after));
         reviewTable->setItem(reviewRow, 0, new QTableWidgetItem(shiftText));
         reviewTable->setItem(reviewRow, 1,
                              new QTableWidgetItem(impact.actions.join("\n")));
-        reviewTable->setItem(reviewRow, 2, new QTableWidgetItem(impact.required > 0 ? QString("%1/%2").arg(impact.before).arg(impact.required) : "—"));
-        reviewTable->setItem(reviewRow, 3, new QTableWidgetItem(impact.required > 0 ? QString("%1/%2").arg(impact.after).arg(impact.required) : "—"));
+        reviewTable->setItem(reviewRow, 2, new QTableWidgetItem(
+            impact.before.required > 0
+                ? QString("%1/%2").arg(impact.before.accepted).arg(impact.before.required)
+                : "—"));
+        reviewTable->setItem(reviewRow, 3, new QTableWidgetItem(
+            impact.after.required > 0
+                ? QString("%1/%2").arg(impact.after.accepted).arg(impact.after.required)
+                : "—"));
         QTableWidgetItem *resultItem = new QTableWidgetItem(resultText);
-        resultItem->setForeground(impact.required > 0 && impact.after < impact.required
+        resultItem->setForeground(impact.after.required > 0 && impact.after.hasShortage()
                                       ? QColor("#B91C1C")
                                       : QColor("#047857"));
         reviewTable->setItem(reviewRow, 4, resultItem);

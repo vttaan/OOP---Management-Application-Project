@@ -5,6 +5,19 @@
 
 namespace {
 static const QString SHIFT_NAMES[3] = {"Ca Sáng", "Ca Chiều", "Ca Tối"};
+
+QString staffingRoleName(const QString &role)
+{
+  return Config::displayRoleName(role);
+}
+
+QString missingRoleText(const QMap<QString, int> &missingByRole)
+{
+  QStringList parts;
+  for (auto it = missingByRole.constBegin(); it != missingByRole.constEnd(); ++it)
+    parts.append(QString("%1 %2").arg(staffingRoleName(it.key())).arg(it.value()));
+  return parts.join(", ");
+}
 } // namespace
 
 void Schedule_View::updateTableHeaders(QDate monday)
@@ -293,7 +306,7 @@ void Schedule_View::updateAssignGrid(
       BlockCounts bc = counts.value(col).value(row);
 
       int total = bc.pending + bc.accepted;
-      int shortage = qMax(0, bc.required - bc.accepted);
+      int shortage = bc.missingSlots();
 
       int statusIndex = managerStatusFilter ? managerStatusFilter->currentIndex() : 0;
       if ((statusIndex == 1 && shortage == 0) ||
@@ -305,7 +318,8 @@ void Schedule_View::updateAssignGrid(
       // rich-text path below; the latter remains as a safe fallback for old
       // layouts but is unreachable for the current manager grid.
       const int percent = bc.required > 0
-          ? qBound(0, qRound(100.0 * bc.accepted / bc.required), 100) : 100;
+          ? qBound(0, qRound(100.0 * bc.coveredRequiredSlots() / bc.required), 100)
+          : 100;
       const QString compactBg = shortage > 0 ? "#FEF2F2" : (bc.pending > 0 ? "#EFF6FF" : "#F0FDF4");
       const bool isSelected = col == m_selectedManagerDay && row == m_selectedManagerShift;
       const QString compactBorder = isSelected ? "#2563EB"
@@ -367,8 +381,14 @@ void Schedule_View::updateAssignGrid(
       cardLayout->addWidget(progress);
       cardLayout->addWidget(statusLabel);
       cardLayout->addStretch();
-      compactCard->setToolTip(QString("%1/%2 đã xếp, %3 thiếu, %4 yêu cầu chờ duyệt")
-                              .arg(bc.accepted).arg(bc.required).arg(shortage).arg(bc.pending));
+      QString tooltip = QString(
+          "%1/%2 đã xếp, %3 vị trí thiếu, %4 yêu cầu chờ duyệt")
+                            .arg(bc.accepted).arg(bc.required)
+                            .arg(shortage).arg(bc.pending);
+      if (shortage > 0)
+        tooltip += QString::fromUtf8("\nThiếu theo vai trò: %1")
+                       .arg(missingRoleText(bc.missingByRole()));
+      compactCard->setToolTip(tooltip);
       ui->tableSum->setCellWidget(row, col, compactCard);
       continue;
 
@@ -467,7 +487,7 @@ void Schedule_View::updateManagerSummary(int totalShifts, int shortageShifts,
                                           int missingSlots, int staffedShifts)
 {
   if (lblManagerTotal) lblManagerTotal->setText(
-      QString("%1 ca / %2 đã đủ").arg(totalShifts).arg(staffedShifts));
+      QString("%1 ca / %2 đã đủ").arg(staffedShifts).arg(totalShifts));
   if (lblManagerShortage) lblManagerShortage->setText(
       QString("%1 ca / %2 vị trí").arg(shortageShifts).arg(missingSlots));
   if (lblManagerPending) lblManagerPending->setText(QString::number(pendingRequests));
@@ -511,12 +531,15 @@ void Schedule_View::updateManagerMissingShifts(
   for (int i = 0; i < missingList.size(); ++i)
   {
     const MissingShiftInfo &info = missingList[i];
-    int deficit = qMax(0, info.required - info.assigned);
+    int deficit = 0;
+    for (int roleDeficit : info.missingByRole)
+      deficit += roleDeficit;
     const int coverage = info.required > 0
-        ? qBound(0, qRound(100.0 * info.assigned / info.required), 100) : 100;
+        ? qBound(0, qRound(100.0 * (info.required - deficit) / info.required), 100)
+        : 100;
     const double deficitRatio = info.required > 0
         ? static_cast<double>(deficit) / info.required : 0.0;
-    tableMissingStaff->setRowHeight(i, 68);
+    tableMissingStaff->setRowHeight(i, info.missingByRole.isEmpty() ? 68 : 82);
 
     for (int column = 0; column < tableMissingStaff->columnCount(); ++column)
     {
@@ -587,6 +610,16 @@ void Schedule_View::updateManagerMissingShifts(
         "QProgressBar { background:#E2E8F0;border:none;border-radius:3px; }"
         "QProgressBar::chunk { background:#EF4444;border-radius:3px; }");
     staffingLayout->addWidget(staffingLabel);
+    if (!info.missingByRole.isEmpty())
+    {
+      QLabel *roleDeficitLabel = new QLabel(
+          QString::fromUtf8("Thiếu: %1").arg(missingRoleText(info.missingByRole)),
+          staffingCell);
+      roleDeficitLabel->setWordWrap(true);
+      roleDeficitLabel->setStyleSheet(
+          "color:#B91C1C;font-size:10px;font-weight:600;");
+      staffingLayout->addWidget(roleDeficitLabel);
+    }
     staffingLayout->addWidget(staffingProgress);
     tableMissingStaff->setCellWidget(i, 2, staffingCell);
 
