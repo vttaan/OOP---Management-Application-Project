@@ -15,7 +15,14 @@ public:
         QTime startTime;
         QTime endTime;
     };
-
+    struct AssignEdge {
+        Shift* shift;
+        int edgeIdx;
+        int empIdx;
+        int day;
+        int blk;
+        QTime assignStart, assignEnd;
+    };
 private:
     QVector<Shift*> shifts;
     QMap<User*, int> userMinutes;

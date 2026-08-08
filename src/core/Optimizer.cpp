@@ -51,7 +51,7 @@ int Optimizer::minCostFlow(int s,int t,int maxFlow,int &outCost){
     outCost=0;
     int flow=0;
     QVector<int>dist,prev_v,prev_e;
-    while(flow<maxFlow &&spfa(s,t,dist,prev_v,prev_e)){
+    while(flow<maxFlow && spfa(s,t,dist,prev_v,prev_e)){
         int pushed=maxFlow-flow;
         for(int v=t;v!=s;v=prev_v[v])
             pushed=qMin(pushed,m_edges[prev_e[v]].cap-m_edges[prev_e[v]].flow);
@@ -206,14 +206,6 @@ Optimizer::RoleSolveResult Optimizer::solveForRole(const QString& role,
         }
     }
 
-    struct AssignEdge {
-        Shift* shift;
-        int edgeIdx;
-        int empIdx;
-        int day;
-        int blk;
-        QTime assignStart, assignEnd;
-    };
     QVector<AssignEdge> assignEdges;
 
     QMap<QPair<int,int>, bool> dayCapOpened;
