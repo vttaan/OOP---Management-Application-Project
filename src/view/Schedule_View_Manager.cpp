@@ -487,7 +487,7 @@ void Schedule_View::updateManagerSummary(int totalShifts, int shortageShifts,
                                           int missingSlots, int staffedShifts)
 {
   if (lblManagerTotal) lblManagerTotal->setText(
-      QString("%1 ca / %2 đã đủ").arg(totalShifts).arg(staffedShifts));
+      QString("%1 ca / %2 đã đủ").arg(staffedShifts).arg(totalShifts));
   if (lblManagerShortage) lblManagerShortage->setText(
       QString("%1 ca / %2 vị trí").arg(shortageShifts).arg(missingSlots));
   if (lblManagerPending) lblManagerPending->setText(QString::number(pendingRequests));
